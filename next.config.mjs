@@ -1,0 +1,33 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const withTM = require('next-transpile-modules')(['fabric']);
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  webpack: (config) => {
+    config.externals = [...(config.externals || []), { canvas: 'canvas' }];
+    
+    // Ajouter une règle pour gérer les importations de fabric.js
+    config.module.rules.push({
+      test: /fabric(\.node)?\.js$/,
+      use: {
+        loader: 'null-loader',
+      },
+    });
+    
+    // Ajouter une condition pour vérifier si nous sommes dans un environnement navigateur
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      child_process: false,
+      net: false,
+      tls: false,
+      canvas: false,
+      jsdom: false,
+    };
+    
+    return config;
+  },
+};
+
+export default withTM(nextConfig);
