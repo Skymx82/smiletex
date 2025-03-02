@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { supabase } from '@/lib/supabase/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2023-10-16',
 });
 
 export async function GET(request: Request) {
@@ -37,33 +37,15 @@ export async function GET(request: Request) {
         status: session.payment_status === 'paid' ? 'paid' : 'pending',
         total_amount: session.amount_total ? session.amount_total / 100 : 0,
         shipping_address: session.shipping_details,
-        items: session.line_items?.data.map(item => {
-          // Récupérer les métadonnées de manière sécurisée
-          let size = 'N/A';
-          let color = 'N/A';
-          let productId = 'N/A';
-          
-          try {
-            // Utiliser une assertion de type avec as any pour éviter les erreurs de type
-            const product = item.price?.product as any;
-            if (product && product.metadata) {
-              size = product.metadata.size || 'N/A';
-              color = product.metadata.color || 'N/A';
-              productId = product.metadata.productId || 'N/A';
-            }
-          } catch (e) {
-            console.error('Erreur lors de l\'accès aux métadonnées du produit:', e);
-          }
-          
-          return {
-            name: item.description,
-            quantity: item.quantity,
-            price: item.amount_total ? item.amount_total / 100 / (item.quantity || 1) : 0,
-            size,
-            color,
-            product_id: productId,
-          };
-        }),
+        items: session.line_items?.data.map(item => ({
+          name: item.description,
+          quantity: item.quantity,
+          price: item.amount_total ? item.amount_total / 100 / (item.quantity || 1) : 0,
+          // Ces informations peuvent ne pas être disponibles directement depuis Stripe
+          size: item.price?.product?.metadata?.size || 'N/A',
+          color: item.price?.product?.metadata?.color || 'N/A',
+          product_id: item.price?.product?.metadata?.productId || 'N/A',
+        })),
       });
     }
 

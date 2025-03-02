@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { supabase } from '@/lib/supabase/client';
 import { headers } from 'next/headers';
+import { supabase } from '@/lib/supabase/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2023-10-16',
 });
 
 // Cette fonction gère les webhooks Stripe pour mettre à jour le statut des commandes
 export async function POST(request: Request) {
   const body = await request.text();
-  const headersList = await headers();
-  const signature = headersList.get('stripe-signature') as string;
+  const signature = headers().get('stripe-signature') as string;
 
   let event: Stripe.Event;
 

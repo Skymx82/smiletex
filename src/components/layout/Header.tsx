@@ -5,12 +5,6 @@ import Link from 'next/link';
 import { useCartContext } from '@/components/CartProvider';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Définir un type pour l'utilisateur
-type User = {
-  email?: string;
-  name?: string;
-} | null;
-
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -20,7 +14,7 @@ export default function Header() {
   
   // Valeurs temporaires pour le développement
   // const itemsCount = 0;
-  const user: User = null;
+  const user = null;
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -74,7 +68,7 @@ export default function Header() {
                     >
                       <span className="sr-only">Ouvrir le menu utilisateur</span>
                       <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                        {'U'}
+                        {user.email?.charAt(0).toUpperCase()}
                       </div>
                     </button>
                   </div>

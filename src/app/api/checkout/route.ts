@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/client';
 
 // Initialiser Stripe avec la clé secrète
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia', // Mise à jour vers la version compatible avec les types
+  apiVersion: '2023-10-16',
 });
 
 export async function POST(request: Request) {

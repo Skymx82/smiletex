@@ -87,12 +87,6 @@ export default function ProductDetail({ id }: { id: string }) {
       setIsAddingToCart(true);
       setStockError('');
 
-      // Vérifier que le produit existe
-      if (!product) {
-        setStockError('Produit non disponible');
-        return;
-      }
-
       // Vérifier les stocks avant d'ajouter au panier
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
         if (quantity > 0) {
