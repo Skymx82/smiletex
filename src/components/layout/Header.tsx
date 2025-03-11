@@ -96,7 +96,7 @@ export default function Header() {
           onClick={() => setMobileMenuOpen(false)}
         />
         {/* Menu mobile */}
-        <div className="fixed inset-y-0 right-0 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
+        <div className={`fixed inset-y-0 right-0 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="flex justify-end p-4">
             <button
               onClick={() => setMobileMenuOpen(false)}

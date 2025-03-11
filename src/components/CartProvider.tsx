@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ProductCustomization } from '@/types/customization';
+import { ProductCustomization } from '@/lib/customization';
 import { calculateCustomizationPrice } from '@/lib/customization';
 
 // Type pour un élément du panier

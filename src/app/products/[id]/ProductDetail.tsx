@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProduct, useStockCheck, useCategories } from '@/hooks/useProducts';
 import { useCartContext } from '@/components/CartProvider';
+import CustomizationModal from '@/components/CustomizationModal';
+import { ProductCustomization } from '@/lib/customization';
 
 // Type pour stocker les quantités par taille
 type SizeQuantities = {
@@ -21,6 +23,7 @@ export default function ProductDetail({ id }: { id: string }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [stockError, setStockError] = useState('');
+  const [isCustomizationModalOpen, setIsCustomizationModalOpen] = useState(false);
 
   // Sélectionner automatiquement la première couleur disponible
   useEffect(() => {
@@ -342,9 +345,78 @@ export default function ProductDetail({ id }: { id: string }) {
                 <Link
                   href={`/products/${id}/customize`}
                   className="block w-full py-3 px-4 rounded-lg font-bold text-indigo-600 bg-white border border-indigo-600 hover:bg-indigo-50 hover:shadow-md transition-all text-center"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsCustomizationModalOpen(true);
+                  }}
                 >
                   Personnaliser
                 </Link>
+
+                {/* Modal de personnalisation */}
+                <CustomizationModal
+                  isOpen={isCustomizationModalOpen}
+                  onClose={() => setIsCustomizationModalOpen(false)}
+                  onSave={async (customization: ProductCustomization) => {
+                    try {
+                      // Vérifier qu'une couleur est sélectionnée
+                      if (!selectedColor) {
+                        setStockError('Veuillez sélectionner une couleur');
+                        return;
+                      }
+
+                      // Vérifier qu'au moins une taille est sélectionnée
+                      const selectedSizesWithQuantities = Object.entries(sizeQuantities)
+                        .filter(([_, quantity]) => quantity > 0);
+
+                      if (selectedSizesWithQuantities.length === 0) {
+                        setStockError('Veuillez sélectionner au moins une taille et sa quantité');
+                        return;
+                      }
+
+                      // Ajouter au panier pour chaque taille sélectionnée
+                      for (const [size, quantity] of selectedSizesWithQuantities) {
+                        const variant = product.variants?.find(
+                          v => v.size === size && v.color === selectedColor
+                        );
+
+                        if (variant) {
+                          const cartItemId = `${product.id}-${variant.id}-${Date.now()}-${size}`;
+                          
+                          addToCart({
+                            id: cartItemId,
+                            productId: product.id,
+                            variantId: variant.id,
+                            name: product.name,
+                            price: product.base_price + (variant.price_adjustment || 0),
+                            quantity: quantity,
+                            size: size,
+                            color: selectedColor,
+                            imageUrl: product.image_url || '/images/placeholder.jpg',
+                            customization: customization
+                          });
+                        }
+                      }
+
+                      // Réinitialiser les quantités
+                      const resetQuantities: SizeQuantities = {};
+                      Object.keys(sizeQuantities).forEach(size => {
+                        resetQuantities[size] = 0;
+                      });
+                      setSizeQuantities(resetQuantities);
+
+                      setAddedToCart(true);
+                      setTimeout(() => {
+                        setAddedToCart(false);
+                      }, 3000);
+                      
+                      setIsCustomizationModalOpen(false);
+                    } catch (error) {
+                      console.error('Erreur lors de la personnalisation:', error);
+                      setStockError('Une erreur est survenue lors de l\'ajout au panier');
+                    }
+                  }}
+                />
               </div>
 
               {stockError && (

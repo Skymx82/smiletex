@@ -9,29 +9,28 @@ export function calculateCustomizationPrice(customization: ProductCustomization)
   let additionalPrice = 0;
   
   // Prix de base selon le type de marquage
-  if (customization.markingType === 'impression') {
-    additionalPrice += 5; // 5€ pour l'impression
-  } else if (customization.markingType === 'broderie') {
+  if (customization.type_impression === 'broderie') {
     additionalPrice += 10; // 10€ pour la broderie
+  } else if (customization.type_impression === 'flocage') {
+    additionalPrice += 5; // 5€ pour le flocage
   }
   
-  // Prix supplémentaire pour chaque élément de personnalisation
-  customization.customizations.forEach(item => {
-    if (item.type === 'text') {
-      // Le prix du texte dépend de la longueur
-      const textLength = item.content.length;
-      if (textLength <= 10) {
-        additionalPrice += 2;
-      } else if (textLength <= 20) {
-        additionalPrice += 3;
-      } else {
-        additionalPrice += 5;
-      }
-    } else if (item.type === 'image') {
-      // Prix fixe pour une image
-      additionalPrice += 7;
+  // Prix supplémentaire pour le texte
+  if (customization.texte) {
+    const textLength = customization.texte.length;
+    if (textLength <= 10) {
+      additionalPrice += 2;
+    } else if (textLength <= 20) {
+      additionalPrice += 3;
+    } else {
+      additionalPrice += 5;
     }
-  });
+  }
+  
+  // Prix supplémentaire pour l'image
+  if (customization.image_url) {
+    additionalPrice += 7;
+  }
   
   return additionalPrice;
 }
@@ -44,30 +43,29 @@ export function calculateCustomizationPrice(customization: ProductCustomization)
 export function getCustomizationDescription(customization: ProductCustomization): string {
   const elements: string[] = [];
   
-  // Type de marquage
-  elements.push(`${customization.markingType === 'impression' ? 'Impression' : 'Broderie'}`);
+  // Type d'impression
+  elements.push(customization.type_impression === 'broderie' ? 'Broderie' : 'Flocage');
   
-  // Nombre d'éléments de texte
-  const textElements = customization.customizations.filter(item => item.type === 'text');
-  if (textElements.length > 0) {
-    elements.push(`${textElements.length} texte(s)`);
-  }
+  // Position
+  elements.push(`Position: ${customization.position}`);
   
-  // Nombre d'images
-  const imageElements = customization.customizations.filter(item => item.type === 'image');
-  if (imageElements.length > 0) {
-    elements.push(`${imageElements.length} image(s)`);
-  }
-  
-  // Côtés personnalisés
-  const sides = new Set(customization.customizations.map(item => item.side));
-  if (sides.has('front') && sides.has('back')) {
-    elements.push('avant et arrière');
-  } else if (sides.has('front')) {
-    elements.push('avant uniquement');
-  } else if (sides.has('back')) {
-    elements.push('arrière uniquement');
+  // Texte ou image
+  if (customization.texte) {
+    elements.push(`Texte: "${customization.texte}"`);
+    elements.push(`Couleur: ${customization.couleur_texte}`);
+    elements.push(`Police: ${customization.police}`);
+  } else if (customization.image_url) {
+    elements.push('Image personnalisée');
   }
   
   return elements.join(', ');
+}
+
+export interface ProductCustomization {
+  type_impression: string;
+  position: string;
+  texte?: string;
+  couleur_texte?: string;
+  police?: string;
+  image_url?: string;
 }
