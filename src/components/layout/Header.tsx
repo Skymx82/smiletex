@@ -27,8 +27,8 @@ export default function Header() {
               <Link href="/products" className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
                 Produits
               </Link>
-              <Link href="/customizer" className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
-                Personnaliser
+              <Link href="/devis" className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
+                Devis Rapide
               </Link>
               <Link href="/about" className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
                 À propos
