@@ -4,92 +4,116 @@ import { headers } from 'next/headers';
 import { supabase } from '@/lib/supabase/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-02-24.acacia',
 });
 
-// Cette fonction gère les webhooks Stripe pour mettre à jour le statut des commandes
 export async function POST(request: Request) {
-  const body = await request.text();
-  const signature = headers().get('stripe-signature') as string;
-
-  let event: Stripe.Event;
-
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET as string
-    );
-  } catch (error: any) {
-    console.error(`Webhook signature verification failed: ${error.message}`);
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
+    const body = await request.text();
+    const headersList = await headers();
+    const signature = headersList.get('stripe-signature');
+    
+    if (!signature) {
+      throw new Error('No stripe signature found');
+    }
 
-  // Gérer les différents événements Stripe
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object as Stripe.Checkout.Session;
-      
-      // Mettre à jour le statut de la commande dans Supabase
-      if (session.metadata?.userId && session.metadata.userId !== 'guest') {
-        const { error } = await supabase
-          .from('orders')
-          .update({ status: 'paid' })
-          .eq('stripe_session_id', session.id);
+    let event: Stripe.Event;
 
-        if (error) {
-          console.error('Erreur lors de la mise à jour de la commande:', error);
+    try {
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET as string
+      );
+    } catch (error: any) {
+      console.error(`Webhook signature verification failed: ${error.message}`);
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderId = session.metadata?.orderId;
+        const userId = session.metadata?.userId;
+        const shippingDetails = session.shipping_details;
+
+        if (!orderId) {
+          throw new Error('Order ID not found in session metadata');
         }
 
-        // Mettre à jour le stock des produits
-        if (session.metadata.orderItems) {
-          const orderItems = JSON.parse(session.metadata.orderItems);
-          
-          for (const item of orderItems) {
-            // Récupérer la variante actuelle
-            const { data: variant, error: variantError } = await supabase
-              .from('product_variants')
-              .select('stock')
-              .eq('id', item.variantId)
-              .single();
+        // 1. Update order status and shipping details
+        const { error: orderError } = await supabase
+          .from('orders')
+          .update({
+            status: 'completed',
+            shipping_address: {
+              name: shippingDetails?.name,
+              address: {
+                line1: shippingDetails?.address?.line1,
+                line2: shippingDetails?.address?.line2,
+                city: shippingDetails?.address?.city,
+                postal_code: shippingDetails?.address?.postal_code,
+                country: shippingDetails?.address?.country,
+              },
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', orderId);
 
-            if (variantError) {
-              console.error('Erreur lors de la récupération de la variante:', variantError);
-              continue;
-            }
+        if (orderError) {
+          throw new Error(`Error updating order: ${orderError.message}`);
+        }
 
-            // Mettre à jour le stock
-            const newStock = Math.max(0, variant.stock - item.quantity);
-            const { error: updateError } = await supabase
-              .from('product_variants')
-              .update({ stock: newStock })
-              .eq('id', item.variantId);
+        // 2. Clear user's cart if they are logged in
+        if (userId && userId !== 'guest') {
+          const { data: cart } = await supabase
+            .from('carts')
+            .select('id')
+            .eq('user_id', userId)
+            .single();
 
-            if (updateError) {
-              console.error('Erreur lors de la mise à jour du stock:', updateError);
-            }
+          if (cart) {
+            // Supprimer d'abord les articles du panier
+            await supabase
+              .from('cart_items')
+              .delete()
+              .eq('cart_id', cart.id);
+
+            // Puis supprimer le panier
+            await supabase
+              .from('carts')
+              .delete()
+              .eq('id', cart.id);
           }
         }
-      }
-      break;
+        break;
 
-    case 'payment_intent.payment_failed':
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      
-      // Mettre à jour le statut de la commande en cas d'échec
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: 'failed' })
-        .eq('payment_intent', paymentIntent.id);
+      case 'payment_intent.payment_failed':
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        
+        const { error } = await supabase
+          .from('orders')
+          .update({ 
+            status: 'failed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('payment_intent_id', paymentIntent.id);
 
-      if (error) {
-        console.error('Erreur lors de la mise à jour de la commande échouée:', error);
-      }
-      break;
+        if (error) {
+          console.error('Error updating failed order:', error);
+        }
+        break;
 
-    default:
-      console.log(`Événement non géré: ${event.type}`);
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (error: any) {
+    console.error('Webhook error:', error);
+    return NextResponse.json(
+      { error: `Webhook Error: ${error.message}` },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ received: true });
 }

@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/hooks/useCart';
 import { useRouter } from 'next/navigation';
-import { getStripe } from '@/lib/stripe/client';
 
 export default function CartPage() {
   const { cart, isLoading, total, removeFromCart, updateQuantity, clearCart, createCheckoutSession } = useCart();
@@ -22,20 +21,21 @@ export default function CartPage() {
       setIsProcessing(true);
       
       // Créer une session de paiement Stripe
-      const { sessionId, url } = await createCheckoutSession();
+      const response = await createCheckoutSession();
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
       
       // Rediriger vers la page de paiement Stripe
-      if (url) {
-        window.location.href = url;
+      if (response.url) {
+        window.location.href = response.url;
       } else {
-        const stripe = await getStripe();
-        if (stripe) {
-          await stripe.redirectToCheckout({ sessionId });
-        }
+        throw new Error('URL de paiement non reçue');
       }
     } catch (error) {
       console.error('Erreur lors du checkout:', error);
-      alert('Une erreur est survenue lors de la création de la session de paiement.');
+      alert(error instanceof Error ? error.message : 'Une erreur est survenue lors de la création de la session de paiement.');
     } finally {
       setIsProcessing(false);
     }
