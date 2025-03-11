@@ -55,44 +55,6 @@ export default function Header() {
                 </span>
               )}
             </Link>
-            <div className="ml-4 flex items-center md:ml-6">
-              {user ? (
-                <div className="relative ml-3">
-                  <div>
-                    <button
-                      type="button"
-                      className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-                      id="user-menu-button"
-                      aria-expanded="false"
-                      aria-haspopup="true"
-                    >
-                      <span className="sr-only">Ouvrir le menu utilisateur</span>
-                      <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                        {user.email?.charAt(0).toUpperCase()}
-                      </div>
-                    </button>
-                  </div>
-                  <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden">
-                    <Link href="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Mon compte
-                    </Link>
-                    <Link href="/account/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Mes commandes
-                    </Link>
-                    <button
-                      onClick={() => {/* signOut() */}}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Déconnexion
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <Link href="/login" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-                  Connexion
-                </Link>
-              )}
-            </div>
             <div className="-mr-2 flex md:hidden">
               <button
                 onClick={toggleMobileMenu}

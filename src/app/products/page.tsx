@@ -43,7 +43,7 @@ export default function ProductsPage() {
         {/* Hero section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Nos Produits Smiletext</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
             Découvrez notre gamme de produits personnalisables. Choisissez un article, 
             ajoutez votre design et créez un produit unique avec Smiletext.
           </p>
@@ -53,7 +53,7 @@ export default function ProductsPage() {
         {categoriesLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Chargement des catégories...</p>
+            <p className="mt-4 text-gray-700">Chargement des catégories...</p>
           </div>
         ) : categoriesError ? (
           <div className="text-center py-8 text-red-600">
@@ -87,7 +87,7 @@ export default function ProductsPage() {
         {productsLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Chargement des produits...</p>
+            <p className="mt-4 text-gray-700">Chargement des produits...</p>
           </div>
         ) : productsError ? (
           <div className="text-center py-8 text-red-600">
@@ -122,13 +122,13 @@ export default function ProductsPage() {
             </div>
 
             {sortedProducts.length === 0 ? (
-              <div className="text-center py-12 text-gray-600">
+              <div className="text-center py-12 text-gray-700">
                 Aucun produit ne correspond à vos critères.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {sortedProducts.map((product) => (
-                  <div key={product.id} className="bg-gray-50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <div key={product.id} className="bg-gray-50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow text-black">
                     <Link href={`/products/${product.id}`}>
                       <div className="relative h-64">
                         <Image
@@ -153,7 +153,7 @@ export default function ProductsPage() {
                       <Link href={`/products/${product.id}`}>
                         <h3 className="text-lg font-semibold mb-2 hover:text-indigo-600">{product.name}</h3>
                       </Link>
-                      <p className="text-gray-600 mb-4">{product.description}</p>
+                      <p className="text-gray-700 mb-4">{product.description}</p>
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-bold">{product.base_price.toFixed(2)} €</span>
                         <Link 

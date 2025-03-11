@@ -205,7 +205,7 @@ export default function ProductDetail({ id }: { id: string }) {
             </div>
             
             {/* Informations du produit */}
-            <div className="flex flex-col">
+            <div className="flex flex-col text-black">
               <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
               <p className="text-xl font-semibold mb-4">{product.base_price.toFixed(2)} €</p>
 

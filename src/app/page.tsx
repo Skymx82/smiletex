@@ -65,7 +65,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
               {featuredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div key={product.id} className="bg-white text-black rounded-lg shadow-md overflow-hidden">
                   <Link href={`/products/${product.id}`}>
                     <div className="relative h-64">
                       <Image

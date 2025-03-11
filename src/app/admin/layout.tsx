@@ -147,15 +147,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </svg>
               </button>
             </div>
-            <div className="relative ml-4">
-              <button className="flex text-sm bg-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
-                <img
-                  className="w-8 h-8 rounded-full"
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                  alt="Admin"
-                />
-              </button>
-            </div>
           </div>
         </header>
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
