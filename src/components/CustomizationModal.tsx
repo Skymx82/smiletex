@@ -98,8 +98,27 @@ export default function CustomizationModal({ isOpen, onClose, onSave }: Customiz
                   }`}
                   onClick={() => setCustomization({ ...customization, type_impression: 'broderie' })}
                 >
-                  <h3 className="font-bold">Broderie</h3>
-                  <p className="text-sm text-gray-500">Résistant et élégant</p>
+                  <div className="flex justify-between items-start">
+                    <div className="text-left">
+                      <h3 className="font-bold text-lg mb-2">Broderie</h3>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-900">✓ Résistant aux lavages fréquents</p>
+                        <p className="text-sm text-gray-900">✓ Aspect haut de gamme et professionnel</p>
+                        <p className="text-sm text-gray-900">✓ Idéal pour les logos d'entreprise</p>
+                        <p className="text-sm text-gray-900">✓ Dure plusieurs années</p>
+                      </div>
+                      <p className="mt-3 text-sm text-gray-600">Recommandé pour : Uniformes, polos, casquettes</p>
+                    </div>
+                    <div className="w-24 h-24 border rounded-lg flex items-center justify-center ml-4">
+                      <Image
+                        src="/images/broderie.png"
+                        alt="Exemple de broderie sur textile"
+                        width={80}
+                        height={80}
+                        className="object-contain"
+                      />
+                    </div>
+                  </div>
                 </button>
                 <button
                   className={`w-full p-4 border rounded-lg ${
@@ -109,28 +128,106 @@ export default function CustomizationModal({ isOpen, onClose, onSave }: Customiz
                   }`}
                   onClick={() => setCustomization({ ...customization, type_impression: 'flocage' })}
                 >
-                  <h3 className="font-bold">Flocage</h3>
-                  <p className="text-sm text-gray-500">Durable et économique</p>
+                  <div className="flex justify-between items-start">
+                    <div className="text-left">
+                      <h3 className="font-bold text-lg mb-2">Flocage</h3>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-900">✓ Excellent rapport qualité-prix</p>
+                        <p className="text-sm text-gray-900">✓ Rendu mat et doux au toucher</p>
+                        <p className="text-sm text-gray-900">✓ Parfait pour les designs colorés</p>
+                        <p className="text-sm text-gray-900">✓ Application rapide</p>
+                      </div>
+                      <p className="mt-3 text-sm text-gray-600">Recommandé pour : T-shirts, sweats, textiles sportifs</p>
+                    </div>
+                    <div className="w-24 h-24 border rounded-lg flex items-center justify-center ml-4">
+                      <Image
+                        src="/images/flocage.jpg"
+                        alt="Exemple de flocage sur textile"
+                        width={80}
+                        height={80}
+                        className="object-contain"
+                      />
+                    </div>
+                  </div>
                 </button>
               </div>
             )}
 
             {/* Étape 2: Position */}
             {step === 2 && (
-              <div className="space-y-4">
-                {['haut', 'centre', 'bas'].map((pos) => (
-                  <button
-                    key={pos}
-                    className={`w-full p-4 border rounded-lg ${
-                      customization.position === pos
-                        ? 'border-indigo-600 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-300'
-                    }`}
-                    onClick={() => setCustomization({ ...customization, position: pos })}
-                  >
-                    <h3 className="font-bold capitalize">{pos}</h3>
-                  </button>
-                ))}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-bold mb-3">Devant</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {[
+                      { id: 'devant-pec', label: 'Pec Gauche', alt: 'Petit logo sur le pec gauche, style professionnel' },
+                      { id: 'devant-pecs', label: 'Deux Pecs', alt: 'Texte ou logo étendu sur la largeur des pecs' },
+                      { id: 'devant-complet', label: 'Devant Complet', alt: 'Design qui prend tout le devant du t-shirt' }
+                    ].map((pos) => (
+                      <button
+                        key={pos.id}
+                        className={`w-full p-4 border rounded-lg ${
+                          customization.position === pos.id
+                            ? 'border-indigo-600 bg-indigo-50'
+                            : 'border-gray-200 hover:border-indigo-300'
+                        }`}
+                        onClick={() => setCustomization({ ...customization, position: pos.id })}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-bold text-left">{pos.label}</h3>
+                            <p className="text-sm text-gray-900 text-left mt-1">{pos.alt}</p>
+                          </div>
+                          <div className="w-20 h-20 border rounded-lg flex items-center justify-center">
+                            <Image
+                              src={`/images/positions/${pos.id}.png`}
+                              alt={pos.alt}
+                              width={64}
+                              height={64}
+                              className="object-contain"
+                            />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-bold mb-3">Dos</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {[
+                      { id: 'dos-haut', label: 'Haut du Dos', alt: 'Bande en haut du dos, parfait pour les noms' },
+                      { id: 'dos-complet', label: 'Dos Complet', alt: 'Design qui prend tout le dos du t-shirt' }
+                    ].map((pos) => (
+                      <button
+                        key={pos.id}
+                        className={`w-full p-4 border rounded-lg ${
+                          customization.position === pos.id
+                            ? 'border-indigo-600 bg-indigo-50'
+                            : 'border-gray-200 hover:border-indigo-300'
+                        }`}
+                        onClick={() => setCustomization({ ...customization, position: pos.id })}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-bold text-left">{pos.label}</h3>
+                            <p className="text-sm text-gray-900 text-left mt-1">{pos.alt}</p>
+                          </div>
+                          <div className="w-20 h-20 border rounded-lg flex items-center justify-center">
+                            <Image
+                              src={`/images/positions/${pos.id}.png`}
+                              alt={pos.alt}
+                              width={64}
+                              height={64}
+                              className="object-contain"
+                            />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
