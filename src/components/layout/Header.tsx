@@ -89,20 +89,60 @@ export default function Header() {
         </div>
       </div>
 
-      <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <Link href="/products" className="text-gray-500 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">
-            Produits
-          </Link>
-          <Link href="/customizer" className="text-gray-500 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">
-            Personnaliser
-          </Link>
-          <Link href="/about" className="text-gray-500 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">
-            À propos
-          </Link>
-          <Link href="/contact" className="text-gray-500 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">
-            Contact
-          </Link>
+      <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden fixed inset-0 z-50`}>
+        {/* Overlay sombre */}
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+        {/* Menu mobile */}
+        <div className="fixed inset-y-0 right-0 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
+          <div className="flex justify-end p-4">
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                className="h-6 w-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="px-4 py-2 space-y-3">
+            <Link 
+              href="/products" 
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors duration-150"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Produits
+            </Link>
+            <Link 
+              href="/customizer" 
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors duration-150"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Personnaliser
+            </Link>
+            <Link 
+              href="/about" 
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors duration-150"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              À propos
+            </Link>
+            <Link 
+              href="/contact" 
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors duration-150"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Contact
+            </Link>
+          </div>
         </div>
       </div>
     </header>
