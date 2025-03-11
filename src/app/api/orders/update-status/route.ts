@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     // Mettre à jour le statut de la commande
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .update({ status: 'completed' })
+      .update({ status: 'processing' })
       .eq('id', orderId)
       .select()
       .single();

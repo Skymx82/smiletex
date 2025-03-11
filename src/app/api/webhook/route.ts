@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         const { error: orderError } = await supabase
           .from('orders')
           .update({
-            status: 'completed',
+            status: 'processing',
             shipping_address: {
               name: shippingDetails?.name,
               address: {
