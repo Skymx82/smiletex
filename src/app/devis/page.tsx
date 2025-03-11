@@ -31,17 +31,36 @@ export default function DevisRapide() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Ici nous enverrons le devis par email plus tard
-    alert("Votre demande de devis a été envoyée ! Nous vous contacterons très rapidement.");
-    setStep(1);
-    setFormData({
-      type: '',
-      quantity: '',
-      text: '',
-      email: '',
-      phone: '',
-      name: ''
-    });
+    
+    try {
+      const response = await fetch('/api/send-devis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Votre demande de devis a été envoyée ! Vous recevrez bientôt un email de confirmation.");
+        setStep(1);
+        setFormData({
+          type: '',
+          quantity: '',
+          text: '',
+          email: '',
+          phone: '',
+          name: ''
+        });
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      alert("Une erreur est survenue lors de l'envoi du devis. Veuillez réessayer.");
+      console.error('Erreur:', error);
+    }
   };
 
   return (
