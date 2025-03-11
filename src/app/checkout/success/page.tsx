@@ -54,7 +54,21 @@ function CheckoutSuccess() {
           throw new Error('Session ID non trouvé');
         }
 
-        // 1. Récupérer l'ID de la commande via l'API
+        // 1. Mettre à jour le statut de la commande
+        const updateResponse = await fetch('/api/orders/update-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sessionId }),
+        });
+
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.json();
+          throw new Error(errorData.error || 'Erreur lors de la mise à jour du statut');
+        }
+
+        // 2. Récupérer l'ID de la commande via l'API
         const response = await fetch(`/api/orders/session/${sessionId}`);
         const data = await response.json();
         
@@ -68,7 +82,7 @@ function CheckoutSuccess() {
           throw new Error('ID de commande non trouvé');
         }
 
-        // 2. Récupérer la commande avec l'ID
+        // 3. Récupérer la commande avec l'ID
         const { data: order, error: orderError } = await supabase
           .from('orders')
           .select('*')
@@ -86,7 +100,7 @@ function CheckoutSuccess() {
           shippingAddress: order.shipping_address
         });
 
-        // 2. Récupérer les articles de la commande avec les détails des produits
+        // 4. Récupérer les articles de la commande avec les détails des produits
         const { data: orderItems, error: itemsError } = await supabase
           .from('order_items')
           .select(`
@@ -101,7 +115,7 @@ function CheckoutSuccess() {
           throw new Error('Aucun article trouvé dans la commande');
         }
 
-        // 3. Formater les articles pour l'affichage
+        // 5. Formater les articles pour l'affichage
         const formattedItems = orderItems.map(item => ({
           id: item.id,
           productId: item.product_id,
