@@ -21,3 +21,13 @@ body {
   background: var(--background);
   font-family: var(--font-sans);
 }
+
+/* Masquer la barre de défilement tout en gardant la fonctionnalité */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer et Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari et Opera */
+}

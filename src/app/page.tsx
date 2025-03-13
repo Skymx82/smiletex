@@ -63,33 +63,36 @@ export default function Home() {
               Aucun produit populaire n'est disponible pour le moment.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-              {featuredProducts.map((product) => (
-                <div key={product.id} className="bg-white text-black rounded-lg shadow-md overflow-hidden">
-                  <Link href={`/products/${product.id}`}>
-                    <div className="relative h-64">
-                      <Image
-                        src={product.image_url}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                      />
+            <div className="overflow-x-auto">
+              <div className="flex gap-6 md:grid md:grid-cols-2 lg:grid-cols-3 min-w-max md:min-w-0 mt-8">
+                {featuredProducts.map((product) => (
+                  <div key={product.id} className="w-80 md:w-auto bg-white text-black rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden flex-shrink-0">
+                    <Link href={`/products/${product.id}`}>
+                      <div className="relative h-64">
+                        <Image
+                          src={product.image_url}
+                          alt={product.name}
+                          fill
+                          sizes="(max-width: 640px) 320px, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    </Link>
+                    <div className="p-4">
+                      <Link href={`/products/${product.id}`}>
+                        <h3 className="text-lg font-semibold mb-1 hover:text-indigo-600">{product.name}</h3>
+                      </Link>
+                      <p className="text-gray-600 mb-2">{product.description}</p>
+                      <p className="text-indigo-600 font-bold">{product.base_price.toFixed(2)} €</p>
+                      <Link href={`/products/${product.id}`}>
+                        <button className="w-full mt-4 bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700 transition">
+                          Voir le produit
+                        </button>
+                      </Link>
                     </div>
-                  </Link>
-                  <div className="p-4">
-                    <Link href={`/products/${product.id}`}>
-                      <h3 className="text-lg font-semibold mb-1 hover:text-indigo-600">{product.name}</h3>
-                    </Link>
-                    <p className="text-gray-600 mb-2">{product.description}</p>
-                    <p className="text-indigo-600 font-bold">{product.base_price.toFixed(2)} €</p>
-                    <Link href={`/products/${product.id}`}>
-                      <button className="w-full mt-4 bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700 transition">
-                        Voir le produit
-                      </button>
-                    </Link>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
           
@@ -154,6 +157,63 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Inspiration Section */}
+      <section className="py-16 md:py-24">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Inspirez-vous</h2>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+              Découvrez nos créations et laissez-vous inspirer pour votre prochain projet personnalisé.
+            </p>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <div className="flex gap-4 md:grid md:grid-cols-2 lg:grid-cols-4 min-w-max md:min-w-0">
+              <div className="w-72 md:w-auto relative aspect-square overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                <Image
+                  src="/images/inspiration.jpg"
+                  alt="Inspiration 1"
+                  fill
+                  sizes="(max-width: 640px) 288px, (max-width: 1024px) 50vw, 25vw"
+                  quality={90}
+                  priority
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="w-72 md:w-auto relative aspect-square overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                <Image
+                  src="/images/inspiration (1).jpg"
+                  alt="Inspiration 2"
+                  fill
+                  sizes="(max-width: 640px) 288px, (max-width: 1024px) 50vw, 25vw"
+                  quality={90}
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="w-72 md:w-auto relative aspect-square overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                <Image
+                  src="/images/inspiration (2).jpg"
+                  alt="Inspiration 3"
+                  fill
+                  sizes="(max-width: 640px) 288px, (max-width: 1024px) 50vw, 25vw"
+                  quality={90}
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="w-72 md:w-auto relative aspect-square overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                <Image
+                  src="/images/inspiration (3).jpg"
+                  alt="Inspiration 4"
+                  fill
+                  sizes="(max-width: 640px) 288px, (max-width: 1024px) 50vw, 25vw"
+                  quality={90}
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* Testimonials */}
       <section className="py-16 md:py-24">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">

@@ -129,11 +129,11 @@ export default function Header() {
               Produits
             </Link>
             <Link 
-              href="/customizer" 
+              href="/devis" 
               className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Personnaliser
+              Devis rapide
             </Link>
             <Link 
               href="/about" 
