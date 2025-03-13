@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { itemCount } = useCartContext();
-  const user = null;
+  const { user, signOut } = useAuth();
 
   return (
     <header className="bg-[#121236] text-white shadow-md relative z-40">
@@ -39,8 +39,39 @@ export default function Header() {
             </nav>
           </div>
 
-          {/* Panier et menu mobile */}
-          <div className="flex items-center">
+          {/* Panier, connexion et menu mobile */}
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <div className="hidden md:flex items-center space-x-4">
+                <Link href="/account" className="text-white hover:text-indigo-200">
+                  <span className="sr-only">Mon compte</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </Link>
+                <button
+                  onClick={() => signOut()}
+                  className="text-white hover:text-indigo-200 text-sm font-medium"
+                >
+                  Déconnexion
+                </button>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center space-x-4">
+                <Link
+                  href="/login"
+                  className="text-white hover:text-indigo-200 text-sm font-medium"
+                >
+                  Connexion
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Inscription
+                </Link>
+              </div>
+            )}
             <Link href="/cart" className="p-2 text-white hover:text-indigo-200 relative">
               <span className="sr-only">Panier</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,6 +180,43 @@ export default function Header() {
             >
               Contact
             </Link>
+            {user ? (
+              <>
+                <Link 
+                  href="/account" 
+                  className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Mon compte
+                </Link>
+                <button
+                  onClick={() => {
+                    signOut();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  href="/login" 
+                  className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Connexion
+                </Link>
+                <Link 
+                  href="/register" 
+                  className="block px-4 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors duration-150"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Inscription
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
