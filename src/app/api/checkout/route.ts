@@ -11,6 +11,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { items, userId }: { items: CartItem[]; userId?: string } = body;
+    
+    console.log('Checkout request body:', { items: items.length, userId });
 
     if (!items || items.length === 0) {
       return NextResponse.json(
@@ -103,16 +105,23 @@ export async function POST(request: Request) {
     });
 
     // Créer une commande en attente dans Supabase
+    const orderData = {
+      user_id: userId || null,
+      status: 'pending',
+      total_amount: items.reduce((sum: number, item: CartItem) => sum + (item.price * item.quantity), 0) + 4.99,
+      shipping_cost: 4.99
+    };
+    
+    console.log('Creating order with data:', orderData);
+    
     const { data: pendingOrder, error: orderError } = await supabase
       .from('orders')
-      .insert({
-        user_id: userId || null,
-        status: 'pending',
-        total_amount: items.reduce((sum: number, item: CartItem) => sum + (item.price * item.quantity), 0) + 4.99,
-        shipping_cost: 4.99
-      })
+      .insert(orderData)
       .select()
       .single();
+      
+    console.log('Created pending order:', pendingOrder);
+    console.log('Order error:', orderError);
 
     if (orderError) throw orderError;
 
@@ -149,10 +158,17 @@ export async function POST(request: Request) {
     });
 
     // Mettre à jour la commande avec l'ID de la session
-    await supabase
+    const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')
-      .update({ payment_intent_id: session.payment_intent })
-      .eq('id', pendingOrder.id);
+      .update({ 
+        payment_intent_id: session.payment_intent,
+        user_id: userId || null // S'assurer que l'ID utilisateur est bien enregistré
+      })
+      .eq('id', pendingOrder.id)
+      .select();
+      
+    console.log('Updated order with payment intent:', updatedOrder);
+    console.log('Update error:', updateError);
 
     return NextResponse.json({ 
       orderId: pendingOrder.id,

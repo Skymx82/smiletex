@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useUser } from '@supabase/auth-helpers-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { CartItem } from '@/types/cart';
 import Link from 'next/link';
@@ -27,7 +27,7 @@ function CheckoutSuccess() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [orderItems, setOrderItems] = useState<CartItem[]>([]);
-  const user = useUser();
+  const { user } = useAuth();
   const [orderDetails, setOrderDetails] = useState<{
     total: number;
     shippingCost: number;
@@ -60,7 +60,10 @@ function CheckoutSuccess() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ sessionId }),
+          body: JSON.stringify({ 
+            sessionId,
+            userId: user?.id // Inclure l'ID utilisateur
+          }),
         });
 
         if (!updateResponse.ok) {

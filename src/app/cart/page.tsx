@@ -5,11 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/hooks/useCart';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import AuthModal from '@/components/AuthModal';
 
 export default function CartPage() {
   const { cart, isLoading, total, removeFromCart, updateQuantity, clearCart, createCheckoutSession } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
   
   const shippingCost = cart.length > 0 ? 4.99 : 0;
   const subtotal = total;
@@ -17,6 +21,13 @@ export default function CartPage() {
 
   // Fonction pour procéder au paiement
   const handleCheckout = async () => {
+    // Vérifier si l'utilisateur est connecté
+    if (!user) {
+      // Ouvrir le modal d'authentification si l'utilisateur n'est pas connecté
+      setIsAuthModalOpen(true);
+      return;
+    }
+    
     try {
       setIsProcessing(true);
       
@@ -35,6 +46,34 @@ export default function CartPage() {
       }
     } catch (error) {
       console.error('Erreur lors du checkout:', error);
+      alert(error instanceof Error ? error.message : 'Une erreur est survenue lors de la création de la session de paiement.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Fonction appelée après une authentification réussie
+  const handleAuthSuccess = async () => {
+    setIsAuthModalOpen(false);
+    
+    try {
+      setIsProcessing(true);
+      
+      // Créer une session de paiement Stripe directement sans rappeler handleCheckout
+      const response = await createCheckoutSession();
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      // Rediriger vers la page de paiement Stripe
+      if (response.url) {
+        window.location.href = response.url;
+      } else {
+        throw new Error('URL de paiement non reçue');
+      }
+    } catch (error) {
+      console.error('Erreur lors du checkout après authentification:', error);
       alert(error instanceof Error ? error.message : 'Une erreur est survenue lors de la création de la session de paiement.');
     } finally {
       setIsProcessing(false);
@@ -211,6 +250,13 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+      
+      {/* Modal d'authentification */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        onSuccess={handleAuthSuccess} 
+      />
     </div>
   );
 }

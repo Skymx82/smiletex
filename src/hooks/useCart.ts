@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@supabase/auth-helpers-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   addToCart as addToCartUtil, 
   getCart as getCartUtil, 
   removeFromCart as removeFromCartUtil,
   updateCartItemQuantity as updateCartItemQuantityUtil,
   clearCart as clearCartUtil,
-  calculateCartTotal
+  calculateCartTotal,
+  getLocalCart
 } from '@/lib/cart';
 import { CartItem, CartResponse } from '@/types/cart';
 
@@ -16,13 +17,14 @@ export function useCart() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);
-  const user = useUser();
+  const { user } = useAuth();
 
   // Initialiser le panier au chargement
   useEffect(() => {
     const initCart = async () => {
       try {
-        const cartItems = await getCartUtil(user?.id);
+        // Utiliser directement le panier local
+        const cartItems = getLocalCart();
         setCart(cartItems);
         setTotal(calculateCartTotal(cartItems));
       } catch (error) {
@@ -33,12 +35,22 @@ export function useCart() {
     };
 
     initCart();
-  }, [user?.id]);
+    
+    // Écouter les changements du localStorage
+    const handleStorageChange = () => {
+      const cartItems = getLocalCart();
+      setCart(cartItems);
+      setTotal(calculateCartTotal(cartItems));
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Ajouter un article au panier
   const addToCart = async (item: CartItem) => {
     try {
-      const updatedCart = await addToCartUtil(item, user?.id);
+      const updatedCart = await addToCartUtil(item);
       setCart(updatedCart);
       setTotal(calculateCartTotal(updatedCart));
       return updatedCart;
@@ -51,7 +63,7 @@ export function useCart() {
   // Supprimer un article du panier
   const removeFromCart = async (itemId: string) => {
     try {
-      const updatedCart = await removeFromCartUtil(itemId, user?.id);
+      const updatedCart = await removeFromCartUtil(itemId);
       setCart(updatedCart);
       setTotal(calculateCartTotal(updatedCart));
       return updatedCart;
@@ -64,7 +76,7 @@ export function useCart() {
   // Mettre à jour la quantité d'un article
   const updateQuantity = async (itemId: string, quantity: number) => {
     try {
-      const updatedCart = await updateCartItemQuantityUtil(itemId, quantity, user?.id);
+      const updatedCart = await updateCartItemQuantityUtil(itemId, quantity);
       setCart(updatedCart);
       setTotal(calculateCartTotal(updatedCart));
       return updatedCart;
@@ -77,7 +89,7 @@ export function useCart() {
   // Vider le panier
   const clearCart = async () => {
     try {
-      const emptyCart = await clearCartUtil(user?.id);
+      const emptyCart = await clearCartUtil();
       setCart(emptyCart);
       setTotal(0);
       return emptyCart;
@@ -90,6 +102,11 @@ export function useCart() {
   // Créer une session de paiement Stripe
   const createCheckoutSession = async (shippingDetails?: any): Promise<CartResponse> => {
     try {
+      // S'assurer que l'ID utilisateur est correctement transmis
+      const userId = user?.id;
+      
+      console.log('Creating checkout session with user ID:', userId);
+      
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
@@ -97,7 +114,7 @@ export function useCart() {
         },
         body: JSON.stringify({
           items: cart,
-          userId: user?.id,
+          userId,
           shippingDetails,
         }),
       });
