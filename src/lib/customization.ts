@@ -1,11 +1,22 @@
-import { ProductCustomization } from '@/types/customization';
+/**
+ * Interface pour la personnalisation simplifiée utilisée dans l'application
+ */
+export interface SimpleProductCustomization {
+  type_impression: string;
+  position: string;
+  texte?: string;
+  couleur_texte?: string;
+  police?: string;
+  image_url?: string;
+  type: 'text' | 'image'; // Type de personnalisation (texte ou image)
+}
 
 /**
  * Calcule le prix supplémentaire pour une personnalisation
  * @param customization - L'objet de personnalisation du produit
  * @returns Le prix supplémentaire en euros
  */
-export function calculateCustomizationPrice(customization: ProductCustomization): number {
+export function calculateCustomizationPrice(customization: SimpleProductCustomization): number {
   let additionalPrice = 0;
   
   // Prix de base selon le type de marquage
@@ -40,7 +51,7 @@ export function calculateCustomizationPrice(customization: ProductCustomization)
  * @param customization - L'objet de personnalisation du produit
  * @returns Une description textuelle de la personnalisation
  */
-export function getCustomizationDescription(customization: ProductCustomization): string {
+export function getCustomizationDescription(customization: SimpleProductCustomization): string {
   const elements: string[] = [];
   
   // Type d'impression
@@ -59,13 +70,4 @@ export function getCustomizationDescription(customization: ProductCustomization)
   }
   
   return elements.join(', ');
-}
-
-export interface ProductCustomization {
-  type_impression: string;
-  position: string;
-  texte?: string;
-  couleur_texte?: string;
-  police?: string;
-  image_url?: string;
 }

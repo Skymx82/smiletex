@@ -11,29 +11,29 @@ export default function Header() {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="bg-[#121236] text-white shadow-md relative z-40">
+    <header className="bg-indigo-50 text-black shadow-md relative z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold">Smiletex</span>
+              <span className="text-2xl font-bold text-indigo-700">Smiletex</span>
             </Link>
           </div>
 
           {/* Navigation centrale sur PC */}
           <div className="hidden md:flex flex-1 justify-center items-center">
             <nav className="flex space-x-8">
-              <Link href="/products" className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
+              <Link href="/products" className="text-black hover:text-indigo-700 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
                 Produits
               </Link>
-              <Link href="/devis" className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
+              <Link href="/devis" className="text-black hover:text-indigo-700 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
                 Devis Rapide
               </Link>
-              <Link href="/about" className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
+              <Link href="/about" className="text-black hover:text-indigo-700 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
                 À propos
               </Link>
-              <Link href="/contact" className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
+              <Link href="/contact" className="text-black hover:text-indigo-700 px-3 py-2 rounded-md text-base font-medium flex items-center h-16">
                 Contact
               </Link>
             </nav>
@@ -43,7 +43,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="hidden md:flex items-center space-x-4">
-                <Link href="/account" className="text-white hover:text-indigo-200">
+                <Link href="/account" className="text-black hover:text-indigo-700">
                   <span className="sr-only">Mon compte</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -51,7 +51,7 @@ export default function Header() {
                 </Link>
                 <button
                   onClick={() => signOut()}
-                  className="text-white hover:text-indigo-200 text-sm font-medium"
+                  className="text-black hover:text-indigo-700 text-sm font-medium"
                 >
                   Déconnexion
                 </button>
@@ -60,7 +60,7 @@ export default function Header() {
               <div className="hidden md:flex items-center space-x-4">
                 <Link
                   href="/login"
-                  className="text-white hover:text-indigo-200 text-sm font-medium"
+                  className="text-black hover:text-indigo-700 text-sm font-medium"
                 >
                   Connexion
                 </Link>
@@ -72,7 +72,7 @@ export default function Header() {
                 </Link>
               </div>
             )}
-            <Link href="/cart" className="p-2 text-white hover:text-indigo-200 relative">
+            <Link href="/cart" className="p-2 text-black hover:text-indigo-700 relative">
               <span className="sr-only">Panier</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -86,7 +86,7 @@ export default function Header() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               type="button"
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-white hover:text-indigo-200 hover:bg-[#1a1a4f] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-black hover:text-indigo-700 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
               aria-expanded="false"
             >
               <span className="sr-only">Ouvrir le menu principal</span>
@@ -131,14 +131,14 @@ export default function Header() {
         />
         {/* Panneau du menu */}
         <div 
-          className={`fixed inset-y-0 right-0 w-64 bg-[#121236] shadow-xl transform transition-transform duration-300 ease-in-out ${
+          className={`fixed inset-y-0 right-0 w-64 bg-indigo-50 shadow-xl transform transition-transform duration-300 ease-in-out ${
             mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           <div className="flex justify-end p-4">
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="text-white hover:text-indigo-200"
+              className="text-black hover:text-indigo-700"
             >
               <svg
                 className="h-6 w-6"
@@ -154,28 +154,28 @@ export default function Header() {
           <div className="px-4 py-2 space-y-3">
             <Link 
               href="/products" 
-              className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+              className="block px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
               onClick={() => setMobileMenuOpen(false)}
             >
               Produits
             </Link>
             <Link 
               href="/devis" 
-              className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+              className="block px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
               onClick={() => setMobileMenuOpen(false)}
             >
               Devis rapide
             </Link>
             <Link 
               href="/about" 
-              className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+              className="block px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
               onClick={() => setMobileMenuOpen(false)}
             >
               À propos
             </Link>
             <Link 
               href="/contact" 
-              className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+              className="block px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact
@@ -184,7 +184,7 @@ export default function Header() {
               <>
                 <Link 
                   href="/account" 
-                  className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+                  className="block px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Mon compte
@@ -194,7 +194,7 @@ export default function Header() {
                     signOut();
                     setMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+                  className="block w-full text-left px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
                 >
                   Déconnexion
                 </button>
@@ -203,7 +203,7 @@ export default function Header() {
               <>
                 <Link 
                   href="/login" 
-                  className="block px-4 py-2 text-base font-medium text-white hover:bg-[#1a1a4f] hover:text-indigo-200 rounded-lg transition-colors duration-150"
+                  className="block px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Connexion

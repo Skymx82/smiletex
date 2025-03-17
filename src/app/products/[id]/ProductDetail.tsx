@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useProduct, useStockCheck, useCategories } from '@/hooks/useProducts';
 import { useCartContext } from '@/components/CartProvider';
 import CustomizationModal from '@/components/CustomizationModal';
-import { ProductCustomization } from '@/lib/customization';
+import { SimpleProductCustomization } from '@/lib/customization';
 
 // Type pour stocker les quantités par taille
 type SizeQuantities = {
@@ -24,6 +24,8 @@ export default function ProductDetail({ id }: { id: string }) {
   const [addedToCart, setAddedToCart] = useState(false);
   const [stockError, setStockError] = useState('');
   const [isCustomizationModalOpen, setIsCustomizationModalOpen] = useState(false);
+  const [showEmbeddedCustomization, setShowEmbeddedCustomization] = useState(false);
+  const [customizationData, setCustomizationData] = useState<SimpleProductCustomization | null>(null);
 
   // Sélectionner automatiquement la première couleur disponible
   useEffect(() => {
@@ -93,7 +95,7 @@ export default function ProductDetail({ id }: { id: string }) {
       // Vérifier les stocks avant d'ajouter au panier
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
         if (quantity > 0) {
-          const variant = product.variants?.find(
+          const variant = product?.variants?.find(
             v => v.size === size && v.color === selectedColor
           );
 
@@ -109,11 +111,11 @@ export default function ProductDetail({ id }: { id: string }) {
       // Ajouter chaque taille sélectionnée au panier
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
         if (quantity > 0) {
-          const variant = product.variants?.find(
+          const variant = product?.variants?.find(
             v => v.size === size && v.color === selectedColor
           );
 
-          if (variant) {
+          if (variant && product) {
             // Créer un ID unique pour cet élément du panier
             const cartItemId = `${product.id}-${variant.id}-${Date.now()}`;
             
@@ -138,6 +140,84 @@ export default function ProductDetail({ id }: { id: string }) {
         resetQuantities[size] = 0;
       });
       setSizeQuantities(resetQuantities);
+      
+      // Réinitialiser la personnalisation
+      setCustomizationData(null);
+      setShowEmbeddedCustomization(false);
+      
+      setAddedToCart(true);
+      
+      // Masquer le message de succès après 3 secondes
+      setTimeout(() => {
+        setAddedToCart(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout au panier:', error);
+      setStockError('Une erreur est survenue lors de l\'ajout au panier');
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+  
+  // Fonction pour ajouter au panier avec personnalisation
+  const handleAddToCartWithCustomization = async (customizationData: SimpleProductCustomization) => {
+    try {
+      setIsAddingToCart(true);
+      setStockError('');
+
+      // Vérifier les stocks avant d'ajouter au panier
+      for (const [size, quantity] of Object.entries(sizeQuantities)) {
+        if (quantity > 0) {
+          const variant = product?.variants?.find(
+            v => v.size === size && v.color === selectedColor
+          );
+
+          if (variant) {
+            if (variant.stock_quantity < quantity) {
+              setStockError(`Stock insuffisant pour la taille ${size}. Disponible: ${variant.stock_quantity}`);
+              return;
+            }
+          }
+        }
+      }
+
+      // Ajouter chaque taille sélectionnée au panier avec personnalisation
+      for (const [size, quantity] of Object.entries(sizeQuantities)) {
+        if (quantity > 0) {
+          const variant = product?.variants?.find(
+            v => v.size === size && v.color === selectedColor
+          );
+
+          if (variant && product) {
+            // Créer un ID unique pour cet élément du panier
+            const cartItemId = `${product.id}-${variant.id}-${Date.now()}`;
+            
+            addToCart({
+              id: cartItemId,
+              productId: product.id,
+              variantId: variant.id,
+              name: product.name,
+              price: product.base_price + (variant.price_adjustment || 0),
+              quantity: quantity,
+              size: size,
+              color: selectedColor,
+              imageUrl: product.image_url || '/images/placeholder.jpg',
+              customization: customizationData
+            });
+          }
+        }
+      }
+
+      // Réinitialiser les quantités
+      const resetQuantities: SizeQuantities = {};
+      Object.keys(sizeQuantities).forEach(size => {
+        resetQuantities[size] = 0;
+      });
+      setSizeQuantities(resetQuantities);
+      
+      // Réinitialiser la personnalisation
+      setCustomizationData(null);
+      setShowEmbeddedCustomization(false);
       
       setAddedToCart(true);
       
@@ -319,6 +399,90 @@ export default function ProductDetail({ id }: { id: string }) {
                 </div>
               )}
               
+              {/* Section de personnalisation intégrée */}
+              <div className="mb-6 border border-indigo-200 rounded-lg overflow-hidden">
+                <button 
+                  onClick={() => setShowEmbeddedCustomization(!showEmbeddedCustomization)}
+                  className={`w-full flex justify-between items-center p-4 ${customizationData ? 'bg-green-50 text-green-800 border-b border-green-200' : 'bg-indigo-50 text-indigo-800'} font-bold transition-colors duration-300`}
+                >
+                  <span className="flex items-center">
+                    {customizationData && (
+                      <svg 
+                        className="w-5 h-5 mr-2 text-green-600" 
+                        fill="currentColor" 
+                        viewBox="0 0 20 20" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path 
+                          fillRule="evenodd" 
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" 
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                    {customizationData ? 'Personnalisation enregistrée' : 'Personnaliser votre produit'}
+                  </span>
+                  <svg
+                    className={`h-5 w-5 transition-transform ${showEmbeddedCustomization ? 'rotate-180' : ''}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                
+                {customizationData && !showEmbeddedCustomization && (
+                  <div className="p-4 bg-green-50 border-b border-green-200 animate-fadeIn">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mr-3">
+                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                          {customizationData.type === 'text' ? (
+                            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                          ) : (
+                            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-green-800">Type: {customizationData.type === 'text' ? 'Texte' : 'Image'}</h4>
+                        <p className="text-sm text-green-700">Position: {customizationData.position.replace('-', ' ').charAt(0).toUpperCase() + customizationData.position.replace('-', ' ').slice(1)}</p>
+                        {customizationData.type === 'text' && customizationData.texte && (
+                          <p className="mt-1 text-sm font-medium text-green-800 bg-white p-1 rounded border border-green-200">"{customizationData.texte}"</p>
+                        )}
+                        <button 
+                          onClick={() => setShowEmbeddedCustomization(true)}
+                          className="mt-2 text-xs text-green-700 hover:text-green-900 underline"
+                        >
+                          Modifier
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {showEmbeddedCustomization && (
+                  <CustomizationModal
+                    isOpen={true}
+                    isEmbedded={true}
+                    initialCustomization={customizationData}
+                    onClose={() => setShowEmbeddedCustomization(false)}
+                    onSave={(customization: SimpleProductCustomization) => {
+                      setCustomizationData(customization);
+                      setShowEmbeddedCustomization(false);
+                    }}
+                  />
+                )}
+              </div>
+              
               {/* Boutons d'action */}
               <div className="mt-auto space-y-4">
                 <button
@@ -328,7 +492,13 @@ export default function ProductDetail({ id }: { id: string }) {
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-lg'
                   }`}
-                  onClick={handleAddToCart}
+                  onClick={() => {
+                    if (customizationData) {
+                      handleAddToCartWithCustomization(customizationData);
+                    } else {
+                      handleAddToCart();
+                    }
+                  }}
                   disabled={isAddingToCart || totalItemsSelected === 0}
                 >
                   {isAddingToCart ? (
@@ -341,17 +511,6 @@ export default function ProductDetail({ id }: { id: string }) {
                     </span>
                   ) : 'Ajouter au panier'}
                 </button>
-                
-                <Link
-                  href={`/products/${id}/customize`}
-                  className="block w-full py-3 px-4 rounded-lg font-bold text-indigo-600 bg-white border border-indigo-600 hover:bg-indigo-50 hover:shadow-md transition-all text-center"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsCustomizationModalOpen(true);
-                  }}
-                >
-                  Personnaliser
-                </Link>
 
                 {/* Modal de personnalisation */}
                 <CustomizationModal
