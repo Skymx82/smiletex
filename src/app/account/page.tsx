@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { fetchCustomerProfile, upsertCustomerProfile, CustomerProfile } from '@/lib/supabase/services/userService';
 
 // Type pour les commandes
 type Order = {
@@ -43,14 +44,46 @@ export default function Account() {
     last_name: '',
     email: '',
     phone: '',
-    address: '',
+    address_line1: '',
+    address_line2: '',
     city: '',
-    postal_code: ''
+    postal_code: '',
+    country: 'France'
   });
 
-  // Récupérer les commandes de l'utilisateur
+  // Récupérer le profil de l'utilisateur
   useEffect(() => {
     if (user) {
+      const fetchProfile = async () => {
+        try {
+          // Récupérer le profil depuis Supabase
+          const customerProfile = await fetchCustomerProfile(user.id);
+          
+          if (customerProfile) {
+            setProfile({
+              first_name: customerProfile.first_name || '',
+              last_name: customerProfile.last_name || '',
+              email: user.email || '',
+              phone: customerProfile.phone || '',
+              address_line1: customerProfile.address_line1 || '',
+              address_line2: customerProfile.address_line2 || '',
+              city: customerProfile.city || '',
+              postal_code: customerProfile.postal_code || '',
+              country: customerProfile.country || 'France'
+            });
+          } else {
+            // Si le profil n'existe pas encore, on initialise avec l'email
+            setProfile(prev => ({ ...prev, email: user.email || '' }));
+          }
+        } catch (error) {
+          console.error('Erreur lors de la récupération du profil:', error);
+        }
+      };
+      
+      fetchProfile();
+      
+      // Récupérer les commandes de l'utilisateur
+
       const fetchOrders = async () => {
         setIsLoadingOrders(true);
         try {
@@ -146,11 +179,40 @@ export default function Account() {
     setIsSaving(true);
     setError('');
 
-    // Simulation d'une sauvegarde
-    setTimeout(() => {
+    try {
+      if (!user) {
+        throw new Error('Utilisateur non connecté');
+      }
+
+      // Préparer les données du profil
+      const customerProfile: CustomerProfile = {
+        id: user.id,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        phone: profile.phone,
+        address_line1: profile.address_line1,
+        address_line2: profile.address_line2,
+        city: profile.city,
+        postal_code: profile.postal_code,
+        country: profile.country,
+        updated_at: new Date().toISOString()
+      };
+
+      // Enregistrer dans Supabase
+      const updatedProfile = await upsertCustomerProfile(customerProfile);
+      
+      if (!updatedProfile) {
+        throw new Error('Erreur lors de la mise à jour du profil');
+      }
+
+      // Mise à jour réussie
       setIsEditing(false);
+    } catch (err: any) {
+      console.error('Erreur lors de la sauvegarde du profil:', err);
+      setError(err.message || 'Une erreur est survenue lors de la sauvegarde');
+    } finally {
       setIsSaving(false);
-    }, 1000);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,7 +221,7 @@ export default function Account() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12 text-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-8">
@@ -244,14 +306,28 @@ export default function Account() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Adresse</label>
+                    <label className="block text-sm font-medium text-gray-700">Adresse ligne 1</label>
                     <input
                       type="text"
-                      name="address"
-                      value={profile.address || ''}
+                      name="address_line1"
+                      value={profile.address_line1 || ''}
                       onChange={handleInputChange}
                       disabled={!isEditing}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+                      placeholder="Numéro et nom de rue"
+                    />
+                  </div>
+                  
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Adresse ligne 2</label>
+                    <input
+                      type="text"
+                      name="address_line2"
+                      value={profile.address_line2 || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+                      placeholder="Complément d'adresse (optionnel)"
                     />
                   </div>
 
@@ -273,6 +349,18 @@ export default function Account() {
                       type="text"
                       name="postal_code"
                       value={profile.postal_code || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Pays</label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={profile.country || ''}
                       onChange={handleInputChange}
                       disabled={!isEditing}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"

@@ -85,6 +85,8 @@ export default function OrdersPage() {
         return 'bg-yellow-100 text-yellow-800';
       case 'processing':
         return 'bg-blue-100 text-blue-800';
+      case 'shipped':
+        return 'bg-purple-100 text-purple-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
@@ -209,6 +211,48 @@ export default function OrdersPage() {
                   </span></p>
                   <p>Frais de livraison: {selectedOrder.shipping_cost.toFixed(2)}€</p>
                   <p className="font-semibold">Total: {selectedOrder.total_amount.toFixed(2)}€</p>
+                  
+                  {/* Actions rapides pour la commande */}
+                  <div className="mt-4">
+                    <h4 className="font-semibold mb-2">Actions</h4>
+                    <div className="flex space-x-2">
+                      {selectedOrder.status === 'processing' && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateOrderStatus(selectedOrder.id, 'shipped');
+                          }}
+                          className="px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors flex items-center"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Marquer comme envoyée
+                        </button>
+                      )}
+                      {selectedOrder.status === 'shipped' && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateOrderStatus(selectedOrder.id, 'completed');
+                          }}
+                          className="px-3 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition-colors flex items-center"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Marquer comme terminée
+                        </button>
+                      )}
+                      <StatusSelector
+                        currentStatus={selectedOrder.status}
+                        onChange={(newStatus) => {
+                          updateOrderStatus(selectedOrder.id, newStatus);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

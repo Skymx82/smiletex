@@ -19,7 +19,13 @@ export default function ProductsPage() {
     
     // Filtrer par catégorie si une catégorie est sélectionnée
     if (selectedCategory) {
-      filteredProducts = filteredProducts.filter(p => p.category_id === selectedCategory);
+      // Trouver toutes les sous-catégories de la catégorie sélectionnée
+      const childCategories = categories.filter(cat => cat.parent_id === selectedCategory).map(cat => cat.id);
+      
+      // Inclure les produits de la catégorie sélectionnée ET de ses sous-catégories
+      filteredProducts = filteredProducts.filter(p => 
+        p.category_id === selectedCategory || childCategories.includes(p.category_id)
+      );
     }
     
     // Trier les produits
@@ -61,8 +67,12 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="mb-12">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Catégories</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Catégories</h2>
+            </div>
+            
             <div className="flex flex-wrap gap-3">
+              {/* Bouton Tous */}
               <button 
                 key="all"
                 onClick={() => setSelectedCategory('')}
@@ -70,15 +80,53 @@ export default function ProductsPage() {
               >
                 Tous
               </button>
-              {categories.map((category) => (
-                <button 
-                  key={category.id} 
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 ${selectedCategory === category.id ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800'} rounded-md transition-colors duration-200 border ${selectedCategory === category.id ? 'border-indigo-700' : 'border-gray-200'} hover:border-indigo-300`}
-                >
-                  {category.name}
-                </button>
-              ))}
+              
+              {/* Catégories principales avec menu déroulant */}
+              {(() => {
+                // Trouver toutes les catégories racines (sans parent)
+                const rootCategories = categories.filter(cat => !cat.parent_id);
+                
+                return rootCategories.map(rootCat => {
+                  // Trouver les sous-catégories pour cette catégorie racine
+                  const childCategories = categories.filter(cat => cat.parent_id === rootCat.id);
+                  
+                  // Vérifier si cette catégorie ou l'une de ses sous-catégories est sélectionnée
+                  const isSelected = selectedCategory === rootCat.id || 
+                                     childCategories.some(child => child.id === selectedCategory);
+                  
+                  return (
+                    <div key={rootCat.id} className="relative group z-10">
+                      {/* Catégorie principale */}
+                      <button 
+                        onClick={() => setSelectedCategory(rootCat.id)}
+                        className={`px-4 py-2 ${isSelected ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800'} ${childCategories.length > 0 ? 'rounded-t-md' : 'rounded-md'} transition-colors duration-200 border ${isSelected ? 'border-indigo-700' : 'border-gray-200'} hover:border-indigo-300 flex items-center`}
+                      >
+                        <span>{rootCat.name}</span>
+                        {childCategories.length > 0 && (
+                          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                          </svg>
+                        )}
+                      </button>
+                      
+                      {/* Sous-catégories (visibles au survol) */}
+                      {childCategories.length > 0 && (
+                        <div className="absolute left-0 hidden group-hover:block min-w-full bg-white shadow-md rounded-b-md overflow-hidden z-20 border border-gray-200 border-t-0">
+                          {childCategories.map(childCat => (
+                            <button 
+                              key={childCat.id} 
+                              onClick={() => setSelectedCategory(childCat.id)}
+                              className={`block w-full text-left px-4 py-2 whitespace-nowrap ${selectedCategory === childCat.id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700 hover:bg-gray-100'} transition-colors`}
+                            >
+                              {childCat.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         )}
@@ -97,7 +145,7 @@ export default function ProductsPage() {
           <div>
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900">Tous les Produits</h2>
-              <div className="flex space-x-4">
+              <div>
                 <select 
                   className="border border-gray-300 rounded-md py-2 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   value={sortBy}
@@ -107,16 +155,6 @@ export default function ProductsPage() {
                   <option value="price_asc">Prix croissant</option>
                   <option value="price_desc">Prix décroissant</option>
                   <option value="newest">Nouveautés</option>
-                </select>
-                <select 
-                  className="border border-gray-300 rounded-md py-2 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="">Toutes catégories</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
-                  ))}
                 </select>
               </div>
             </div>

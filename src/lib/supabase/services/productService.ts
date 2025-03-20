@@ -43,10 +43,17 @@ export async function fetchProductVariants(productId: string): Promise<ProductVa
   return data || [];
 }
 
-export async function fetchCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
+export async function fetchCategories(parentIdFilter?: boolean): Promise<Category[]> {
+  let query = supabase
     .from('categories')
     .select('*');
+    
+  // Si parentIdFilter est true, ne récupérer que les catégories principales (sans parent_id)
+  if (parentIdFilter) {
+    query = query.is('parent_id', null);
+  }
+  
+  const { data, error } = await query;
   
   if (error) {
     console.error('Error fetching categories:', error);
@@ -54,6 +61,57 @@ export async function fetchCategories(): Promise<Category[]> {
   }
   
   return data || [];
+}
+
+// Récupérer une catégorie par son ID
+export async function fetchCategoryById(id: string): Promise<Category | null> {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error(`Error fetching category with id ${id}:`, error);
+    return null;
+  }
+  
+  return data;
+}
+
+// Récupérer toutes les sous-catégories d'une catégorie parent
+export async function fetchSubcategories(parentId: string): Promise<Category[]> {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('parent_id', parentId);
+  
+  if (error) {
+    console.error(`Error fetching subcategories for parent ${parentId}:`, error);
+    return [];
+  }
+  
+  return data || [];
+}
+
+// Récupérer le chemin complet d'une catégorie (catégorie -> parent -> grand-parent...)
+export async function fetchCategoryPath(categoryId: string): Promise<Category[]> {
+  const path: Category[] = [];
+  let currentCategoryId = categoryId;
+  
+  while (currentCategoryId) {
+    const category = await fetchCategoryById(currentCategoryId);
+    
+    if (!category) break;
+    
+    path.unshift(category); // Ajouter au début du tableau pour avoir le chemin dans l'ordre
+    
+    if (!category.parent_id) break;
+    
+    currentCategoryId = category.parent_id;
+  }
+  
+  return path;
 }
 
 export async function fetchProductsByCategory(categoryId: string): Promise<Product[]> {

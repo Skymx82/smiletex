@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useFeaturedProducts } from "@/hooks/useProducts";
+import TrustBadge from "@/components/TrustBadge";
+import TechniquesMarquage from "@/components/TechniquesMarquage";
 
 export default function Home() {
   const { products: featuredProducts, loading, error } = useFeaturedProducts();
@@ -29,21 +31,24 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link href="/products" className="bg-white text-indigo-800 px-8 py-4 rounded-lg font-bold text-lg shadow-lg hover:bg-indigo-50 transition-all">
-                Découvrir nos produits
+                Personnaliser en ligne
               </Link>
-              <Link href="/about" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-indigo-800 transition-all">
-                En savoir plus
+              <Link href="/devis" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-indigo-800 transition-all">
+                Devis rapide 24h
               </Link>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Trust Badge */}
+      <TrustBadge />
+
       {/* Featured Products */}
       <section className="py-16 md:py-24">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Nos produits populaires</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Catégories de produits personnalisés </h2>
             <p className="text-lg text-gray-700 max-w-3xl mx-auto">
               Découvrez notre sélection de vêtements les plus appréciés par nos clients.
             </p>
@@ -156,6 +161,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Techniques de marquage Section */}
+      <TechniquesMarquage />
 
       {/* Inspiration Section */}
       <section className="py-16 md:py-24">

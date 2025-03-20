@@ -62,17 +62,56 @@ export function useProduct(id: string) {
   return { product, loading, error };
 }
 
-export function useCategories() {
+// Type pour représenter une catégorie avec ses sous-catégories
+export interface CategoryWithChildren extends Category {
+  children?: CategoryWithChildren[];
+}
+
+export function useCategories(parentIdFilter: boolean = false) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [hierarchicalCategories, setHierarchicalCategories] = useState<CategoryWithChildren[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  // Fonction utilitaire pour construire une structure hiérarchique des catégories
+  const buildCategoryHierarchy = (categories: Category[]): CategoryWithChildren[] => {
+    // Créer une map pour un accès rapide aux catégories par ID
+    const categoryMap: Record<string, CategoryWithChildren> = {};
+    
+    // Convertir toutes les catégories en CategoryWithChildren
+    categories.forEach(category => {
+      categoryMap[category.id] = { ...category, children: [] };
+    });
+    
+    // Construire la hiérarchie
+    const rootCategories: CategoryWithChildren[] = [];
+    
+    categories.forEach(category => {
+      if (category.parent_id && categoryMap[category.parent_id]) {
+        // C'est une sous-catégorie, l'ajouter à son parent
+        if (!categoryMap[category.parent_id].children) {
+          categoryMap[category.parent_id].children = [];
+        }
+        categoryMap[category.parent_id].children!.push(categoryMap[category.id]);
+      } else {
+        // C'est une catégorie racine
+        rootCategories.push(categoryMap[category.id]);
+      }
+    });
+    
+    return rootCategories;
+  };
 
   useEffect(() => {
     async function fetchCategoriesData() {
       try {
         setLoading(true);
-        const data = await productService.fetchCategories();
+        const data = await productService.fetchCategories(parentIdFilter);
         setCategories(data);
+        
+        // Construire la hiérarchie des catégories
+        const hierarchical = buildCategoryHierarchy(data);
+        setHierarchicalCategories(hierarchical);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'));
       } finally {
@@ -81,9 +120,9 @@ export function useCategories() {
     }
 
     fetchCategoriesData();
-  }, []);
+  }, [parentIdFilter]);
 
-  return { categories, loading, error };
+  return { categories, hierarchicalCategories, loading, error };
 }
 
 export function useFeaturedProducts() {

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { CartItem } from '@/types/cart';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useCart } from '@/hooks/useCart';
 
 export default function CheckoutSuccessPage() {
   return (
@@ -28,6 +29,7 @@ function CheckoutSuccess() {
   const [error, setError] = useState<string | null>(null);
   const [orderItems, setOrderItems] = useState<CartItem[]>([]);
   const { user } = useAuth();
+  const { clearCart } = useCart();
   const [orderDetails, setOrderDetails] = useState<{
     total: number;
     shippingCost: number;
@@ -53,6 +55,9 @@ function CheckoutSuccess() {
         if (!sessionId) {
           throw new Error('Session ID non trouvé');
         }
+        
+        // Vider le panier après la confirmation de la commande
+        await clearCart();
 
         // 1. Mettre à jour le statut de la commande
         const updateResponse = await fetch('/api/orders/update-status', {
@@ -272,7 +277,7 @@ function CheckoutSuccess() {
             <div className="mt-8 text-center space-y-4">
               {user && (
                 <Link
-                  href="/account/orders"
+                  href="/account"
                   className="inline-flex items-center px-6 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 mr-4"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
