@@ -96,7 +96,10 @@ export default function Account() {
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
-          if (ordersError) throw ordersError;
+          // Ne pas lancer d'erreur si aucune commande n'est trouvée
+          if (ordersError && ordersError.code !== 'PGRST116') {
+            console.log('Non-critical error fetching orders:', ordersError);
+          }
           
           console.log('Orders found by user_id:', ordersData?.length || 0);
           
@@ -112,7 +115,10 @@ export default function Account() {
               .select('order_id')
               .eq('user_id', user.id);
               
-            if (orderItemsError) throw orderItemsError;
+            // Ne pas lancer d'erreur si aucun élément de commande n'est trouvé
+            if (orderItemsError && orderItemsError.code !== 'PGRST116') {
+              console.log('Non-critical error fetching order items:', orderItemsError);
+            }
             
             if (orderItemsData && orderItemsData.length > 0) {
               console.log('Order items found:', orderItemsData.length);
@@ -127,7 +133,10 @@ export default function Account() {
                 .in('id', orderIds)
                 .order('created_at', { ascending: false });
                 
-              if (relatedOrdersError) throw relatedOrdersError;
+              // Ne pas lancer d'erreur si aucune commande associée n'est trouvée
+              if (relatedOrdersError && relatedOrdersError.code !== 'PGRST116') {
+                console.log('Non-critical error fetching related orders:', relatedOrdersError);
+              }
               
               console.log('Related orders found:', relatedOrders?.length || 0);
               finalOrdersData = relatedOrders || [];
@@ -146,7 +155,10 @@ export default function Account() {
                 `)
                 .eq('order_id', order.id);
 
-              if (itemsError) throw itemsError;
+              // Ne pas lancer d'erreur si aucun élément de commande n'est trouvé
+              if (itemsError && itemsError.code !== 'PGRST116') {
+                console.log('Non-critical error fetching order items details:', itemsError);
+              }
 
               return {
                 ...order,
@@ -160,6 +172,8 @@ export default function Account() {
           }
         } catch (error) {
           console.error('Erreur lors de la récupération des commandes:', error);
+          // En cas d'erreur, on définit simplement un tableau vide pour les commandes
+          setOrders([]);
         } finally {
           setIsLoadingOrders(false);
         }

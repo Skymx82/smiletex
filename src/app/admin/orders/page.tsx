@@ -4,6 +4,18 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import StatusSelector from '@/components/admin/StatusSelector';
 
+interface CustomerProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  postal_code: string;
+  country: string;
+}
+
 interface Order {
   id: string;
   created_at: string;
@@ -12,6 +24,7 @@ interface Order {
   shipping_cost: number;
   shipping_address: any;
   user_id: string;
+  customer_profile?: CustomerProfile;
   items: Array<{
     id: string;
     product: {
@@ -53,7 +66,24 @@ export default function OrdersPage() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrders(orders || []);
+      
+      // Récupérer les profils clients pour chaque commande
+      const ordersWithProfiles = await Promise.all((orders || []).map(async (order) => {
+        if (order.user_id) {
+          const { data: profile, error: profileError } = await supabase
+            .from('customer_profiles')
+            .select('*')
+            .eq('id', order.user_id)
+            .single();
+          
+          if (!profileError && profile) {
+            return { ...order, customer_profile: profile };
+          }
+        }
+        return order;
+      }));
+      
+      setOrders(ordersWithProfiles || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des commandes:', error);
     } finally {
@@ -190,7 +220,16 @@ export default function OrdersPage() {
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <h3 className="font-semibold mb-2">Informations de livraison</h3>
-                {selectedOrder.shipping_address ? (
+                {selectedOrder.customer_profile ? (
+                  <div className="text-sm text-gray-900">
+                    <p><span className="font-medium">Nom:</span> {selectedOrder.customer_profile.first_name} {selectedOrder.customer_profile.last_name}</p>
+                    <p><span className="font-medium">Téléphone:</span> {selectedOrder.customer_profile.phone || 'Non renseigné'}</p>
+                    <p><span className="font-medium">Adresse:</span> {selectedOrder.customer_profile.address_line1}</p>
+                    {selectedOrder.customer_profile.address_line2 && <p>{selectedOrder.customer_profile.address_line2}</p>}
+                    <p>{selectedOrder.customer_profile.postal_code} {selectedOrder.customer_profile.city}</p>
+                    <p>{selectedOrder.customer_profile.country}</p>
+                  </div>
+                ) : selectedOrder.shipping_address ? (
                   <div className="text-sm text-gray-900">
                     <p>{selectedOrder.shipping_address.name}</p>
                     <p>{selectedOrder.shipping_address.address?.line1}</p>

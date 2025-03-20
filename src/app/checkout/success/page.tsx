@@ -58,6 +58,13 @@ function CheckoutSuccess() {
         
         // Vider le panier après la confirmation de la commande
         await clearCart();
+        
+        // Vider directement le localStorage pour s'assurer que le panier est bien vidé
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('cart');
+          // Déclencher un événement storage pour mettre à jour les autres onglets
+          window.dispatchEvent(new Event('storage'));
+        }
 
         // 1. Mettre à jour le statut de la commande
         const updateResponse = await fetch('/api/orders/update-status', {

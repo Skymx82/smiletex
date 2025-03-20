@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     }
 
     // Mettre à jour le statut de la commande et l'ID utilisateur si nécessaire
-    const updateData: { status: string; user_id?: string } = { status: 'completed' };
+    const updateData: { status: string; user_id?: string } = { status: 'pending' };
     
     console.log('Order ID:', orderId);
     console.log('User ID from Stripe:', userIdFromStripe);

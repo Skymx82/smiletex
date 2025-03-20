@@ -1,17 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/hooks/useCart';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
+import AddressModal from '@/components/AddressModal';
+import { fetchCustomerProfile } from '@/lib/supabase/services/userService';
 
 export default function CartPage() {
   const { cart, isLoading, total, removeFromCart, updateQuantity, clearCart, createCheckoutSession } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [hasAddress, setHasAddress] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
   
@@ -19,12 +23,41 @@ export default function CartPage() {
   const subtotal = total;
   const totalWithShipping = subtotal + shippingCost;
 
+  // Vérifier si l'utilisateur a une adresse renseignée
+  useEffect(() => {
+    const checkUserAddress = async () => {
+      if (user) {
+        try {
+          const profile = await fetchCustomerProfile(user.id);
+          // Vérifier si les champs d'adresse obligatoires sont remplis
+          if (profile && profile.address_line1 && profile.city && profile.postal_code) {
+            setHasAddress(true);
+          } else {
+            setHasAddress(false);
+          }
+        } catch (error) {
+          console.error('Erreur lors de la vérification de l\'adresse:', error);
+          setHasAddress(false);
+        }
+      }
+    };
+    
+    checkUserAddress();
+  }, [user]);
+
   // Fonction pour procéder au paiement
   const handleCheckout = async () => {
     // Vérifier si l'utilisateur est connecté
     if (!user) {
       // Ouvrir le modal d'authentification si l'utilisateur n'est pas connecté
       setIsAuthModalOpen(true);
+      return;
+    }
+    
+    // Vérifier si l'utilisateur a une adresse renseignée
+    if (!hasAddress) {
+      // Ouvrir le modal d'adresse si l'utilisateur n'a pas d'adresse
+      setIsAddressModalOpen(true);
       return;
     }
     
@@ -56,6 +89,13 @@ export default function CartPage() {
   const handleAuthSuccess = async () => {
     setIsAuthModalOpen(false);
     
+    // Vérifier si l'utilisateur a une adresse renseignée
+    if (!hasAddress) {
+      // Ouvrir le modal d'adresse si l'utilisateur n'a pas d'adresse
+      setIsAddressModalOpen(true);
+      return;
+    }
+    
     try {
       setIsProcessing(true);
       
@@ -74,6 +114,35 @@ export default function CartPage() {
       }
     } catch (error) {
       console.error('Erreur lors du checkout après authentification:', error);
+      alert(error instanceof Error ? error.message : 'Une erreur est survenue lors de la création de la session de paiement.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  // Fonction appelée après l'enregistrement réussi de l'adresse
+  const handleAddressSuccess = async () => {
+    setIsAddressModalOpen(false);
+    setHasAddress(true);
+    
+    try {
+      setIsProcessing(true);
+      
+      // Créer une session de paiement Stripe
+      const response = await createCheckoutSession();
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      // Rediriger vers la page de paiement Stripe
+      if (response.url) {
+        window.location.href = response.url;
+      } else {
+        throw new Error('URL de paiement non reçue');
+      }
+    } catch (error) {
+      console.error('Erreur lors du checkout après enregistrement de l\'adresse:', error);
       alert(error instanceof Error ? error.message : 'Une erreur est survenue lors de la création de la session de paiement.');
     } finally {
       setIsProcessing(false);
@@ -256,6 +325,13 @@ export default function CartPage() {
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
         onSuccess={handleAuthSuccess} 
+      />
+      
+      {/* Modal d'adresse */}
+      <AddressModal 
+        isOpen={isAddressModalOpen} 
+        onClose={() => setIsAddressModalOpen(false)} 
+        onSuccess={handleAddressSuccess} 
       />
     </div>
   );
