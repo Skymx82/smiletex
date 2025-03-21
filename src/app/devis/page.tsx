@@ -81,7 +81,7 @@ export default function DevisRapide() {
             {['Produit', 'Personnalisation', 'Contact'].map((label, index) => (
               <div
                 key={label}
-                className={`text-sm font-medium ${
+                className={`text-xl font-medium ${
                   step > index + 1 ? 'text-indigo-600' : step === index + 1 ? 'text-indigo-600' : 'text-gray-500'
                 }`}
               >
