@@ -99,7 +99,7 @@ export default function DevisRapide() {
 
         {/* Étape 1: Choix du produit */}
         {step === 1 && (
-          <div className="bg-white shadow rounded-lg p-8">
+          <div className="bg-white shadow rounded-lg p-8 text-xl">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">Quel type de produit souhaitez-vous personnaliser ?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
