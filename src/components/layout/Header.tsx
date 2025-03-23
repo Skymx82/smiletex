@@ -6,18 +6,22 @@ import Image from 'next/image';
 import { useCartContext } from '@/components/CartProvider';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
-import { useCategories } from '@/hooks/useProducts';
+import { useCategories, CategoryWithChildren } from '@/hooks/useProducts';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [productsMenuOpen, setProductsMenuOpen] = useState(false);
+  const [collectionMenuOpen, setCollectionMenuOpen] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const productsMenuRef = useRef<HTMLDivElement>(null);
+  const collectionMenuRef = useRef<HTMLDivElement>(null);
+  const closeCollectionMenuTimer = useRef<NodeJS.Timeout | null>(null);
   const { itemCount } = useCartContext();
   const { user } = useAuth();
   const pathname = usePathname();
-  // N'afficher que les catégories principales (sans parent_id)
-  const { categories, loading: categoriesLoading } = useCategories(true);
+  // Utiliser hierarchicalCategories pour avoir accès à la structure parent-enfant
+  const { categories, hierarchicalCategories, loading: categoriesLoading } = useCategories(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,6 +41,9 @@ export default function Header() {
     const handleClickOutside = (event: MouseEvent) => {
       if (productsMenuRef.current && !productsMenuRef.current.contains(event.target as Node)) {
         setProductsMenuOpen(false);
+      }
+      if (collectionMenuRef.current && !collectionMenuRef.current.contains(event.target as Node)) {
+        setCollectionMenuOpen(false);
       }
     };
 
@@ -104,16 +111,62 @@ export default function Header() {
                   {categoriesLoading ? (
                     <div className="px-4 py-2 text-sm text-gray-500">Chargement...</div>
                   ) : (
-                    categories.map(category => (
-                      <Link 
-                        key={category.id} 
-                        href={`/products?category=${category.id}`}
-                        className="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
-                        onClick={() => setProductsMenuOpen(false)}
-                      >
-                        {category.name}
-                      </Link>
-                    ))
+                    hierarchicalCategories
+                      .filter(category => 
+                        category.name.toLowerCase() !== "bio" && 
+                        category.name.toLowerCase() !== "made in france"
+                      )
+                      .map(category => (
+                        <div 
+                          key={category.id} 
+                          className="relative"
+                          onMouseEnter={() => setHoveredCategory(category.id)}
+                          onMouseLeave={() => setHoveredCategory(null)}
+                        >
+                          <Link 
+                            href={`/products?category=${category.id}`}
+                            className="flex items-center justify-between px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                            onClick={() => setProductsMenuOpen(false)}
+                          >
+                            <span>{category.name}</span>
+                            {category.children && category.children.length > 0 && (
+                              <svg 
+                                className="w-4 h-4" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24" 
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                              </svg>
+                            )}
+                          </Link>
+                          
+                          {/* Sous-catégories qui apparaissent à droite au survol */}
+                          {category.children && category.children.length > 0 && hoveredCategory === category.id && (
+                            <div className="absolute left-full top-0 w-56 bg-white shadow-lg rounded-md py-2 -ml-1 z-50">
+                              {category.children
+                                .filter(childCategory => 
+                                  childCategory.name.toLowerCase() !== "bio" && 
+                                  childCategory.name.toLowerCase() !== "made in france"
+                                )
+                                .map(childCategory => (
+                                  <Link 
+                                    key={childCategory.id} 
+                                    href={`/products?category=${childCategory.id}`}
+                                    className="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                                    onClick={() => {
+                                      setProductsMenuOpen(false);
+                                      setHoveredCategory(null);
+                                    }}
+                                  >
+                                    {childCategory.name}
+                                  </Link>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      ))
                   )}
                 </div>
               </div>
@@ -123,9 +176,69 @@ export default function Header() {
               <Link href="/about" className={`${pathname === '/about' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200`}>
                 À propos
               </Link>
-              <Link href="/contact" className={`${pathname === '/contact' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200`}>
-                Contact
-              </Link>
+              <div 
+                ref={collectionMenuRef}
+                className="relative h-16 flex items-center"
+                onMouseEnter={() => {
+                  if (closeCollectionMenuTimer.current) {
+                    clearTimeout(closeCollectionMenuTimer.current);
+                    closeCollectionMenuTimer.current = null;
+                  }
+                  setCollectionMenuOpen(true);
+                }}
+                onMouseLeave={() => {
+                  closeCollectionMenuTimer.current = setTimeout(() => {
+                    setCollectionMenuOpen(false);
+                  }, 500); // 500ms de délai avant fermeture pour faciliter la navigation
+                }}
+              >
+                <Link 
+                  href="/products"
+                  className={`${pathname === '/products' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200`}
+                >
+                  Collection
+                  <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </Link>
+                
+                {/* Menu déroulant pour Collection (Bio et Made in France uniquement) */}
+                <div 
+                  className={`absolute top-16 right-0 w-56 bg-white shadow-lg rounded-md py-2 z-50 transition-all duration-300 ${collectionMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}
+                  onMouseEnter={() => {
+                    if (closeCollectionMenuTimer.current) {
+                      clearTimeout(closeCollectionMenuTimer.current);
+                      closeCollectionMenuTimer.current = null;
+                    }
+                    setCollectionMenuOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    closeCollectionMenuTimer.current = setTimeout(() => {
+                      setCollectionMenuOpen(false);
+                    }, 500);
+                  }}
+                >
+                    {categoriesLoading ? (
+                      <div className="px-4 py-2 text-sm text-gray-500">Chargement...</div>
+                    ) : (
+                      categories
+                        .filter(category => 
+                          category.name.toLowerCase() === "bio" || 
+                          category.name.toLowerCase() === "made in france"
+                        )
+                        .map(category => (
+                          <Link 
+                            key={category.id} 
+                            href={`/products?category=${category.id}`}
+                            className="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                            onClick={() => setCollectionMenuOpen(false)}
+                          >
+                            {category.name}
+                          </Link>
+                        ))
+                    )}
+                </div>
+              </div>
             </nav>
           </div>
 
@@ -140,7 +253,6 @@ export default function Header() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="text-sm font-medium">Mon compte</span>
                 </Link>
               </div>
             ) : (
@@ -283,16 +395,21 @@ export default function Header() {
                 {categoriesLoading ? (
                   <div className="px-4 py-2 text-sm text-gray-500">Chargement...</div>
                 ) : (
-                  categories.map(category => (
-                    <Link 
-                      key={category.id} 
-                      href={`/products?category=${category.id}`}
-                      className="block px-4 py-2 text-sm font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {category.name}
-                    </Link>
-                  ))
+                  categories
+                    .filter(category => 
+                      category.name.toLowerCase() !== "bio" && 
+                      category.name.toLowerCase() !== "made in france"
+                    )
+                    .map(category => (
+                      <Link 
+                        key={category.id} 
+                        href={`/products?category=${category.id}`}
+                        className="block px-4 py-2 text-sm font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {category.name}
+                      </Link>
+                    ))
                 )}
               </div>
             </div>
@@ -310,13 +427,61 @@ export default function Header() {
             >
               À propos
             </Link>
-            <Link 
-              href="/contact" 
-              className="block px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Contact
-            </Link>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150">
+                <Link 
+                  href="/products" 
+                  className="flex-grow"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Collection
+                </Link>
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const submenu = document.getElementById('mobile-collection-submenu');
+                    if (submenu) {
+                      submenu.classList.toggle('hidden');
+                    }
+                  }}
+                  className="p-1"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-5 w-5" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Sous-menu mobile des collections Bio et Made in France */}
+              <div id="mobile-collection-submenu" className="pl-4 hidden space-y-1">
+                {categoriesLoading ? (
+                  <div className="px-4 py-2 text-sm text-gray-500">Chargement...</div>
+                ) : (
+                  categories
+                    .filter(category => 
+                      category.name.toLowerCase() === "bio" || 
+                      category.name.toLowerCase() === "made in france"
+                    )
+                    .map(category => (
+                      <Link 
+                        key={category.id} 
+                        href={`/products?category=${category.id}`}
+                        className="block px-4 py-2 text-sm font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {category.name}
+                      </Link>
+                    ))
+                )}
+              </div>
+            </div>
             {user ? (
               <>
                 <Link 

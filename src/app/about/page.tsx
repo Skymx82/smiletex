@@ -20,15 +20,15 @@ export default function AboutPage() {
       {/* Section Histoire */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div className="space-y-6">
-          <h2 className="text-3xl font-bold text-black">Une Passion Née de l'Expérience</h2>
+          <h2 className="text-3xl font-bold text-black">Une Passion Devenue Métier</h2>
           <p className="text-lg text-gray-700">
-            Mon parcours dans le monde de la personnalisation textile est le fruit d'une reconversion inspirée. Après une carrière dans le transport, un accident en 2021 m'a amené à repenser mon avenir professionnel.
+            Passionné par la personnalisation textile depuis plusieurs années, j'ai commencé à explorer cet univers créatif dès 2020 en tant qu'auto-entrepreneur, parallèlement à ma carrière dans le transport.
           </p>
           <p className="text-lg text-gray-700">
-            Cette réflexion n'est pas venue de nulle part - depuis 2020, je cultivais déjà ma passion pour le flocage en auto-entrepreneur, en parallèle de mon activité principale. Ce qui n'était qu'un projet annexe est devenu une évidence.
+            Ce qui a débuté comme un projet secondaire s'est rapidement transformé en une véritable passion. En 2021, suite à un accident qui a marqué un tournant dans mon parcours, j'ai saisi cette opportunité pour réorienter ma carrière vers ce qui me passionne vraiment.
           </p>
           <p className="text-lg text-gray-700">
-            En 2024, j'ai pris la décision de me consacrer entièrement à ma passion : la personnalisation textile. C'est ainsi qu'est né Smiletext, un projet qui allie expertise technique et créativité.
+            En 2024, j'ai franchi le pas en me consacrant entièrement à mon art : la personnalisation textile. C'est ainsi qu'est né Smiletext, l'aboutissement d'un cheminement entrepreneurial qui allie expertise technique et créativité sans limites.
           </p>
         </div>
         <div className="relative h-96 rounded-lg overflow-hidden">
