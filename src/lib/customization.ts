@@ -1,47 +1,50 @@
+import { ProductCustomization } from '@/types/customization';
+
 /**
- * Interface pour la personnalisation simplifiée utilisée dans l'application
+ * Export du type ProductCustomization pour la rétro-compatibilité
+ * Cette ligne permet de maintenir la compatibilité avec le code existant
  */
-export interface SimpleProductCustomization {
-  type_impression: string;
-  position: string;
-  texte?: string;
-  couleur_texte?: string;
-  police?: string;
-  image_url?: string;
-  type: 'text' | 'image'; // Type de personnalisation (texte ou image)
-}
+export type SimpleProductCustomization = ProductCustomization;
 
 /**
  * Calcule le prix supplémentaire pour une personnalisation
  * @param customization - L'objet de personnalisation du produit
  * @returns Le prix supplémentaire en euros
  */
-export function calculateCustomizationPrice(customization: SimpleProductCustomization): number {
+export function calculateCustomizationPrice(customization: ProductCustomization): number {
   let additionalPrice = 0;
   
-  // Prix de base selon le type de marquage
-  if (customization.type_impression === 'broderie') {
-    additionalPrice += 10; // 10€ pour la broderie
-  } else if (customization.type_impression === 'flocage') {
-    additionalPrice += 5; // 5€ pour le flocage
+  // Calcul du prix pour chaque personnalisation individuelle
+  if (!customization.customizations || customization.customizations.length === 0) {
+    return 0;
   }
   
-  // Prix supplémentaire pour le texte
-  if (customization.texte) {
-    const textLength = customization.texte.length;
-    if (textLength <= 10) {
-      additionalPrice += 2;
-    } else if (textLength <= 20) {
-      additionalPrice += 3;
-    } else {
-      additionalPrice += 5;
+  // Additionner le prix de chaque personnalisation
+  customization.customizations.forEach(singleCustomization => {
+    // Prix de base selon le type de marquage
+    if (singleCustomization.type_impression === 'broderie') {
+      additionalPrice += 10; // 10€ pour la broderie
+    } else if (singleCustomization.type_impression === 'flocage') {
+      additionalPrice += 5; // 5€ pour le flocage
     }
-  }
-  
-  // Prix supplémentaire pour l'image
-  if (customization.image_url) {
-    additionalPrice += 7;
-  }
+    
+    // Prix supplémentaire pour le texte
+    if (singleCustomization.texte) {
+      const textLength = singleCustomization.texte.length;
+      if (textLength <= 10) {
+        additionalPrice += 2;
+      } else if (textLength <= 20) {
+        additionalPrice += 3;
+      } else {
+        additionalPrice += 5;
+      }
+    }
+    
+    // Prix supplémentaire pour l'image
+    if (singleCustomization.image_url) {
+      additionalPrice += 7;
+    }
+  });
   
   return additionalPrice;
 }
@@ -51,23 +54,35 @@ export function calculateCustomizationPrice(customization: SimpleProductCustomiz
  * @param customization - L'objet de personnalisation du produit
  * @returns Une description textuelle de la personnalisation
  */
-export function getCustomizationDescription(customization: SimpleProductCustomization): string {
-  const elements: string[] = [];
-  
-  // Type d'impression
-  elements.push(customization.type_impression === 'broderie' ? 'Broderie' : 'Flocage');
-  
-  // Position
-  elements.push(`Position: ${customization.position}`);
-  
-  // Texte ou image
-  if (customization.texte) {
-    elements.push(`Texte: "${customization.texte}"`);
-    elements.push(`Couleur: ${customization.couleur_texte}`);
-    elements.push(`Police: ${customization.police}`);
-  } else if (customization.image_url) {
-    elements.push('Image personnalisée');
+export function getCustomizationDescription(customization: ProductCustomization): string {
+  if (!customization.customizations || customization.customizations.length === 0) {
+    return 'Aucune personnalisation';
   }
   
-  return elements.join(', ');
+  // Générer une description pour chaque personnalisation
+  const descriptions = customization.customizations.map(singleCustomization => {
+    const elements: string[] = [];
+    
+    // Face (devant/derrière)
+    elements.push(singleCustomization.face === 'devant' ? 'Devant' : 'Derrière');
+    
+    // Type d'impression
+    elements.push(singleCustomization.type_impression === 'broderie' ? 'Broderie' : 'Flocage');
+    
+    // Position
+    elements.push(`Position: ${singleCustomization.position}`);
+    
+    // Texte ou image
+    if (singleCustomization.texte) {
+      elements.push(`Texte: "${singleCustomization.texte}"`);
+      elements.push(`Couleur: ${singleCustomization.couleur_texte}`);
+      elements.push(`Police: ${singleCustomization.police}`);
+    } else if (singleCustomization.image_url) {
+      elements.push('Image personnalisée');
+    }
+    
+    return elements.join(', ');
+  });
+  
+  return descriptions.join(' | ');
 }

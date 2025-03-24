@@ -2,24 +2,37 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { SimpleProductCustomization } from '@/lib/customization';
+import { ProductCustomization, SingleCustomization, Face } from '@/types/customization';
 
 interface CustomizationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (customization: SimpleProductCustomization) => void;
+  onSave: (customization: ProductCustomization) => void;
   isEmbedded?: boolean; // Indique si le composant est intégré directement dans la page
-  initialCustomization?: SimpleProductCustomization | null; // Personnalisation initiale pour l'édition
+  initialCustomization?: ProductCustomization | null; // Personnalisation initiale pour l'édition
 }
 
 export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded = false, initialCustomization = null }: CustomizationModalProps) {
-  const [customization, setCustomization] = useState<SimpleProductCustomization>({
+  // Initialisation d'une personnalisation vide
+  const emptyCustomization: ProductCustomization = {
+    customizations: []
+  };
+  
+  // État pour stocker la personnalisation complète
+  const [productCustomization, setProductCustomization] = useState<ProductCustomization>(emptyCustomization);
+  
+  // État pour la face actuellement sélectionnée (devant ou derrière)
+  const [currentFace, setCurrentFace] = useState<Face>('devant');
+  
+  // État pour la personnalisation de la face actuellement sélectionnée
+  const [currentCustomization, setCurrentCustomization] = useState<SingleCustomization>({
     type_impression: '',
-    position: '',
+    position: 'devant-pec',
     texte: '',
     couleur_texte: '#000000',
     police: 'Arial',
-    type: 'text'
+    type: 'text',
+    face: 'devant'
   });
 
   const [selectedType, setSelectedType] = useState<'texte' | 'image'>('texte');
@@ -28,29 +41,102 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
   // Initialiser avec les données existantes si disponibles
   useEffect(() => {
     if (initialCustomization) {
-      setCustomization(initialCustomization);
-      setSelectedType(initialCustomization.type === 'text' ? 'texte' : 'image');
+      setProductCustomization(initialCustomization);
+      
+      // Si des personnalisations existent déjà, charger la première
+      if (initialCustomization.customizations && initialCustomization.customizations.length > 0) {
+        const frontCustomization = initialCustomization.customizations.find(c => c.face === 'devant');
+        if (frontCustomization) {
+          setCurrentCustomization(frontCustomization);
+          setSelectedType(frontCustomization.type === 'text' ? 'texte' : 'image');
+          setCurrentFace('devant');
+        }
+      }
     }
   }, [initialCustomization]);
 
   if (!isOpen && !isEmbedded) return null;
 
-  const handleSave = () => {
-    // Si on utilise une image, supprimer les champs de texte
+  // Fonction pour mettre à jour la personnalisation de la face actuelle
+  const updateCurrentFaceCustomization = () => {
+    // Préparer la personnalisation en fonction du type sélectionné
+    let updatedCustomization: SingleCustomization;
+    
     if (selectedType === 'image') {
-      const { texte, couleur_texte, police, ...rest } = customization;
-      onSave({
+      // Si on utilise une image, supprimer les champs de texte
+      const { texte, couleur_texte, police, ...rest } = currentCustomization;
+      updatedCustomization = {
         ...rest,
-        type: 'image'
-      });
+        type: 'image',
+        face: currentFace
+      };
     } else {
       // Si on utilise du texte, supprimer le champ image_url
-      const { image_url, ...rest } = customization;
-      onSave({
+      const { image_url, ...rest } = currentCustomization;
+      updatedCustomization = {
         ...rest,
-        type: 'text'
-      });
+        type: 'text',
+        face: currentFace
+      };
     }
+    
+    // Mettre à jour la liste des personnalisations
+    const updatedCustomizations = [...productCustomization.customizations];
+    
+    // Trouver l'index de la personnalisation pour cette face, s'il existe
+    const existingIndex = updatedCustomizations.findIndex(c => c.face === currentFace);
+    
+    if (existingIndex >= 0) {
+      // Mettre à jour la personnalisation existante
+      updatedCustomizations[existingIndex] = updatedCustomization;
+    } else {
+      // Ajouter une nouvelle personnalisation
+      updatedCustomizations.push(updatedCustomization);
+    }
+    
+    // Mettre à jour l'état global
+    setProductCustomization({
+      ...productCustomization,
+      customizations: updatedCustomizations
+    });
+  };
+  
+  // Fonction pour changer de face (devant/derrière)
+  const switchFace = (newFace: Face) => {
+    // Sauvegarder d'abord les modifications sur la face actuelle
+    updateCurrentFaceCustomization();
+    
+    // Changer de face
+    setCurrentFace(newFace);
+    
+    // Charger la personnalisation de la nouvelle face si elle existe
+    const faceCustomization = productCustomization.customizations.find(c => c.face === newFace);
+    
+    if (faceCustomization) {
+      // Charger la personnalisation existante
+      setCurrentCustomization(faceCustomization);
+      setSelectedType(faceCustomization.type === 'text' ? 'texte' : 'image');
+    } else {
+      // Créer une nouvelle personnalisation pour cette face
+      setCurrentCustomization({
+        type_impression: '',
+        position: newFace === 'devant' ? 'devant-pec' : 'dos-haut',
+        texte: '',
+        couleur_texte: '#000000',
+        police: 'Arial',
+        type: 'text',
+        face: newFace
+      });
+      setSelectedType('texte');
+    }
+  };
+  
+  const handleSave = () => {
+    // Sauvegarder d'abord les modifications sur la face actuelle
+    updateCurrentFaceCustomization();
+    
+    // Envoyer la personnalisation complète
+    onSave(productCustomization);
     
     if (!isEmbedded) {
       onClose();
@@ -71,23 +157,23 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
 
   const isFormValid = () => {
     return (
-      customization.type_impression && 
-      customization.position && 
-      (selectedType === 'texte' ? customization.texte : customization.image_url)
+      currentCustomization.type_impression && 
+      currentCustomization.position && 
+      (selectedType === 'texte' ? currentCustomization.texte : currentCustomization.image_url)
     );
   };
   
   const isNextDisabled = () => {
     switch (step) {
       case 1:
-        return !customization.type_impression;
+        return !currentCustomization.type_impression;
       case 2:
-        return !customization.position;
+        return !currentCustomization.position;
       case 3:
         if (selectedType === 'texte') {
-          return !customization.texte;
+          return !currentCustomization.texte;
         } else {
-          return !customization.image_url;
+          return !currentCustomization.image_url;
         }
       default:
         return false;
@@ -98,14 +184,39 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
   if (isEmbedded) {
     return (
       <div className="bg-white w-full">
+        {/* Sélecteur de face (devant/derrière) */}
+        <div className="mb-4 flex border rounded-lg overflow-hidden">
+          <button
+            className={`flex-1 py-3 px-4 text-center font-medium ${currentFace === 'devant' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => switchFace('devant')}
+          >
+            <span className="flex items-center justify-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+              </svg>
+              Devant
+            </span>
+          </button>
+          <button
+            className={`flex-1 py-3 px-4 text-center font-medium ${currentFace === 'derriere' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => switchFace('derriere')}
+          >
+            <span className="flex items-center justify-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+              </svg>
+              Derrière
+            </span>
+          </button>
+        </div>
         <div className="p-4 grid grid-cols-1 gap-6">
           {/* Section 1: Type d'impression */}
           <div className="space-y-3">
             <h3 className="font-bold text-gray-800 text-sm">Type d'impression</h3>
             <div className="grid grid-cols-2 gap-2">
               <button
-                className={`p-2 border rounded-lg flex flex-col items-center ${customization.type_impression === 'broderie' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                onClick={() => setCustomization({ ...customization, type_impression: 'broderie' })}
+                className={`p-2 border rounded-lg flex flex-col items-center ${currentCustomization.type_impression === 'broderie' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'broderie' })}
               >
                 <div className="w-8 h-8 mb-1 flex items-center justify-center">
                   <Image
@@ -119,8 +230,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                 <span className="text-xs font-medium">Broderie</span>
               </button>
               <button
-                className={`p-2 border rounded-lg flex flex-col items-center ${customization.type_impression === 'flocage' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                onClick={() => setCustomization({ ...customization, type_impression: 'flocage' })}
+                className={`p-2 border rounded-lg flex flex-col items-center ${currentCustomization.type_impression === 'flocage' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'flocage' })}
               >
                 <div className="w-8 h-8 mb-1 flex items-center justify-center">
                   <Image
@@ -145,8 +256,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                 <h4 className="text-xs font-medium text-gray-700 mb-1">Devant</h4>
                 <div className="grid grid-cols-4 gap-2">
                   <button
-                    className={`p-2 border rounded-lg flex flex-col items-center ${customization.position === 'devant-pec' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                    onClick={() => setCustomization({ ...customization, position: 'devant-pec' })}
+                    className={`p-2 border rounded-lg flex flex-col items-center ${currentCustomization.position === 'devant-pec' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                    onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-pec' })}
                   >
                     <div className="w-8 h-8 mb-1 flex items-center justify-center">
                       <Image
@@ -160,8 +271,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                     <span className="text-xs font-medium">Pec Gauche</span>
                   </button>
                   <button
-                    className={`p-2 border rounded-lg flex flex-col items-center ${customization.position === 'devant-pecs' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                    onClick={() => setCustomization({ ...customization, position: 'devant-pecs' })}
+                    className={`p-2 border rounded-lg flex flex-col items-center ${currentCustomization.position === 'devant-pecs' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                    onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-pecs' })}
                   >
                     <div className="w-8 h-8 mb-1 flex items-center justify-center">
                       <Image
@@ -175,8 +286,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                     <span className="text-xs font-medium">Deux Pecs</span>
                   </button>
                   <button
-                    className={`p-2 border rounded-lg flex flex-col items-center ${customization.position === 'devant-complet' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                    onClick={() => setCustomization({ ...customization, position: 'devant-complet' })}
+                    className={`p-2 border rounded-lg flex flex-col items-center ${currentCustomization.position === 'devant-complet' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                    onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-complet' })}
                   >
                     <div className="w-8 h-8 mb-1 flex items-center justify-center">
                       <Image
@@ -190,8 +301,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                     <span className="text-xs font-medium">Devant</span>
                   </button>
                   <button
-                    className={`p-2 border rounded-lg flex flex-col items-center ${customization.position === 'devant-centre' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                    onClick={() => setCustomization({ ...customization, position: 'devant-centre' })}
+                    className={`p-2 border rounded-lg flex flex-col items-center ${currentCustomization.position === 'devant-centre' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                    onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-centre' })}
                   >
                     <div className="w-8 h-8 mb-1 flex items-center justify-center">
                       <Image
@@ -211,8 +322,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                 <h4 className="text-xs font-medium text-gray-700 mb-1">Dos</h4>
                 <div className="grid grid-cols-4 gap-2">
                   <button
-                    className={`p-2 border rounded-lg flex flex-col items-center ${customization.position === 'dos-haut' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                    onClick={() => setCustomization({ ...customization, position: 'dos-haut' })}
+                    className={`p-2 border rounded-lg flex flex-col items-center ${currentCustomization.position === 'dos-haut' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                    onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'dos-haut' })}
                   >
                     <div className="w-8 h-8 mb-1 flex items-center justify-center">
                       <Image
@@ -226,8 +337,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                     <span className="text-xs font-medium">Haut</span>
                   </button>
                   <button
-                    className={`p-2 border rounded-lg flex flex-col items-center ${customization.position === 'dos-complet' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                    onClick={() => setCustomization({ ...customization, position: 'dos-complet' })}
+                    className={`p-2 border rounded-lg flex flex-col items-center ${currentCustomization.position === 'dos-complet' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                    onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'dos-complet' })}
                   >
                     <div className="w-8 h-8 mb-1 flex items-center justify-center">
                       <Image
@@ -271,8 +382,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                   </label>
                   <input
                     type="text"
-                    value={customization.texte || ''}
-                    onChange={(e) => setCustomization({ ...customization, texte: e.target.value })}
+                    value={currentCustomization.texte || ''}
+                    onChange={(e) => setCurrentCustomization({ ...currentCustomization, texte: e.target.value })}
                     className="w-full p-2 border rounded-md text-sm"
                     placeholder="Entrez votre texte"
                   />
@@ -284,8 +395,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                     </label>
                     <input
                       type="color"
-                      value={customization.couleur_texte || '#000000'}
-                      onChange={(e) => setCustomization({ ...customization, couleur_texte: e.target.value })}
+                      value={currentCustomization.couleur_texte || '#000000'}
+                      onChange={(e) => setCurrentCustomization({ ...currentCustomization, couleur_texte: e.target.value })}
                       className="w-full h-8 p-1 border rounded-md"
                     />
                   </div>
@@ -294,8 +405,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                       Police
                     </label>
                     <select
-                      value={customization.police || 'Arial'}
-                      onChange={(e) => setCustomization({ ...customization, police: e.target.value })}
+                      value={currentCustomization.police || 'Arial'}
+                      onChange={(e) => setCurrentCustomization({ ...currentCustomization, police: e.target.value })}
                       className="w-full p-2 border rounded-md text-sm"
                     >
                       <option value="Arial">Arial</option>
@@ -317,7 +428,7 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                     const file = e.target.files?.[0];
                     if (file) {
                       const tempUrl = URL.createObjectURL(file);
-                      setCustomization({ ...customization, image_url: tempUrl });
+                      setCurrentCustomization({ ...currentCustomization, image_url: tempUrl });
                     }
                   }}
                   className="w-full p-2 border rounded-md text-sm"
@@ -372,11 +483,11 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
               <div className="space-y-4">
                 <button
                   className={`w-full p-4 border rounded-lg ${
-                    customization.type_impression === 'broderie'
+                    currentCustomization.type_impression === 'broderie'
                       ? 'border-indigo-600 bg-indigo-50'
                       : 'border-gray-200 hover:border-indigo-300'
                   }`}
-                  onClick={() => setCustomization({ ...customization, type_impression: 'broderie' })}
+                  onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'broderie' })}
                 >
                   <div className="flex justify-between items-start">
                     <div className="text-left">
@@ -402,11 +513,11 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                 </button>
                 <button
                   className={`w-full p-4 border rounded-lg ${
-                    customization.type_impression === 'flocage'
+                    currentCustomization.type_impression === 'flocage'
                       ? 'border-indigo-600 bg-indigo-50'
                       : 'border-gray-200 hover:border-indigo-300'
                   }`}
-                  onClick={() => setCustomization({ ...customization, type_impression: 'flocage' })}
+                  onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'flocage' })}
                 >
                   <div className="flex justify-between items-start">
                     <div className="text-left">
@@ -447,11 +558,11 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                       <button
                         key={pos.id}
                         className={`w-full p-4 border rounded-lg ${
-                          customization.position === pos.id
+                          currentCustomization.position === pos.id
                             ? 'border-indigo-600 bg-indigo-50'
                             : 'border-gray-200 hover:border-indigo-300'
                         }`}
-                        onClick={() => setCustomization({ ...customization, position: pos.id })}
+                        onClick={() => setCurrentCustomization({ ...currentCustomization, position: pos.id })}
                       >
                         <div className="flex justify-between items-center">
                           <div>
@@ -483,11 +594,11 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                       <button
                         key={pos.id}
                         className={`w-full p-4 border rounded-lg ${
-                          customization.position === pos.id
+                          currentCustomization.position === pos.id
                             ? 'border-indigo-600 bg-indigo-50'
                             : 'border-gray-200 hover:border-indigo-300'
                         }`}
-                        onClick={() => setCustomization({ ...customization, position: pos.id })}
+                        onClick={() => setCurrentCustomization({ ...currentCustomization, position: pos.id })}
                       >
                         <div className="flex justify-between items-center">
                           <div>
@@ -541,8 +652,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                       </label>
                       <input
                         type="text"
-                        value={customization.texte || ''}
-                        onChange={(e) => setCustomization({ ...customization, texte: e.target.value })}
+                        value={currentCustomization.texte || ''}
+                        onChange={(e) => setCurrentCustomization({ ...currentCustomization, texte: e.target.value })}
                         className="w-full p-2 border rounded-md"
                         placeholder="Entrez votre texte"
                       />
@@ -553,8 +664,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                       </label>
                       <input
                         type="color"
-                        value={customization.couleur_texte || '#000000'}
-                        onChange={(e) => setCustomization({ ...customization, couleur_texte: e.target.value })}
+                        value={currentCustomization.couleur_texte || '#000000'}
+                        onChange={(e) => setCurrentCustomization({ ...currentCustomization, couleur_texte: e.target.value })}
                         className="w-full h-10 p-1 border rounded-md"
                       />
                     </div>
@@ -563,8 +674,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                         Police
                       </label>
                       <select
-                        value={customization.police || 'Arial'}
-                        onChange={(e) => setCustomization({ ...customization, police: e.target.value })}
+                        value={currentCustomization.police || 'Arial'}
+                        onChange={(e) => setCurrentCustomization({ ...currentCustomization, police: e.target.value })}
                         className="w-full p-2 border rounded-md"
                       >
                         <option value="Arial">Arial</option>
@@ -587,7 +698,7 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                           // Dans un vrai projet, vous devriez uploader l'image vers votre serveur/stockage
                           // et utiliser l'URL retournée
                           const tempUrl = URL.createObjectURL(file);
-                          setCustomization({ ...customization, image_url: tempUrl });
+                          setCurrentCustomization({ ...currentCustomization, image_url: tempUrl });
                         }
                       }}
                       className="w-full p-2 border rounded-md"

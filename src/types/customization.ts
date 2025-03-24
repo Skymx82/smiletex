@@ -1,63 +1,70 @@
 // Types pour la personnalisation des produits
 
-export type MarkingType = 'impression' | 'broderie';
+// Types simplifiés pour une meilleure expérience utilisateur
+export type MarkingType = 'impression' | 'broderie' | 'flocage';
 
-export type Side = 'front' | 'back';
+// Positions prédéfinies pour faciliter le choix de l'utilisateur
+export type Position = 
+  | 'devant-pec' 
+  | 'devant-pecs' 
+  | 'devant-centre' 
+  | 'devant-complet' 
+  | 'dos-haut' 
+  | 'dos-complet';
 
-export type TextCustomization = {
-  type: 'text';
-  content: string;
-  fontFamily: string;
-  fontSize: number;
-  color: string;
-  position: {
-    x: number;
-    y: number;
-  };
-  rotation: number;
-  side: Side;
+// Type de contenu simplifié (texte ou image)
+export type ContentType = 'text' | 'image';
+
+// Face du vêtement (devant ou derrière)
+export type Face = 'devant' | 'derriere';
+
+// Définition d'une personnalisation individuelle (pour le devant ou le derrière)
+export type SingleCustomization = {
+  // Type d'impression (broderie, flocage, etc.)
+  type_impression: string;
+  
+  // Position prédéfinie (plus facile pour l'utilisateur que des coordonnées x/y)
+  position: Position | string;
+  
+  // Type de contenu (texte ou image)
+  type: ContentType;
+  
+  // Champs pour personnalisation de texte
+  texte?: string;
+  couleur_texte?: string;
+  police?: string;
+  
+  // Champ pour personnalisation d'image
+  image_url?: string;
+  
+  // Face du vêtement (devant ou derrière)
+  face: Face;
 };
 
-export type ImageCustomization = {
-  type: 'image';
-  imageUrl: string;
-  width: number;
-  height: number;
-  position: {
-    x: number;
-    y: number;
-  };
-  rotation: number;
-  side: Side;
-};
-
-export type Customization = TextCustomization | ImageCustomization;
-
+// Type de personnalisation complet permettant de personnaliser le devant et le derrière
 export type ProductCustomization = {
-  productId: string;
-  variantId: string;
-  size: string;
-  color: string;
-  markingType: MarkingType;
-  customizations: Customization[];
+  // Informations essentielles du produit
+  productId?: string;
+  
+  // Personnalisations pour chaque face (devant et/ou derrière)
+  customizations: SingleCustomization[];
 };
 
 // Options disponibles pour la personnalisation
 export type CustomizationOptions = {
-  fonts: string[];
-  colors: string[];
-  markingTypes: MarkingType[];
+  fonts: Array<{id: string, name: string, preview?: string}>;
+  colors: Array<{id: string, name: string, hex: string}>;
+  markingTypes: Array<{id: MarkingType, name: string, price?: number, description?: string}>;
+  positions: Array<{id: Position | string, name: string, icon?: string}>;
 };
 
-// État de l'éditeur de personnalisation
+// État de l'éditeur de personnalisation (simplifié)
 export type CustomizerState = {
   productId: string;
   productName: string;
   productImage: string;
   selectedSize: string;
   selectedColor: string;
-  markingType: MarkingType;
-  activeSide: Side;
-  customizations: Customization[];
-  selectedCustomizationIndex: number | null;
+  customization: ProductCustomization | null;
+  isEditing: boolean;
 };
