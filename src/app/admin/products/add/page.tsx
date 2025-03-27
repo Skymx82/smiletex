@@ -295,7 +295,7 @@ export default function AddProductPage() {
   };
   
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 text-black">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Ajouter un Produit</h1>
         <Link

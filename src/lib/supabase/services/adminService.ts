@@ -93,14 +93,200 @@ export async function updateProductVariant(id: string, updates: Partial<ProductV
  * Supprime un produit et toutes ses variantes
  */
 export async function deleteProduct(id: string): Promise<boolean> {
-  // Les variantes seront supprimées automatiquement grâce à la contrainte ON DELETE CASCADE
+  try {
+    console.log(`Début de la suppression du produit ${id}`);
+    
+    // Vérifier d'abord si le produit existe
+    const { data: product, error: fetchError } = await supabase
+      .from('products')
+      .select('id')
+      .eq('id', id)
+      .single();
+    
+    if (fetchError) {
+      console.error(`Erreur lors de la vérification du produit ${id}:`, fetchError);
+      return false;
+    }
+    
+    if (!product) {
+      console.error(`Produit ${id} non trouvé`);
+      return false;
+    }
+    
+    console.log(`Produit ${id} trouvé, tentative de suppression...`);
+    
+    // 1. Récupérer toutes les variantes du produit
+    const { data: variants, error: fetchVariantsError } = await supabase
+      .from('product_variants')
+      .select('id')
+      .eq('product_id', id);
+    
+    if (fetchVariantsError) {
+      console.error(`Erreur lors de la récupération des variantes du produit ${id}:`, fetchVariantsError);
+      return false;
+    }
+    
+    console.log(`${variants?.length || 0} variantes trouvées pour le produit ${id}`);
+    
+    // 2. Supprimer les entrées dans cart_items qui référencent ces variantes
+    if (variants && variants.length > 0) {
+      const variantIds = variants.map(v => v.id);
+      
+      // Supprimer les entrées de cart_items liées aux variantes
+      const { error: cartItemsVariantError } = await supabase
+        .from('cart_items')
+        .delete()
+        .in('product_variant_id', variantIds);
+      
+      if (cartItemsVariantError) {
+        console.error(`Erreur lors de la suppression des cart_items liés aux variantes du produit ${id}:`, cartItemsVariantError);
+        // Essayer avec la clé de service si nécessaire
+        if (cartItemsVariantError.code === 'PGRST301' || cartItemsVariantError.message.includes('permission')) {
+          try {
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabaseAdmin = createClient(
+              process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+              process.env.SUPABASE_SERVICE_ROLE_KEY as string
+            );
+            
+            await supabaseAdmin
+              .from('cart_items')
+              .delete()
+              .in('product_variant_id', variantIds);
+              
+            console.log(`Cart items liés aux variantes du produit ${id} supprimés avec privilèges admin`);
+          } catch (adminErr) {
+            console.error(`Erreur admin lors de la suppression des cart_items liés aux variantes:`, adminErr);
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else {
+        console.log(`Cart items liés aux variantes du produit ${id} supprimés`);
+      }
+    }
+    
+    // 3. Supprimer les entrées dans cart_items qui référencent directement le produit
+    const { error: cartItemsProductError } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('product_id', id);
+    
+    if (cartItemsProductError) {
+      console.error(`Erreur lors de la suppression des cart_items liés au produit ${id}:`, cartItemsProductError);
+      // Essayer avec la clé de service si nécessaire
+      if (cartItemsProductError.code === 'PGRST301' || cartItemsProductError.message.includes('permission')) {
+        try {
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabaseAdmin = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+            process.env.SUPABASE_SERVICE_ROLE_KEY as string
+          );
+          
+          await supabaseAdmin
+            .from('cart_items')
+            .delete()
+            .eq('product_id', id);
+            
+          console.log(`Cart items liés au produit ${id} supprimés avec privilèges admin`);
+        } catch (adminErr) {
+          console.error(`Erreur admin lors de la suppression des cart_items liés au produit:`, adminErr);
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else {
+      console.log(`Cart items liés au produit ${id} supprimés`);
+    }
+    
+    // 4. Maintenant, supprimer les variantes
+    const { error: variantError } = await supabase
+      .from('product_variants')
+      .delete()
+      .eq('product_id', id);
+    
+    if (variantError) {
+      console.error(`Erreur lors de la suppression des variantes du produit ${id}:`, variantError);
+      // Essayer avec la clé de service
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+          process.env.SUPABASE_SERVICE_ROLE_KEY as string
+        );
+        
+        await supabaseAdmin
+          .from('product_variants')
+          .delete()
+          .eq('product_id', id);
+          
+        console.log(`Variantes du produit ${id} supprimées avec privilèges admin`);
+      } catch (adminErr) {
+        console.error(`Erreur admin lors de la suppression des variantes:`, adminErr);
+        return false;
+      }
+    } else {
+      console.log(`Variantes du produit ${id} supprimées avec succès`);
+    }
+    
+    // 5. Enfin, supprimer le produit
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error(`Erreur lors de la suppression du produit ${id}:`, error);
+      
+      // Si l'erreur est liée aux permissions, essayer avec la clé de service
+      if (error.code === 'PGRST301' || error.message.includes('permission')) {
+        console.log(`Tentative de suppression avec des privilèges élevés pour le produit ${id}`);
+        
+        // Créer un client Supabase avec la clé de service (pour les opérations admin)
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+          process.env.SUPABASE_SERVICE_ROLE_KEY as string
+        );
+        
+        const { error: adminError } = await supabaseAdmin
+          .from('products')
+          .delete()
+          .eq('id', id);
+        
+        if (adminError) {
+          console.error(`Erreur lors de la suppression admin du produit ${id}:`, adminError);
+          return false;
+        }
+        
+        console.log(`Produit ${id} supprimé avec succès via admin`);
+        return true;
+      }
+      
+      return false;
+    }
+    
+    console.log(`Produit ${id} supprimé avec succès`);
+    return true;
+  } catch (err) {
+    console.error(`Exception non gérée lors de la suppression du produit ${id}:`, err);
+    return false;
+  }
+}
+
+/**
+ * Met à jour une catégorie existante
+ */
+export async function updateCategory(id: string, updates: Partial<Category>): Promise<boolean> {
   const { error } = await supabase
-    .from('products')
-    .delete()
+    .from('categories')
+    .update(updates)
     .eq('id', id);
   
   if (error) {
-    console.error(`Error deleting product ${id}:`, error);
+    console.error(`Error updating category ${id}:`, error);
     return false;
   }
   

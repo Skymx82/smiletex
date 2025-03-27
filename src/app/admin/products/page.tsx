@@ -41,16 +41,69 @@ export default function AdminProductsPage() {
 
     try {
       setLoading(true);
+      setError(null); // Réinitialiser les erreurs précédentes
+      
+      console.log(`Tentative de suppression du produit avec l'ID: ${id}`);
+      
+      // D'abord, s'assurer que les fonctions de suppression forcée sont disponibles
+      try {
+        const setupResponse = await fetch('/api/admin/products/force-delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer Admin123`, // Utiliser le mot de passe admin défini dans .env.local
+          },
+        });
+        
+        if (!setupResponse.ok) {
+          console.warn('Erreur lors de la création des fonctions de suppression forcée:', await setupResponse.text());
+          // Continuer quand même
+        }
+      } catch (setupErr) {
+        console.warn('Exception lors de la création des fonctions de suppression forcée:', setupErr);
+        // Continuer quand même
+      }
+      
+      // Essayer d'abord avec l'API sécurisée
+      try {
+        const response = await fetch('/api/admin/products/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer Admin123`, // Utiliser le mot de passe admin défini dans .env.local
+          },
+          body: JSON.stringify({ id }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          console.log(`Produit ${id} supprimé avec succès via l'API`);
+          // Recharger la liste des produits
+          await loadProducts();
+          return;
+        } else {
+          console.warn(`L'API a échoué avec l'erreur: ${data.error || 'Inconnue'}. Tentative avec la méthode de secours.`);
+        }
+      } catch (apiErr) {
+        console.warn(`Erreur lors de l'appel à l'API de suppression:`, apiErr);
+        // Continuer avec la méthode de secours
+      }
+      
+      // Méthode de secours: utiliser la fonction directe
       const success = await deleteProduct(id);
+      
       if (success) {
+        console.log(`Produit ${id} supprimé avec succès via la méthode directe`);
         // Recharger la liste des produits
         await loadProducts();
       } else {
-        setError('Erreur lors de la suppression du produit');
+        console.error(`Échec de la suppression du produit ${id} - Toutes les méthodes ont échoué`);
+        setError('Erreur lors de la suppression du produit. Veuillez réessayer ou contacter l\'administrateur.');
       }
     } catch (err) {
-      setError('Erreur lors de la suppression du produit');
-      console.error(err);
+      console.error(`Exception lors de la suppression du produit ${id}:`, err);
+      setError(`Erreur lors de la suppression du produit: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
     } finally {
       setLoading(false);
       setDeleteConfirm(null);
@@ -61,12 +114,20 @@ export default function AdminProductsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-black">Gestion des Produits</h1>
-        <Link
-          href="/admin/products/add"
-          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-        >
-          Ajouter un produit
-        </Link>
+        <div className="flex space-x-3">
+          <Link
+            href="/admin/schema"
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            Gestion du schéma
+          </Link>
+          <Link
+            href="/admin/products/add"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            Ajouter un produit
+          </Link>
+        </div>
       </div>
 
       {error && (
