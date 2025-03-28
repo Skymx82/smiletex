@@ -205,7 +205,7 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
       // Créer une nouvelle personnalisation pour cette face
       setCurrentCustomization({
         type_impression: '',
-        position: newFace === 'devant' ? 'devant-pecs' : 'dos-haut',
+        position: newFace === 'devant' ? 'devant-pec' : 'dos-haut',
         texte: '',
         couleur_texte: '#000000',
         police: 'Arial',
@@ -334,43 +334,64 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
               {/* Colonne de droite: Options de personnalisation */}
               <div className="space-y-6">
                 {/* Section 1: Type d'impression */}
-                <div className="space-y-3">
-                  <h3 className="font-bold text-gray-800 text-sm">Type d'impression</h3>
+                <div>
+                  <h3 className="font-bold text-gray-800 text-sm mb-3">Type d'impression</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      className={`p-3 border rounded-lg flex items-center ${currentCustomization.type_impression === 'broderie' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                      className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.type_impression === 'broderie' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                       onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'broderie' })}
                     >
-                      <div className="w-10 h-10 mr-3 flex items-center justify-center">
+                      <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
                         <Image
                           src="/images/broderie.png"
                           alt="Broderie"
-                          width={36}
-                          height={36}
-                          className="object-contain"
+                          fill
+                          className="object-cover"
                         />
+                        {currentCustomization.type_impression === 'broderie' && (
+                          <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-left">
-                        <span className="font-medium block">Broderie</span>
-                        <span className="text-xs text-gray-500">Durable et élégant</span>
+                      <div className="p-2 bg-white text-center border-t">
+                        <div className="flex items-center justify-center">
+                          <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          <span className="font-medium">Broderie</span>
+                        </div>
                       </div>
                     </button>
+                    
                     <button
-                      className={`p-3 border rounded-lg flex items-center ${currentCustomization.type_impression === 'flocage' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                      className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.type_impression === 'flocage' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                       onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'flocage' })}
                     >
-                      <div className="w-10 h-10 mr-3 flex items-center justify-center">
+                      <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
                         <Image
                           src="/images/flocage.jpg"
                           alt="Flocage"
-                          width={36}
-                          height={36}
-                          className="object-contain"
+                          fill
+                          className="object-cover"
                         />
+                        {currentCustomization.type_impression === 'flocage' && (
+                          <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-left">
-                        <span className="font-medium block">Flocage</span>
-                        <span className="text-xs text-gray-500">Texture douce au toucher</span>
+                      <div className="p-2 bg-white text-center border-t">
+                        <div className="flex items-center justify-center">
+                          <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                          </svg>
+                          <span className="font-medium">Flocage</span>
+                        </div>
                       </div>
                     </button>
                   </div>
@@ -383,8 +404,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                   {currentFace === 'devant' ? (
                     <div className="grid grid-cols-2 gap-2">
                       <button
-                        className={`p-2 border rounded-lg flex items-center ${currentCustomization.position === 'devant-pecs' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
-                        onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-pecs' })}
+                        className={`p-2 border rounded-lg flex items-center ${currentCustomization.position === 'devant-pec' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-pec' })}
                       >
                         <div className="w-10 h-10 mr-2 flex items-center justify-center">
                           <Image
@@ -433,7 +454,7 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                       >
                         <div className="w-10 h-10 mr-2 flex items-center justify-center">
                           <Image
-                            src="/images/positions/devant-pecs.png"
+                            src="/images/positions/devant-centre.png"
                             alt="Centre"
                             width={36}
                             height={36}

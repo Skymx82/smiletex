@@ -57,12 +57,11 @@ export default function AddProductPage() {
   const [success, setSuccess] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  // États pour la génération de variantes
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  // États pour le système simplifié de génération de variantes
+  const [sizesInput, setSizesInput] = useState<string>('');
+  const [colorsInput, setColorsInput] = useState<string>('');
   const [defaultStock, setDefaultStock] = useState<number>(10);
   const [defaultPriceAdjustment, setDefaultPriceAdjustment] = useState<number>(0);
-  const [showBulkGenerator, setShowBulkGenerator] = useState<boolean>(false);
   
   // Charger les catégories au chargement de la page
   useEffect(() => {
@@ -127,37 +126,24 @@ export default function AddProductPage() {
     }
   };
   
-  // Gérer les changements dans la sélection des tailles pour la génération en masse
-  const handleSizeSelection = (size: string) => {
-    setSelectedSizes(prev => 
-      prev.includes(size) 
-        ? prev.filter(s => s !== size) 
-        : [...prev, size]
-    );
-  };
-  
-  // Gérer les changements dans la sélection des couleurs pour la génération en masse
-  const handleColorSelection = (color: string) => {
-    setSelectedColors(prev => 
-      prev.includes(color) 
-        ? prev.filter(c => c !== color) 
-        : [...prev, color]
-    );
-  };
-  
-  // Générer les variantes en masse
+  // Générer les variantes à partir des entrées simples de tailles et couleurs
   const generateVariants = () => {
-    if (selectedSizes.length === 0 || selectedColors.length === 0) {
-      setError('Veuillez sélectionner au moins une taille et une couleur');
+    // Extraction des tailles et couleurs à partir des entrées séparées par des virgules
+    const sizes = sizesInput.split(',').map(s => s.trim()).filter(s => s !== '');
+    const colors = colorsInput.split(',').map(c => c.trim()).filter(c => c !== '');
+    
+    if (sizes.length === 0 || colors.length === 0) {
+      setError('Veuillez entrer au moins une taille et une couleur');
       return;
     }
     
     const newVariants: VariantFormData[] = [];
     
-    selectedSizes.forEach(size => {
-      selectedColors.forEach(color => {
+    // Génération de toutes les combinaisons possibles
+    sizes.forEach(size => {
+      colors.forEach(color => {
         // Générer un SKU basique
-        const sku = `${productData.name.substring(0, 3).toUpperCase()}-${size}-${color.substring(0, 3).toUpperCase()}`;
+        const sku = `${productData.name.substring(0, 3).toUpperCase() || 'PRD'}-${size}-${color.substring(0, 3).toUpperCase()}`;
         
         newVariants.push({
           size,
@@ -170,27 +156,6 @@ export default function AddProductPage() {
     });
     
     setVariants(newVariants);
-    setShowBulkGenerator(false);
-  };
-  
-  // Sélectionner toutes les tailles
-  const selectAllSizes = () => {
-    setSelectedSizes([...PREDEFINED_SIZES]);
-  };
-  
-  // Désélectionner toutes les tailles
-  const deselectAllSizes = () => {
-    setSelectedSizes([]);
-  };
-  
-  // Sélectionner toutes les couleurs
-  const selectAllColors = () => {
-    setSelectedColors([...PREDEFINED_COLORS]);
-  };
-  
-  // Désélectionner toutes les couleurs
-  const deselectAllColors = () => {
-    setSelectedColors([]);
   };
   
   // Soumettre le formulaire
@@ -456,132 +421,108 @@ export default function AddProductPage() {
             </button>
           </div>
           
-          <div className="mb-6">
-            <button
-              type="button"
-              onClick={() => setShowBulkGenerator(!showBulkGenerator)}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4"
-            >
-              {showBulkGenerator ? 'Masquer le générateur de variantes' : 'Générer des variantes en masse'}
-            </button>
+          <div className="bg-gray-100 p-6 rounded-lg mb-6 border border-gray-200">
+            <h3 className="font-medium text-lg mb-4 text-gray-800">Générateur automatique de variantes</h3>
             
-            {showBulkGenerator && (
-              <div className="bg-gray-100 p-4 rounded-md mb-4">
-                <h3 className="font-medium mb-2">Générateur de variantes</h3>
-                
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Tailles
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {PREDEFINED_SIZES.map(size => (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => handleSizeSelection(size)}
-                        className={`px-3 py-1 rounded-md text-sm ${
-                          selectedSizes.includes(size)
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={selectAllSizes}
-                      className="text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      Tout sélectionner
-                    </button>
-                    <button
-                      type="button"
-                      onClick={deselectAllSizes}
-                      className="text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      Tout désélectionner
-                    </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Tailles (séparées par des virgules)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={sizesInput}
+                    onChange={(e) => setSizesInput(e.target.value)}
+                    placeholder="XS,S,M,L,XL"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-indigo-500"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                    </svg>
                   </div>
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Couleurs
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {PREDEFINED_COLORS.map(color => (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() => handleColorSelection(color)}
-                        className={`px-3 py-1 rounded-md text-sm ${
-                          selectedColors.includes(color)
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {color}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={selectAllColors}
-                      className="text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      Tout sélectionner
-                    </button>
-                    <button
-                      type="button"
-                      onClick={deselectAllColors}
-                      className="text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      Tout désélectionner
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
-                      Stock par défaut
-                    </label>
-                    <input
-                      type="number"
-                      value={defaultStock}
-                      onChange={(e) => setDefaultStock(Number(e.target.value))}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      min="0"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
-                      Ajustement de prix par défaut
-                    </label>
-                    <input
-                      type="number"
-                      value={defaultPriceAdjustment}
-                      onChange={(e) => setDefaultPriceAdjustment(Number(e.target.value))}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-                
-                <button
-                  type="button"
-                  onClick={generateVariants}
-                  className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-                >
-                  Générer {selectedSizes.length * selectedColors.length} variantes
-                </button>
+                <p className="text-xs text-gray-500 mt-1">Exemple: XS,S,M,L,XL</p>
               </div>
-            )}
+              
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Couleurs (séparées par des virgules)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={colorsInput}
+                    onChange={(e) => setColorsInput(e.target.value)}
+                    placeholder="NOIR,BLANC,BLEU,ROUGE"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-indigo-500"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Exemple: JAUNE,BLEU,ROSE,NOIR</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">  
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Stock par défaut
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={defaultStock}
+                    onChange={(e) => setDefaultStock(Number(e.target.value))}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-indigo-500"
+                    min="0"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Ajustement de prix par défaut (€)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={defaultPriceAdjustment}
+                    onChange={(e) => setDefaultPriceAdjustment(Number(e.target.value))}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-indigo-500"
+                    step="0.01"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={generateVariants}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center transition-all duration-200 transform hover:scale-105"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Générer les variantes
+              </button>
+            </div>
           </div>
           
           {variants.map((variant, index) => (

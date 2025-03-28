@@ -266,38 +266,43 @@ export default function ProductDetail({ id }: { id: string }) {
     <div className="w-full min-h-screen bg-white text-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Image du produit */}
-            <div className="relative h-96 md:h-[500px] rounded-lg overflow-hidden">
-              {/* Affichage de la catégorie en petit rectangle */}
-              {product.category_id && (
-                <div className="absolute top-4 left-4 z-10 bg-indigo-600 text-white text-xs font-medium px-2 py-1 rounded">
-                  {(() => {
-                    // Obtenir le nom de la catégorie à partir de l'ID
-                    const category = categories.find(cat => cat.id === product.category_id);
-                    return category ? category.name : 'Autre';
-                  })()}
+          <div className="relative md:flex md:gap-8">
+            {/* Colonne de gauche fixe avec l'image */}
+            <div className="md:w-2/5 lg:w-2/5 relative md:h-screen">
+              <div className="sticky top-0 md:top-8 left-0 pt-4 md:pt-0">
+                <div className="relative h-96 md:h-[70vh] max-h-[600px] rounded-lg overflow-hidden">
+                  {/* Affichage de la catégorie en petit rectangle */}
+                  {product.category_id && (
+                    <div className="absolute top-4 left-4 z-10 bg-indigo-600 text-white text-xs font-medium px-2 py-1 rounded">
+                      {(() => {
+                        // Obtenir le nom de la catégorie à partir de l'ID
+                        const category = categories.find(cat => cat.id === product.category_id);
+                        return category ? category.name : 'Autre';
+                      })()}
+                    </div>
+                  )}
+                  <Image
+                    src={product.image_url || '/images/placeholder.jpg'}
+                    alt={product.name}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    className="rounded-lg"
+                    priority
+                  />
+                  
+                  {/* Badge de personnalisation */}
+                  <div className="absolute top-4 right-4 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md flex items-center">
+                    <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                    </svg>
+                    Personnalisable
+                  </div>
                 </div>
-              )}
-              <Image
-                src={product.image_url || '/images/placeholder.jpg'}
-                alt={product.name}
-                fill
-                style={{ objectFit: 'cover' }}
-                className="rounded-lg"
-              />
-              
-              {/* Badge de personnalisation */}
-              <div className="absolute top-4 right-4 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md flex items-center">
-                <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                </svg>
-                Personnalisable
               </div>
             </div>
             
-            {/* Informations du produit */}
-            <div className="flex flex-col text-black">
+            {/* Informations du produit - Colonne de droite qui défile */}
+            <div className="flex flex-col text-black md:w-3/5 lg:w-3/5 mt-8 md:mt-0">
               <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
               <p className="text-xl font-semibold mb-4">{product.base_price.toFixed(2)} €</p>
 
@@ -616,8 +621,8 @@ export default function ProductDetail({ id }: { id: string }) {
             </div>
           </div>
           
-          {/* Informations supplémentaires */}
-          <div className="mt-16">
+          {/* Informations supplémentaires - Maintenant dans la colonne de droite */}
+          <div className="mt-16 md:pl-0 md:ml-[40%] lg:ml-[40%]">
             <div className="border-t border-gray-200 pt-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Informations produit Smiletext</h2>
 
@@ -646,11 +651,11 @@ export default function ProductDetail({ id }: { id: string }) {
             </div>
           </div>
           
-          {/* Produits similaires */}
-          <div className="mt-12">
+          {/* Produits similaires - Maintenant dans la colonne de droite */}
+          <div className="mt-12 md:pl-0 md:ml-[40%] lg:ml-[40%]">
             <h2 className="text-2xl font-bold mb-6">Produits similaires</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].filter(productId => productId.toString() !== id).map((productId) => (
                 <Link key={productId} href={`/products/${productId}`}>
                   <div className="bg-white rounded-lg shadow-md overflow-hidden">
