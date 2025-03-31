@@ -4,10 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useProduct, useStockCheck, useCategories } from '@/hooks/useProducts';
+import { useProduct, useStockCheck, useCategories, useAllProducts } from '@/hooks/useProducts';
 import { useCartContext } from '@/components/CartProvider';
 import CustomizationModal from '@/components/CustomizationModal';
 import { ProductCustomization } from '@/types/customization';
+import { Product } from '@/lib/products';
 
 // Type pour stocker les quantités par taille
 type SizeQuantities = {
@@ -17,6 +18,8 @@ type SizeQuantities = {
 export default function ProductDetail({ id }: { id: string }) {
   const { product, loading, error } = useProduct(id);
   const { categories } = useCategories();
+  const { products } = useAllProducts();
+  const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const { addToCart } = useCartContext();
   const [selectedColor, setSelectedColor] = useState('');
   const [sizeQuantities, setSizeQuantities] = useState<SizeQuantities>({});
@@ -27,6 +30,18 @@ export default function ProductDetail({ id }: { id: string }) {
   // Personnalisation toujours visible par défaut
   const [showEmbeddedCustomization, setShowEmbeddedCustomization] = useState(true);
   const [customizationData, setCustomizationData] = useState<ProductCustomization | null>(null);
+
+  // Récupérer les produits similaires (même catégorie, mais pas le même produit)
+  useEffect(() => {
+    if (product && products && products.length > 0) {
+      // Filtrer les produits de la même catégorie, mais pas le produit actuel
+      const similar = products
+        .filter(p => p.category_id === product.category_id && p.id !== product.id)
+        .slice(0, 3); // Limiter à 3 produits similaires
+      
+      setSimilarProducts(similar);
+    }
+  }, [product, products]);
 
   // Sélectionner automatiquement la première couleur disponible
   useEffect(() => {
@@ -669,26 +684,32 @@ export default function ProductDetail({ id }: { id: string }) {
           <div className="mt-12 md:pl-0 md:ml-[40%] lg:ml-[40%]">
             <h2 className="text-2xl font-bold mb-6">Produits similaires</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].filter(productId => productId.toString() !== id).map((productId) => (
-                <Link key={productId} href={`/products/${productId}`}>
-                  <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div className="relative h-48">
-                      <Image
-                        src={`/images/product-${productId}.jpg`}
-                        alt={`Produit similaire ${productId}`}
-                        fill
-                        className="object-cover"
-                      />
+            {similarProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {similarProducts.map((similarProduct) => (
+                  <Link key={similarProduct.id} href={`/products/${similarProduct.id}`}>
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                      <div className="relative h-48">
+                        <Image
+                          src={similarProduct.image_url || '/images/placeholder-product.jpg'}
+                          alt={similarProduct.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-medium text-gray-900">{similarProduct.name}</h3>
+                        <p className="text-gray-600 text-sm mt-1">À partir de {similarProduct.base_price.toFixed(2)} €</p>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-medium">Produit similaire {productId}</h3>
-                      <p className="text-gray-600 text-sm mt-1">À partir de 19,99 €</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 p-6 rounded-lg text-center">
+                <p className="text-gray-600">Aucun produit similaire trouvé</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

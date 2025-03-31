@@ -23,18 +23,48 @@ export async function addProduct(product: Omit<Product, 'id' | 'created_at' | 'u
  * Ajoute une variante de produit dans la base de données
  */
 export async function addProductVariant(variant: Omit<ProductVariant, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string } | null> {
-  const { data, error } = await supabase
-    .from('product_variants')
-    .insert([variant])
-    .select('id')
-    .single();
+  // S'assurer que les valeurs numériques sont bien des nombres
+  const sanitizedVariant = {
+    ...variant,
+    stock_quantity: Number(variant.stock_quantity),
+    price_adjustment: Number(variant.price_adjustment)
+  };
   
-  if (error) {
-    console.error('Error adding product variant:', error);
+  // Vérifier que les valeurs sont valides
+  if (isNaN(sanitizedVariant.stock_quantity) || isNaN(sanitizedVariant.price_adjustment)) {
+    console.error('Invalid numeric values in variant:', variant);
     return null;
   }
   
-  return data;
+  // Vérifier que product_id est défini
+  if (!sanitizedVariant.product_id) {
+    console.error('Missing product_id in variant:', variant);
+    return null;
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('product_variants')
+      .insert([sanitizedVariant])
+      .select('id')
+      .single();
+    
+    if (error) {
+      console.error('Error adding product variant:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      return null;
+    }
+    
+    return data;
+  } catch (err) {
+    console.error('Unexpected error in addProductVariant:', err);
+    return null;
+  }
 }
 
 /**

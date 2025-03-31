@@ -224,19 +224,56 @@ export default function AddProductPage() {
       
       // Ajouter les variantes
       for (const variant of variants) {
-        const variantToAdd = {
-          product_id: newProduct.id,
-          size: variant.size,
-          color: variant.color,
-          stock_quantity: Number(variant.stock_quantity),
-          price_adjustment: Number(variant.price_adjustment),
-          sku: variant.sku,
-        };
-        
-        const result = await addProductVariant(variantToAdd);
-        if (!result) {
-          throw new Error('Erreur lors de l\'ajout d\'une variante');
+        try {
+          // Valider les données de la variante
+          if (!variant.size || !variant.color) {
+            setError('Chaque variante doit avoir une taille et une couleur');
+            continue; // Passer à la variante suivante au lieu d'arrêter complètement
+          }
+          
+          // Convertir explicitement en nombres et vérifier que ce sont des nombres valides
+          const stockQuantity = Number(variant.stock_quantity);
+          const priceAdjustment = Number(variant.price_adjustment);
+          
+          if (isNaN(stockQuantity) || isNaN(priceAdjustment)) {
+            setError(`Valeurs numériques invalides pour la variante ${variant.size} ${variant.color}`);
+            continue;
+          }
+          
+          // Générer un SKU unique pour chaque variante
+          // Utiliser un timestamp pour garantir l'unicité même si les tailles et couleurs sont identiques
+          const timestamp = Date.now();
+          const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+          
+          const variantToAdd = {
+            product_id: newProduct.id,
+            size: variant.size,
+            color: variant.color,
+            stock_quantity: stockQuantity,
+            price_adjustment: priceAdjustment,
+            sku: variant.sku || `${newProduct.id.substring(0, 8)}-${variant.size}-${variant.color}-${timestamp}-${randomSuffix}`.toLowerCase(),
+          };
+          
+          console.log('Ajout de la variante:', variantToAdd);
+          
+          const result = await addProductVariant(variantToAdd);
+          if (!result) {
+            console.error(`Échec de l'ajout de la variante ${variant.size} ${variant.color}`);
+            setError(`Échec de l'ajout de la variante ${variant.size} ${variant.color}. Vérifiez la console pour plus de détails.`);
+            // Continuer avec les autres variantes au lieu d'arrêter complètement
+          } else {
+            console.log(`Variante ${variant.size} ${variant.color} ajoutée avec succès, ID: ${result.id}`);
+          }
+        } catch (variantError) {
+          console.error('Erreur lors de l\'ajout d\'une variante:', variantError);
+          setError(`Erreur lors de l'ajout de la variante ${variant.size} ${variant.color}: ${variantError instanceof Error ? variantError.message : 'Erreur inconnue'}`);
+          // Continuer avec les autres variantes au lieu d'arrêter complètement
         }
+      }
+      
+      // Vérifier si nous avons des erreurs mais continuer quand même
+      if (error) {
+        console.warn('Des erreurs sont survenues lors de l\'ajout des variantes, mais le produit a été créé.');
       }
       
       // Succès !

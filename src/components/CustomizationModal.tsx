@@ -278,33 +278,10 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
         updatedCustomizations.push(updatedCurrentCustomization);
       }
       
-      // Vérifier si nous avons déjà une personnalisation pour l'autre face
-      const otherFace: Face = currentFace === 'devant' ? 'derriere' : 'devant';
-      const otherFaceIndex = updatedCustomizations.findIndex(c => c.face === otherFace);
+      // Nous ne créons plus automatiquement une personnalisation pour l'autre face
+      // Le client peut choisir de personnaliser uniquement la face actuelle
       
-      // Si nous n'avons pas de personnalisation pour l'autre face, en créer une
-      if (otherFaceIndex === -1) {
-        // Créer une personnalisation pour l'autre face avec les mêmes paramètres
-        const otherFaceCustomization: SingleCustomization = {
-          ...updatedCurrentCustomization,
-          face: otherFace,
-          position: otherFace === 'devant' ? 'devant-pec' : 'dos-haut'
-        };
-        
-        // Ajouter la personnalisation de l'autre face
-        updatedCustomizations.push(otherFaceCustomization);
-      } else if (!updatedCustomizations[otherFaceIndex].type_impression) {
-        // Si l'autre face existe mais n'a pas de type d'impression, mettre à jour avec le type actuel
-        updatedCustomizations[otherFaceIndex] = {
-          ...updatedCustomizations[otherFaceIndex],
-          type_impression: updatedCurrentCustomization.type_impression,
-          type: updatedCurrentCustomization.type,
-          texte: updatedCurrentCustomization.texte,
-          couleur_texte: updatedCurrentCustomization.couleur_texte,
-          police: updatedCurrentCustomization.police,
-          image_url: updatedCurrentCustomization.image_url
-        };
-      }
+      // Nous conservons uniquement les personnalisations qui ont été explicitement créées par l'utilisateur
       
       // Créer une nouvelle personnalisation complète avec les deux faces
       const finalProductCustomization: ProductCustomization = {
