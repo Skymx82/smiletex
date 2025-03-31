@@ -39,6 +39,9 @@ export type SingleCustomization = {
   
   // Face du vêtement (devant ou derrière)
   face: Face;
+  
+  // Champ interne pour suivre l'état du téléchargement de l'image
+  _uploadingImage?: boolean;
 };
 
 // Type de personnalisation complet permettant de personnaliser le devant et le derrière

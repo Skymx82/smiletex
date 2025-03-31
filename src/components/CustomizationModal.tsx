@@ -144,25 +144,38 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
 
   // Fonction pour mettre à jour la personnalisation de la face actuelle
   const updateCurrentFaceCustomization = () => {
+    // Vérifier si les champs obligatoires sont remplis
+    if (!currentCustomization.type_impression || !currentCustomization.position) {
+      console.warn('Tentative de mise à jour d\'une personnalisation incomplète');
+      return;
+    }
+
     // Préparer la personnalisation en fonction du type sélectionné
     let updatedCustomization: SingleCustomization;
     
     if (selectedType === 'image') {
-      // Si on utilise une image, supprimer les champs de texte
-      const { texte, couleur_texte, police, ...rest } = currentCustomization;
+      // Si on utilise une image, supprimer les champs de texte mais conserver les autres propriétés
       updatedCustomization = {
-        ...rest,
+        ...currentCustomization,
+        texte: undefined,
+        couleur_texte: undefined,
+        police: undefined,
         type: 'image',
         face: currentFace
       };
     } else {
-      // Si on utilise du texte, supprimer le champ image_url
-      const { image_url, ...rest } = currentCustomization;
+      // Si on utilise du texte, supprimer le champ image_url mais conserver les autres propriétés
       updatedCustomization = {
-        ...rest,
+        ...currentCustomization,
+        image_url: undefined,
         type: 'text',
         face: currentFace
       };
+    }
+    
+    // S'assurer que tous les champs nécessaires sont présents
+    if (updatedCustomization.type === 'text' && !updatedCustomization.texte) {
+      updatedCustomization.texte = '';
     }
     
     // Mettre à jour la liste des personnalisations
@@ -184,6 +197,8 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
       ...productCustomization,
       customizations: updatedCustomizations
     });
+    
+    console.log('Personnalisation mise à jour:', updatedCustomization);
   };
   
   // Fonction pour changer de face (devant/derrière)
@@ -202,26 +217,112 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
       setCurrentCustomization(faceCustomization);
       setSelectedType(faceCustomization.type === 'text' ? 'texte' : 'image');
     } else {
-      // Créer une nouvelle personnalisation pour cette face
-      setCurrentCustomization({
-        type_impression: '',
-        position: newFace === 'devant' ? 'devant-pec' : 'dos-haut',
-        texte: '',
-        couleur_texte: '#000000',
-        police: 'Arial',
-        type: 'text',
-        face: newFace
-      });
-      setSelectedType('texte');
+      // Vérifier si la face actuelle a une personnalisation pour copier ses paramètres
+      const currentFaceCustomization = productCustomization.customizations.find(c => c.face === currentFace);
+      
+      if (currentFaceCustomization && currentFaceCustomization.type_impression) {
+        // Copier les paramètres de la face actuelle pour la nouvelle face
+        setCurrentCustomization({
+          ...currentFaceCustomization,
+          position: newFace === 'devant' ? 'devant-pec' : 'dos-haut',
+          face: newFace
+        });
+        setSelectedType(currentFaceCustomization.type === 'text' ? 'texte' : 'image');
+      } else {
+        // Créer une nouvelle personnalisation vide pour cette face
+        setCurrentCustomization({
+          type_impression: '',
+          position: newFace === 'devant' ? 'devant-pec' : 'dos-haut',
+          texte: '',
+          couleur_texte: '#000000',
+          police: 'Arial',
+          type: 'text',
+          face: newFace
+        });
+        setSelectedType('texte');
+      }
     }
   };
   
   const handleSave = () => {
-    // Sauvegarder d'abord les modifications sur la face actuelle
-    updateCurrentFaceCustomization();
-    
-    // Envoyer la personnalisation complète
-    onSave(productCustomization);
+    // Forcer la mise à jour de la personnalisation actuelle avant de sauvegarder
+    if (currentCustomization.type_impression && currentCustomization.position) {
+      // Préparer la personnalisation en fonction du type sélectionné
+      let updatedCurrentCustomization: SingleCustomization;
+      
+      if (selectedType === 'image') {
+        updatedCurrentCustomization = {
+          ...currentCustomization,
+          texte: undefined,
+          couleur_texte: undefined,
+          police: undefined,
+          type: 'image',
+          face: currentFace
+        };
+      } else {
+        updatedCurrentCustomization = {
+          ...currentCustomization,
+          image_url: undefined,
+          type: 'text',
+          face: currentFace
+        };
+      }
+      
+      // Mettre à jour la liste des personnalisations pour la face actuelle
+      let updatedCustomizations = [...productCustomization.customizations];
+      const existingIndex = updatedCustomizations.findIndex(c => c.face === currentFace);
+      
+      if (existingIndex >= 0) {
+        updatedCustomizations[existingIndex] = updatedCurrentCustomization;
+      } else {
+        updatedCustomizations.push(updatedCurrentCustomization);
+      }
+      
+      // Vérifier si nous avons déjà une personnalisation pour l'autre face
+      const otherFace: Face = currentFace === 'devant' ? 'derriere' : 'devant';
+      const otherFaceIndex = updatedCustomizations.findIndex(c => c.face === otherFace);
+      
+      // Si nous n'avons pas de personnalisation pour l'autre face, en créer une
+      if (otherFaceIndex === -1) {
+        // Créer une personnalisation pour l'autre face avec les mêmes paramètres
+        const otherFaceCustomization: SingleCustomization = {
+          ...updatedCurrentCustomization,
+          face: otherFace,
+          position: otherFace === 'devant' ? 'devant-pec' : 'dos-haut'
+        };
+        
+        // Ajouter la personnalisation de l'autre face
+        updatedCustomizations.push(otherFaceCustomization);
+      } else if (!updatedCustomizations[otherFaceIndex].type_impression) {
+        // Si l'autre face existe mais n'a pas de type d'impression, mettre à jour avec le type actuel
+        updatedCustomizations[otherFaceIndex] = {
+          ...updatedCustomizations[otherFaceIndex],
+          type_impression: updatedCurrentCustomization.type_impression,
+          type: updatedCurrentCustomization.type,
+          texte: updatedCurrentCustomization.texte,
+          couleur_texte: updatedCurrentCustomization.couleur_texte,
+          police: updatedCurrentCustomization.police,
+          image_url: updatedCurrentCustomization.image_url
+        };
+      }
+      
+      // Créer une nouvelle personnalisation complète avec les deux faces
+      const finalProductCustomization: ProductCustomization = {
+        ...productCustomization,
+        customizations: updatedCustomizations
+      };
+      
+      // Mettre à jour l'état global
+      setProductCustomization(finalProductCustomization);
+      
+      // Envoyer la personnalisation complète
+      console.log('Sauvegarde des personnalisations:', finalProductCustomization);
+      onSave(finalProductCustomization);
+    } else {
+      // Aucune personnalisation valide, envoyer quand même l'état actuel
+      console.log('Sauvegarde sans personnalisation valide:', productCustomization);
+      onSave(productCustomization);
+    }
     
     if (!isEmbedded) {
       onClose();
@@ -564,20 +665,65 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Télécharger une image
                       </label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            // Dans un vrai projet, vous devriez uploader l'image vers votre serveur/stockage
-                            // et utiliser l'URL retournée
-                            const tempUrl = URL.createObjectURL(file);
-                            setCurrentCustomization({ ...currentCustomization, image_url: tempUrl });
-                          }
-                        }}
-                        className="w-full p-2 border rounded-md"
-                      />
+                      <div className="space-y-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                // Vérifier la taille du fichier (max 5 Mo)
+                                const maxSize = 5 * 1024 * 1024; // 5 Mo en octets
+                                if (file.size > maxSize) {
+                                  throw new Error(`L'image est trop volumineuse. Taille maximale: 5 Mo`);
+                                }
+                                
+                                // Convertir le fichier en base64 pour stockage permanent
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  if (event.target?.result) {
+                                    // Stocker directement le base64 comme valeur de image_url
+                                    const base64String = event.target.result as string;
+                                    setCurrentCustomization({ 
+                                      ...currentCustomization, 
+                                      image_url: base64String
+                                    });
+                                    console.log('Image chargée avec succès en base64');
+                                  }
+                                };
+                                reader.onerror = () => {
+                                  alert('Erreur lors de la lecture du fichier. Veuillez réessayer.');
+                                };
+                                reader.readAsDataURL(file);
+                              } catch (error) {
+                                // Récupérer le message d'erreur
+                                const errorMessage = error instanceof Error 
+                                  ? error.message 
+                                  : 'Erreur inconnue lors du chargement';
+                                
+                                console.error('Erreur lors du chargement de l\'image:', error);
+                                alert(`Erreur: ${errorMessage}`);
+                              }
+                            }
+                          }}
+                          className="w-full p-2 border rounded-md"
+                        />
+                        
+                        {currentCustomization.image_url && (
+                          <div className="flex flex-col items-center mt-3">
+                            <div className="relative h-32 w-32 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img 
+                                src={currentCustomization.image_url} 
+                                alt="Aperçu de l'image" 
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <p className="text-xs text-green-600 mt-1">Image prête à être utilisée</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

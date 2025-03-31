@@ -316,11 +316,198 @@ export default function OrdersPage() {
                       Quantité: {item.quantity} × {item.price_per_unit.toFixed(2)}€
                     </p>
                     {item.customization_data && (
-                      <div className="mt-1">
-                        <p className="text-sm font-medium">Personnalisation:</p>
-                        <pre className="text-xs text-gray-900 mt-1">
-                          {JSON.stringify(item.customization_data, null, 2)}
-                        </pre>
+                      <div className="mt-2 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-md border border-indigo-200 shadow-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-sm font-bold flex items-center text-indigo-800">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                            </svg>
+                            INSTRUCTIONS DE PERSONNALISATION
+                          </p>
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">À réaliser</span>
+                        </div>
+                        
+                        {/* Résumé rapide des personnalisations */}
+                        <div className="bg-white p-2 rounded-md border border-indigo-100 mb-3 text-xs">
+                          <p className="font-semibold text-gray-700 mb-1">Résumé:</p>
+                          <ul className="list-disc pl-4 space-y-1">
+                            {item.customization_data.customizations && item.customization_data.customizations.map((c: any, i: number) => (
+                              <li key={`summary-${i}`}>
+                                <span className="font-medium">{c.face === 'devant' ? 'Devant' : 'Derrière'}</span>: 
+                                {c.type === 'text' ? 
+                                  <span>Texte "{c.texte}" en {c.type_impression || 'impression'}</span> : 
+                                  <span>Image en {c.type_impression || 'impression'}</span>
+                                }
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        {item.customization_data.customizations && item.customization_data.customizations.map((customization: any, index: number) => {
+                          // Déterminer les icônes et couleurs en fonction du type de personnalisation
+                          const isText = customization.type === 'text';
+                          const isFront = customization.face === 'devant';
+                          
+                          // Icônes pour le type de personnalisation
+                          const typeIcon = isText ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                          );
+                          
+                          // Icônes pour la face (devant/derrière)
+                          const faceIcon = isFront ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                            </svg>
+                          );
+                          
+                          return (
+                            <div key={index} className="mb-3 last:mb-0 bg-white p-3 rounded-lg border-l-4 border border-indigo-200 shadow-sm"
+                                 style={{ borderLeftColor: isFront ? '#4f46e5' : '#7e22ce' }}>
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center">
+                                  <div className={`p-1.5 rounded-full mr-2 ${isFront ? 'bg-indigo-100 text-indigo-700' : 'bg-purple-100 text-purple-700'}`}>
+                                    {faceIcon}
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-sm">
+                                      {isFront ? 'FACE AVANT' : 'FACE ARRIÈRE'}
+                                    </p>
+                                    <p className="text-xs text-gray-600">
+                                      Position: {customization.position.replace(/-/g, ' ').replace(/(^\w|\s\w)/g, (m: string) => m.toUpperCase())}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className={`px-2 py-1 rounded-md text-xs font-medium ${isText ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>
+                                  <div className="flex items-center">
+                                    {typeIcon}
+                                    <span className="ml-1">{isText ? 'TEXTE' : 'IMAGE'}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-gray-50 p-2 rounded-md border border-gray-200 mb-2">
+                                <div className="flex items-center mb-1">
+                                  <svg className="w-4 h-4 text-indigo-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                  </svg>
+                                  <p className="text-xs font-semibold text-indigo-800">TECHNIQUE</p>
+                                </div>
+                                <p className="text-sm font-medium bg-white p-1.5 rounded border border-gray-200 text-center">
+                                  {customization.type_impression || 'Impression standard'}
+                                </p>
+                              </div>
+                              
+                              {isText && customization.texte && (
+                                <div className="bg-gray-50 p-2 rounded-md border border-gray-200 mb-2">
+                                  <div className="flex items-center mb-1">
+                                    <svg className="w-4 h-4 text-indigo-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path>
+                                    </svg>
+                                    <p className="text-xs font-semibold text-indigo-800">TEXTE À IMPRIMER</p>
+                                  </div>
+                                  <div className="bg-white p-2 rounded border border-gray-200 text-center">
+                                    <p className="text-base" style={{ 
+                                      color: customization.couleur_texte || '#000000',
+                                      fontFamily: customization.police || 'inherit',
+                                      fontWeight: 'bold'
+                                    }}>
+                                      {customization.texte}
+                                    </p>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
+                                    {customization.police && (
+                                      <div>
+                                        <p className="font-medium text-gray-700">Police:</p>
+                                        <p className="bg-white p-1 rounded border border-gray-200 text-center">
+                                          {customization.police}
+                                        </p>
+                                      </div>
+                                    )}
+                                    
+                                    {customization.couleur_texte && (
+                                      <div>
+                                        <p className="font-medium text-gray-700">Couleur:</p>
+                                        <div className="flex items-center bg-white p-1 rounded border border-gray-200">
+                                          <div 
+                                            className="w-4 h-4 rounded-full border border-gray-300 mr-1" 
+                                            style={{ backgroundColor: customization.couleur_texte }}
+                                          ></div>
+                                          <span>{customization.couleur_texte}</span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {!isText && customization.image_url && (
+                                <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                  <div className="flex items-center mb-1">
+                                    <svg className="w-4 h-4 text-indigo-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p className="text-xs font-semibold text-indigo-800">IMAGE À IMPRIMER</p>
+                                  </div>
+                                  <div className="flex justify-center bg-white p-2 rounded border border-gray-200">
+                                    <div className="h-24 w-24 bg-gray-100 rounded-md overflow-hidden">
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img 
+                                        src={customization.image_url.startsWith('data:') 
+                                          ? customization.image_url 
+                                          : customization.image_url.startsWith('blob:') 
+                                            ? '/images/placeholder.jpg' // Fallback pour les URLs blob qui ne sont plus valides
+                                            : customization.image_url
+                                        } 
+                                        alt="Personnalisation" 
+                                        className="w-full h-full object-contain"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Bouton de téléchargement */}
+                                  <div className="flex justify-center mt-2">
+                                    <a
+                                      href={customization.image_url.startsWith('data:') ? customization.image_url : '#'}
+                                      download={`personnalisation-${item.id}-${index}.png`}
+                                      className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center ${customization.image_url.startsWith('data:') ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                                      onClick={(e) => {
+                                        if (!customization.image_url.startsWith('data:')) {
+                                          e.preventDefault();
+                                          alert('Cette image ne peut pas être téléchargée. Format non supporté.');
+                                        }
+                                      }}
+                                    >
+                                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                      </svg>
+                                      Télécharger l'image
+                                    </a>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="mt-2 pt-2 border-t border-gray-200">
+                                <p className="text-xs font-medium text-gray-600 flex items-center">
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                  </svg>
+                                  Instructions: {isText ? 'Imprimer ce texte' : 'Imprimer cette image'} sur la {isFront ? 'face avant' : 'face arrière'} du produit à la position indiquée.
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
