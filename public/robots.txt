@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.smiletex.fr/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /api/
