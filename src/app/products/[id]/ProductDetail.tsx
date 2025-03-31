@@ -298,18 +298,50 @@ export default function ProductDetail({ id }: { id: string }) {
                     Personnalisable
                   </div>
                 </div>
+                
+                {/* Prix et description - Au-dessus des informations supplémentaires */}
+                <div className="mt-4 pt-2">
+                  <h1 className="text-xl font-bold mb-1">{product.name}</h1>
+                  <p className="text-lg font-semibold text-indigo-700 mb-3">{product.base_price.toFixed(2)} €</p>
+                  
+                  <div className="mb-4">
+                    <h2 className="text-md font-bold text-gray-800 mb-1">Description</h2>
+                    <p className="text-sm text-gray-700">{product.description}</p>
+                  </div>
+                </div>
+                
+                {/* Informations supplémentaires - Maintenant sous l'image */}
+                <div className="mt-4 border-t border-gray-200 pt-4">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Informations produit Smiletext</h2>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-md font-semibold mb-1">Matériaux</h3>
+                      <p className="text-sm text-gray-600">
+                        100% coton bio certifié, tissage de haute qualité pour une durabilité optimale.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="text-md font-semibold mb-1">Entretien</h3>
+                      <p className="text-sm text-gray-600">
+                        Lavage en machine à 30°C, ne pas utiliser d'eau de javel, séchage à basse température.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="text-md font-semibold mb-1">Livraison</h3>
+                      <p className="text-sm text-gray-600">
+                        Livraison standard en 3-5 jours ouvrables. Livraison express disponible.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
             {/* Informations du produit - Colonne de droite qui défile */}
             <div className="flex flex-col text-black md:w-3/5 lg:w-3/5 mt-8 md:mt-0">
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              <p className="text-xl font-semibold mb-4">{product.base_price.toFixed(2)} €</p>
-
-              <div className="mb-6">
-                <h2 className="text-lg font-bold text-gray-800 mb-2">Description</h2>
-                <p className="text-gray-700">{product.description}</p>
-              </div>
               
               {/* Section de personnalisation intégrée - Déplacée en haut */}
               <div className="mb-6 border border-indigo-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
@@ -539,6 +571,16 @@ export default function ProductDetail({ id }: { id: string }) {
                     </span>
                   )}
                 </button>
+                
+                {/* Bouton pour accéder au panier - toujours visible */}
+                <Link href="/cart" className="block w-full py-2.5 px-4 bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-sm font-medium rounded-md transition-colors shadow-sm hover:shadow-md text-center">
+                  <div className="flex items-center justify-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Voir mon panier
+                  </div>
+                </Link>
 
                 {/* Modal de personnalisation */}
                 <CustomizationModal
@@ -621,35 +663,7 @@ export default function ProductDetail({ id }: { id: string }) {
             </div>
           </div>
           
-          {/* Informations supplémentaires - Maintenant dans la colonne de droite */}
-          <div className="mt-16 md:pl-0 md:ml-[40%] lg:ml-[40%]">
-            <div className="border-t border-gray-200 pt-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Informations produit Smiletext</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Matériaux</h3>
-                  <p className="text-gray-600">
-                    100% coton bio certifié, tissage de haute qualité pour une durabilité optimale.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Entretien</h3>
-                  <p className="text-gray-600">
-                    Lavage en machine à 30°C, ne pas utiliser d'eau de javel, séchage à basse température.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Livraison</h3>
-                  <p className="text-gray-600">
-                    Livraison standard en 3-5 jours ouvrables. Livraison express disponible.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Section d'informations supplémentaires déplacée sous l'image dans la colonne de gauche */}
           
           {/* Produits similaires - Maintenant dans la colonne de droite */}
           <div className="mt-12 md:pl-0 md:ml-[40%] lg:ml-[40%]">
