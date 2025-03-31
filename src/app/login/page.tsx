@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
@@ -13,6 +14,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -84,17 +86,29 @@ export default function Login() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Mot de passe
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <FaEye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
               </div>
             </div>
 

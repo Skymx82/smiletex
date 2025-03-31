@@ -1,7 +1,5 @@
-import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from '@/lib/email/mailer';
 
 export async function POST(request: Request) {
   try {
@@ -26,17 +24,15 @@ export async function POST(request: Request) {
     `;
 
     // Envoyer l'email au propriétaire du site
-    await resend.emails.send({
-      from: 'Smiletext <devis@votredomaine.com>',
+    await sendEmail({
       to: 'mattias.mathevon@gmail.com', // Remplacez par votre email
       subject: 'Nouvelle demande de devis',
       html: emailContent,
-      reply_to: data.email
+      replyTo: data.email
     });
 
     // Envoyer une confirmation au client
-    await resend.emails.send({
-      from: 'Smiletext <devis@votredomaine.com>',
+    await sendEmail({
       to: data.email,
       subject: 'Confirmation de votre demande de devis',
       html: `

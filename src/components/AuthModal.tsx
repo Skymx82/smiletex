@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import Link from 'next/link';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 
@@ -25,6 +26,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, redirectUrl }: A
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signIn, signUp } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +110,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, redirectUrl }: A
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+    <Dialog open={isOpen} onClose={onClose} className="relative z-50 text-black">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       
       <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
@@ -195,17 +198,29 @@ export default function AuthModal({ isOpen, onClose, onSuccess, redirectUrl }: A
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Mot de passe
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete={isLogin ? "current-password" : "new-password"}
                   required
                   value={formData.password}
                   onChange={handleChange}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <FaEye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -214,17 +229,29 @@ export default function AuthModal({ isOpen, onClose, onSuccess, redirectUrl }: A
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                   Confirmer le mot de passe
                 </label>
-                <div className="mt-1">
+                <div className="mt-1 relative">
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     autoComplete="new-password"
                     required={!isLogin}
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? (
+                      <FaEyeSlash className="h-5 w-5" aria-hidden="true" />
+                    ) : (
+                      <FaEye className="h-5 w-5" aria-hidden="true" />
+                    )}
+                  </button>
                 </div>
               </div>
             )}

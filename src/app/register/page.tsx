@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 
@@ -18,6 +19,8 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,17 +189,29 @@ export default function Register() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Mot de passe
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={formData.password}
                   onChange={handleChange}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <FaEye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -204,17 +219,29 @@ export default function Register() {
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirmer le mot de passe
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <FaEyeSlash className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <FaEye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
               </div>
             </div>
 

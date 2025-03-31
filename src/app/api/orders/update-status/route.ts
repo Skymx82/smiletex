@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
+import { sendOrderConfirmationEmail } from '@/lib/email/mailer';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-02-24.acacia',
@@ -27,7 +28,9 @@ export async function POST(request: Request) {
     }
 
     // Vérifier le statut de la session Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['customer_details'],
+    });
     
     if (session.payment_status !== 'paid') {
       return NextResponse.json(
@@ -103,6 +106,128 @@ export async function POST(request: Request) {
 
     if (orderError) {
       throw orderError;
+    }
+
+    // Récupérer les détails de la commande pour l'email
+    try {
+      // Récupérer les articles de la commande
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select(`
+          *,
+          product:products(name, image_url)
+        `)
+        .eq('order_id', orderId);
+
+      // Récupérer les informations de l'utilisateur
+      let userEmail = '';
+      let customerName = '';
+
+      console.log('Récupération des informations utilisateur pour l\'ID:', order.user_id);
+
+      if (order.user_id) {
+        // Récupérer l'email de l'utilisateur depuis la table auth.users
+        const { data: userData, error: userError } = await supabase.auth
+          .admin
+          .getUserById(order.user_id);
+
+        if (userError) {
+          console.error('Erreur lors de la récupération de l\'utilisateur:', userError);
+        }
+
+        if (userData?.user?.email) {
+          userEmail = userData.user.email;
+          console.log('Email utilisateur trouvé:', userEmail);
+        } else {
+          console.log('Aucun email trouvé dans auth.users, tentative avec la table users');
+          // Essayer avec la table users si elle existe
+          const { data: userRecord, error: userRecordError } = await supabase
+            .from('users')
+            .select('email')
+            .eq('id', order.user_id)
+            .single();
+
+          if (userRecordError) {
+            console.error('Erreur lors de la récupération depuis users:', userRecordError);
+          }
+
+          if (userRecord?.email) {
+            userEmail = userRecord.email;
+            console.log('Email utilisateur trouvé dans la table users:', userEmail);
+          }
+        }
+
+        // Récupérer le profil client
+        const { data: profile, error: profileError } = await supabase
+          .from('customer_profiles')
+          .select('first_name, last_name, email')
+          .eq('id', order.user_id)
+          .single();
+
+        if (profileError) {
+          console.error('Erreur lors de la récupération du profil client:', profileError);
+        }
+
+        if (profile) {
+          customerName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+          console.log('Nom du client trouvé:', customerName);
+          
+          // Si nous n'avons toujours pas d'email, essayer avec celui du profil
+          if (!userEmail && profile.email) {
+            userEmail = profile.email;
+            console.log('Email trouvé dans le profil client:', userEmail);
+          }
+        }
+      }
+      
+      // Si nous n'avons toujours pas d'email, essayer de le récupérer depuis les métadonnées de la session Stripe
+      if (!userEmail && session.customer_details?.email) {
+        userEmail = session.customer_details.email;
+        console.log('Email récupéré depuis Stripe:', userEmail);
+        
+        // Si nous n'avons pas de nom client, utiliser celui de Stripe
+        if (!customerName && session.customer_details?.name) {
+          customerName = session.customer_details.name;
+          console.log('Nom du client récupéré depuis Stripe:', customerName);
+        }
+      }
+
+      // Si nous avons un email utilisateur, envoyer l'email de confirmation
+      if (userEmail) {
+        try {
+          const formattedItems = orderItems?.map(item => ({
+            name: item.product?.name || 'Produit',
+            quantity: item.quantity,
+            price: item.price_per_unit,
+            size: item.variant?.size,
+            color: item.variant?.color,
+          })) || [];
+
+          console.log('Envoi de l\'email de confirmation à:', userEmail);
+          console.log('Articles formatés:', JSON.stringify(formattedItems, null, 2));
+
+          const emailResult = await sendOrderConfirmationEmail(userEmail, {
+            orderId: orderId,
+            items: formattedItems,
+            total: order.total_amount,
+            shippingCost: order.shipping_cost || 4.99,
+            customerName: customerName || undefined,
+          });
+
+          if (emailResult) {
+            console.log('Email de confirmation envoyé avec succès à:', userEmail);
+          } else {
+            console.error('Erreur lors de l\'envoi de l\'email de confirmation');
+          }
+        } catch (emailSendError) {
+          console.error('Exception lors de l\'envoi de l\'email:', emailSendError);
+        }
+      } else {
+        console.log('Pas d\'email utilisateur trouvé pour envoyer la confirmation');
+      }
+    } catch (emailError) {
+      // Ne pas bloquer le processus si l'envoi d'email échoue
+      console.error('Erreur lors de l\'envoi de l\'email de confirmation:', emailError);
     }
 
     return NextResponse.json({ success: true, order });
