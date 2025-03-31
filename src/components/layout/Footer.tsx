@@ -15,26 +15,26 @@ export default function Footer() {
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-4">Produits</h3>
+            <h3 className="text-lg font-semibold mb-4">Liens rapides</h3>
             <ul className="space-y-2 text-gray-300 text-sm">
               <li>
-                <Link href="/products/category/t-shirts" className="hover:text-white">
-                  T-shirts
+                <Link href="/products" className="hover:text-white">
+                  Tous nos produits
                 </Link>
               </li>
               <li>
-                <Link href="/products/category/sweats" className="hover:text-white">
-                  Sweats
+                <Link href="/cart" className="hover:text-white">
+                  Mon panier
                 </Link>
               </li>
               <li>
-                <Link href="/products/category/accessories" className="hover:text-white">
-                  Accessoires
+                <Link href="/account" className="hover:text-white">
+                  Mon compte
                 </Link>
               </li>
               <li>
-                <Link href="/products/new" className="hover:text-white">
-                  Nouveautés
+                <Link href="/devis" className="hover:text-white">
+                  Demande de devis
                 </Link>
               </li>
             </ul>
