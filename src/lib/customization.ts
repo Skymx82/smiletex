@@ -1,4 +1,4 @@
-import { ProductCustomization } from '@/types/customization';
+import { ProductCustomization, SingleCustomization } from '@/types/customization';
 
 /**
  * Export du type ProductCustomization pour la rétro-compatibilité
@@ -54,6 +54,43 @@ export function calculateCustomizationPrice(customization: ProductCustomization)
  * @param customization - L'objet de personnalisation du produit
  * @returns Une description textuelle de la personnalisation
  */
+/**
+ * Vérifie si une personnalisation individuelle est complète
+ * @param customization - L'objet de personnalisation individuelle
+ * @returns true si la personnalisation est complète, false sinon
+ */
+export function isSingleCustomizationComplete(customization: SingleCustomization): boolean {
+  // Une personnalisation est complète si elle a un type d'impression, une position,
+  // et soit un texte (pour le type 'text') soit une image (pour le type 'image')
+  if (!customization.type_impression || !customization.position) {
+    return false;
+  }
+  
+  if (customization.type === 'text' && !customization.texte) {
+    return false;
+  }
+  
+  if (customization.type === 'image' && !customization.image_url) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Vérifie si une personnalisation de produit est complète
+ * @param customization - L'objet de personnalisation du produit
+ * @returns true si au moins une personnalisation est complète, false sinon
+ */
+export function isCustomizationComplete(customization: ProductCustomization): boolean {
+  if (!customization.customizations || customization.customizations.length === 0) {
+    return false;
+  }
+  
+  // Une personnalisation de produit est complète si au moins une de ses personnalisations individuelles est complète
+  return customization.customizations.some(singleCustomization => isSingleCustomizationComplete(singleCustomization));
+}
+
 export function getCustomizationDescription(customization: ProductCustomization): string {
   if (!customization.customizations || customization.customizations.length === 0) {
     return 'Aucune personnalisation';

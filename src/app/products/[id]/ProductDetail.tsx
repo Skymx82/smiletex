@@ -9,6 +9,7 @@ import { useCartContext } from '@/components/CartProvider';
 import CustomizationModal from '@/components/CustomizationModal';
 import { ProductCustomization } from '@/types/customization';
 import { Product } from '@/lib/products';
+import { isCustomizationComplete } from '@/lib/customization';
 
 // Type pour stocker les quantités par taille
 type SizeQuantities = {
@@ -30,6 +31,8 @@ export default function ProductDetail({ id }: { id: string }) {
   // Personnalisation toujours visible par défaut
   const [showEmbeddedCustomization, setShowEmbeddedCustomization] = useState(true);
   const [customizationData, setCustomizationData] = useState<ProductCustomization | null>(null);
+  // État pour stocker le prix supplémentaire dû aux personnalisations
+  const [customizationPrice, setCustomizationPrice] = useState<number>(0);
 
   // Récupérer les produits similaires (même catégorie, mais pas le même produit)
   useEffect(() => {
@@ -176,7 +179,9 @@ export default function ProductDetail({ id }: { id: string }) {
   };
   
   // Fonction pour ajouter au panier avec personnalisation
-  const handleAddToCartWithCustomization = async (customizationData: ProductCustomization) => {
+  const handleAddToCartWithCustomization = async (customizationData: ProductCustomization, price: number) => {
+    // Mettre à jour le prix de personnalisation
+    setCustomizationPrice(price);
     try {
       setIsAddingToCart(true);
       setStockError('');
@@ -208,12 +213,19 @@ export default function ProductDetail({ id }: { id: string }) {
             // Créer un ID unique pour cet élément du panier
             const cartItemId = `${product.id}-${variant.id}-${Date.now()}`;
             
+            // Vérifier si la personnalisation est complète pour appliquer le prix
+            const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
+            
+            // N'ajouter le prix de personnalisation que si elle est complète
+            const finalPrice = product.base_price + (variant.price_adjustment || 0) + 
+                              (isPersonnalisationComplete ? customizationPrice : 0);
+            
             addToCart({
               id: cartItemId,
               productId: product.id,
               variantId: variant.id,
               name: product.name,
-              price: product.base_price + (variant.price_adjustment || 0),
+              price: finalPrice,
               quantity: quantity,
               size: size,
               color: selectedColor,
@@ -317,7 +329,37 @@ export default function ProductDetail({ id }: { id: string }) {
                 {/* Prix et description - Au-dessus des informations supplémentaires */}
                 <div className="mt-4 pt-2">
                   <h1 className="text-xl font-bold mb-1">{product.name}</h1>
-                  <p className="text-lg font-semibold text-indigo-700 mb-3">{product.base_price.toFixed(2)} €</p>
+                  {/* Affichage du prix avec personnalisation */}
+                  <div className="text-lg font-semibold text-indigo-700 mb-3">
+                    <div className="text-xl font-bold text-gray-900">
+                      {(() => {
+                        // Vérifier si la personnalisation est complète
+                        const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
+                        
+                        // N'ajouter le prix que si la personnalisation est complète
+                        return (product.base_price + (isPersonnalisationComplete ? customizationPrice : 0)).toFixed(2);
+                      })()} €
+                    </div>
+                    {customizationPrice > 0 && (
+                      <div className="flex flex-col mt-1">
+                        <p className="text-sm text-gray-700">
+                          Prix de base: {product.base_price.toFixed(2)} €
+                        </p>
+                        <p className="text-sm text-indigo-600 font-medium">
+                          + Personnalisation: {customizationPrice.toFixed(2)} €
+                          {(() => {
+                            // Vérifier si la personnalisation est complète
+                            const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
+                            
+                            // Afficher un message si la personnalisation n'est pas complète
+                            return !isPersonnalisationComplete ? 
+                              <span className="ml-2 text-xs text-gray-500">(appliqué seulement si complet)</span> : null;
+                          })()} 
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-sm text-gray-500 mt-1">Prix TTC</p>
+                  </div>
                   
                   <div className="mb-4">
                     <h2 className="text-md font-bold text-gray-800 mb-1">Description</h2>
@@ -435,10 +477,12 @@ export default function ProductDetail({ id }: { id: string }) {
                         setShowEmbeddedCustomization(false);
                       }
                     }}
-                    onSave={(customization: ProductCustomization) => {
+                    onSave={(customization: ProductCustomization, price: number) => {
                       setCustomizationData(customization);
+                      setCustomizationPrice(price);
                       setShowEmbeddedCustomization(false);
                     }}
+                    basePrice={product?.base_price || 0}
                   />
                 )}
               </div>
@@ -560,7 +604,7 @@ export default function ProductDetail({ id }: { id: string }) {
                   }`}
                   onClick={() => {
                     if (customizationData) {
-                      handleAddToCartWithCustomization(customizationData);
+                      handleAddToCartWithCustomization(customizationData, customizationPrice);
                     } else {
                       handleAddToCart();
                     }

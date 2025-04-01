@@ -3,13 +3,33 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ProductCustomization, SingleCustomization, Face } from '@/types/customization';
+import { isSingleCustomizationComplete, isCustomizationComplete } from '@/lib/customization';
+
+// Définition des prix pour chaque type de personnalisation et position
+const CUSTOMIZATION_PRICES = {
+  // Prix par type d'impression
+  types: {
+    'broderie': 8.50,
+    'flocage': 5.00,
+  },
+  // Multiplicateurs de prix par position (certaines positions nécessitent plus de matériel/travail)
+  positions: {
+    'devant-pec': 1.0,    // Prix de base
+    'devant-pecs': 1.5,   // 50% plus cher (plus grand)
+    'devant-centre': 1.8, // 80% plus cher (plus grand)
+    'devant-complet': 2.5, // 150% plus cher (beaucoup plus grand)
+    'dos-haut': 1.2,      // 20% plus cher
+    'dos-complet': 2.8,   // 180% plus cher (très grand)
+  },
+};
 
 interface CustomizationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (customization: ProductCustomization) => void;
+  onSave: (customization: ProductCustomization, price: number) => void;
   isEmbedded?: boolean;
   initialCustomization?: ProductCustomization | null;
+  basePrice?: number;
 }
 
 
@@ -98,7 +118,7 @@ const TShirtZonePreview = ({
   );
 };
 
-export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded = false, initialCustomization = null }: CustomizationModalProps) {
+export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded = false, initialCustomization = null, basePrice = 0 }: CustomizationModalProps) {
   // Initialisation d'une personnalisation vide
   const emptyCustomization: ProductCustomization = {
     customizations: []
@@ -123,6 +143,9 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
 
   const [selectedType, setSelectedType] = useState<'texte' | 'image'>('texte');
   
+  // État pour stocker le prix total des personnalisations
+  const [customizationPrice, setCustomizationPrice] = useState<number>(0);
+  
   // Initialiser avec les données existantes si disponibles
   useEffect(() => {
     if (initialCustomization) {
@@ -137,8 +160,39 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
           setCurrentFace('devant');
         }
       }
+      
+      // Calculer le prix initial des personnalisations
+      calculateCustomizationPrice(initialCustomization);
     }
   }, [initialCustomization]);
+  
+  // Fonction pour calculer le prix des personnalisations
+  const calculateCustomizationPrice = (customization: ProductCustomization): number => {
+    let totalPrice = 0;
+    
+    // Parcourir toutes les personnalisations
+    customization.customizations.forEach(custom => {
+      // Vérifier si la personnalisation est complète
+      if (isSingleCustomizationComplete(custom) && custom.type_impression && custom.position) {
+        // Obtenir le prix de base pour le type d'impression
+        const typePrice = CUSTOMIZATION_PRICES.types[custom.type_impression as keyof typeof CUSTOMIZATION_PRICES.types] || 0;
+        
+        // Obtenir le multiplicateur pour la position
+        const positionMultiplier = CUSTOMIZATION_PRICES.positions[custom.position as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
+        
+        // Calculer le prix pour cette personnalisation
+        const customPrice = typePrice * positionMultiplier;
+        
+        // Ajouter au prix total
+        totalPrice += customPrice;
+      }
+    });
+    
+    // Mettre à jour l'état du prix
+    setCustomizationPrice(totalPrice);
+    
+    return totalPrice;
+  };
 
   if (!isOpen && !isEmbedded) return null;
 
@@ -192,11 +246,17 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
       updatedCustomizations.push(updatedCustomization);
     }
     
-    // Mettre à jour l'état global
-    setProductCustomization({
+    // Créer un nouvel objet de personnalisation pour le calcul du prix
+    const updatedProductCustomization = {
       ...productCustomization,
       customizations: updatedCustomizations
-    });
+    };
+    
+    // Mettre à jour l'état global
+    setProductCustomization(updatedProductCustomization);
+    
+    // Calculer le nouveau prix
+    calculateCustomizationPrice(updatedProductCustomization);
     
     console.log('Personnalisation mise à jour:', updatedCustomization);
   };
@@ -245,8 +305,11 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
   };
   
   const handleSave = () => {
-    // Forcer la mise à jour de la personnalisation actuelle avant de sauvegarder
-    if (currentCustomization.type_impression && currentCustomization.position) {
+    // Mettre à jour la personnalisation actuelle avant de sauvegarder
+    let updatedCustomizations = [...productCustomization.customizations];
+    
+    // Si la personnalisation actuelle est valide, l'ajouter/mettre à jour
+    if (isFormValid()) {
       // Préparer la personnalisation en fonction du type sélectionné
       let updatedCurrentCustomization: SingleCustomization;
       
@@ -269,7 +332,6 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
       }
       
       // Mettre à jour la liste des personnalisations pour la face actuelle
-      let updatedCustomizations = [...productCustomization.customizations];
       const existingIndex = updatedCustomizations.findIndex(c => c.face === currentFace);
       
       if (existingIndex >= 0) {
@@ -277,29 +339,29 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
       } else {
         updatedCustomizations.push(updatedCurrentCustomization);
       }
-      
-      // Nous ne créons plus automatiquement une personnalisation pour l'autre face
-      // Le client peut choisir de personnaliser uniquement la face actuelle
-      
-      // Nous conservons uniquement les personnalisations qui ont été explicitement créées par l'utilisateur
-      
-      // Créer une nouvelle personnalisation complète avec les deux faces
-      const finalProductCustomization: ProductCustomization = {
-        ...productCustomization,
-        customizations: updatedCustomizations
-      };
-      
-      // Mettre à jour l'état global
-      setProductCustomization(finalProductCustomization);
-      
-      // Envoyer la personnalisation complète
-      console.log('Sauvegarde des personnalisations:', finalProductCustomization);
-      onSave(finalProductCustomization);
     } else {
-      // Aucune personnalisation valide, envoyer quand même l'état actuel
-      console.log('Sauvegarde sans personnalisation valide:', productCustomization);
-      onSave(productCustomization);
+      // Si la personnalisation actuelle n'est pas valide, la supprimer si elle existe
+      updatedCustomizations = updatedCustomizations.filter(c => c.face !== currentFace);
     }
+    
+    // Filtrer pour ne garder que les personnalisations complètes
+    const completeCustomizations = updatedCustomizations.filter(custom => isSingleCustomizationComplete(custom));
+    
+    // Créer une nouvelle personnalisation avec seulement les faces complètes
+    const finalProductCustomization: ProductCustomization = {
+      ...productCustomization,
+      customizations: completeCustomizations
+    };
+    
+    // Calculer le prix final
+    const finalPrice = calculateCustomizationPrice(finalProductCustomization);
+    
+    // Mettre à jour l'état global
+    setProductCustomization(finalProductCustomization);
+    
+    // Envoyer la personnalisation avec le prix
+    console.log('Sauvegarde des personnalisations:', finalProductCustomization, 'Prix:', finalPrice);
+    onSave(finalProductCustomization, finalPrice);
     
     if (!isEmbedded) {
       onClose();
@@ -307,11 +369,10 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
   };
 
   const isFormValid = () => {
-    return (
-      currentCustomization.type_impression && 
-      currentCustomization.position && 
-      (selectedType === 'texte' ? currentCustomization.texte : currentCustomization.image_url)
-    );
+    return isSingleCustomizationComplete({
+      ...currentCustomization,
+      type: selectedType === 'texte' ? 'text' : 'image'
+    });
   };
   
 
@@ -402,6 +463,26 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                         <span className="font-medium mr-2">Position:</span>
                         <span className="font-bold">
                           {currentCustomization.position.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Affichage du prix de personnalisation */}
+                    <div className="flex items-center justify-center px-3 py-2 bg-indigo-100 rounded-lg w-full">
+                      <span className="font-medium mr-2">Prix supplémentaire:</span>
+                      <span className="font-bold text-indigo-700">
+                        {customizationPrice.toFixed(2)} €
+                      </span>
+                      {!isFormValid() && customizationPrice > 0 && (
+                        <span className="ml-2 text-xs text-gray-500">(appliqué seulement si complet)</span>
+                      )}
+                    </div>
+                    
+                    {basePrice > 0 && (
+                      <div className="flex items-center justify-center px-3 py-2 bg-green-100 rounded-lg w-full">
+                        <span className="font-medium mr-2">Prix total:</span>
+                        <span className="font-bold text-green-700">
+                          {(basePrice + customizationPrice).toFixed(2)} €
                         </span>
                       </div>
                     )}

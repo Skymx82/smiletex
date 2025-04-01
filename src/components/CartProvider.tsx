@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ProductCustomization } from '@/lib/customization';
+import { ProductCustomization } from '@/types/customization';
 import { calculateCustomizationPrice } from '@/lib/customization';
 
 // Type pour un élément du panier
@@ -97,15 +97,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCartCount(count);
     
     // Calculer le prix total
+    // Note: Le prix de la personnalisation est déjà inclus dans item.price
+    // lors de l'ajout au panier, donc nous n'avons pas besoin de le recalculer ici
     const total = cartItems.reduce((sum, item) => {
-      let itemPrice = item.price;
-      
-      // Ajouter le prix de la personnalisation si elle existe
-      if (item.customization) {
-        itemPrice += calculateCustomizationPrice(item.customization);
-      }
-      
-      return sum + (itemPrice * item.quantity);
+      return sum + (item.price * item.quantity);
     }, 0);
     setCartTotal(total);
     
