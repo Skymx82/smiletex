@@ -216,8 +216,12 @@ export default function ProductDetail({ id }: { id: string }) {
             // Vérifier si la personnalisation est complète pour appliquer le prix
             const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
             
+            // Calculer le prix unitaire avec remise par quantité
+            const { discountedPrice } = getQuantityDiscount(totalItemsSelected);
+            const basePrice = discountPercent > 0 ? discountedPrice : product.base_price;
+            
             // N'ajouter le prix de personnalisation que si elle est complète
-            const finalPrice = product.base_price + (variant.price_adjustment || 0) + 
+            const finalPrice = basePrice + (variant.price_adjustment || 0) + 
                               (isPersonnalisationComplete ? customizationPrice : 0);
             
             addToCart({
@@ -263,6 +267,26 @@ export default function ProductDetail({ id }: { id: string }) {
 
   // Calculer le nombre total d'articles sélectionnés
   const totalItemsSelected = Object.values(sizeQuantities).reduce((sum, qty) => sum + qty, 0);
+  
+  // Calculer la remise en fonction de la quantité
+  const getQuantityDiscount = (quantity: number): { discountPercent: number, discountedPrice: number } => {
+    let discountPercent = 0;
+    
+    if (quantity >= 50) {
+      discountPercent = 15; // 15% de remise pour 50 articles ou plus
+    } else if (quantity >= 25) {
+      discountPercent = 10; // 10% de remise pour 25 articles ou plus
+    } else if (quantity >= 10) {
+      discountPercent = 5; // 5% de remise pour 10 articles ou plus
+    }
+    
+    const discountedPrice = product ? product.base_price * (1 - discountPercent / 100) : 0;
+    
+    return { discountPercent, discountedPrice };
+  };
+  
+  // Obtenir la remise actuelle
+  const { discountPercent, discountedPrice } = getQuantityDiscount(totalItemsSelected);
 
   if (loading) {
     return (
@@ -542,8 +566,26 @@ export default function ProductDetail({ id }: { id: string }) {
                               <span className="text-xs font-bold">-</span>
                             </button>
                             
-                            <div className="w-6 h-6 flex items-center justify-center text-center font-bold text-sm text-gray-800">
-                              {sizeQuantities[size] || 0}
+                            <div className="flex items-center justify-center">
+                              <input 
+                                type="number" 
+                                className="w-12 h-6 text-center font-bold text-sm text-gray-800 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500" 
+                                value={sizeQuantities[size] || 0}
+                                min="0"
+                                max={variant.stock_quantity}
+                                onChange={(e) => {
+                                  const newValue = parseInt(e.target.value) || 0;
+                                  if (newValue >= 0 && newValue <= variant.stock_quantity) {
+                                    setSizeQuantities(prev => ({
+                                      ...prev,
+                                      [size]: newValue
+                                    }));
+                                    setStockError('');
+                                  } else if (newValue > variant.stock_quantity) {
+                                    setStockError(`Stock insuffisant pour la taille ${size}. Maximum: ${variant.stock_quantity}`);
+                                  }
+                                }}
+                              />
                             </div>
                             
                             <button
@@ -566,30 +608,130 @@ export default function ProductDetail({ id }: { id: string }) {
                 </div>
               )}
               
-              {/* Résumé des sélections */}
+              {/* Résumé des sélections et prix total */}
               {totalItemsSelected > 0 && (
-                <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-                  <h3 className="text-md font-bold text-indigo-800 mb-3">Votre sélection</h3>
-                  <div className="text-gray-800">
-                    {Object.entries(sizeQuantities)
-                      .filter(([_, qty]) => qty > 0)
-                      .map(([size, qty]) => (
-                        <div key={size} className="flex justify-between py-1">
-                          <span className="font-medium">{size}</span>
-                          <span className="font-bold">{qty}x</span>
-                        </div>
-                      ))}
-                    <div className="mt-3 pt-3 border-t border-indigo-200">
-                      <div className="flex justify-between text-indigo-800 font-bold">
-                        <span>Total</span>
-                        <span>{totalItemsSelected} article(s)</span>
+                <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100 shadow-sm">
+                  <h3 className="text-lg font-bold text-indigo-800 mb-3 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    Votre sélection
+                  </h3>
+                  
+                  {/* Articles sélectionnés */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Articles</h4>
+                    <div className="space-y-1 text-gray-800">
+                      {Object.entries(sizeQuantities)
+                        .filter(([_, qty]) => qty > 0)
+                        .map(([size, qty]) => (
+                          <div key={size} className="flex justify-between py-1 border-b border-indigo-100 last:border-0">
+                            <span className="font-medium">{product.name} - {size}</span>
+                            <span className="font-bold">{qty}x</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                  
+                  {/* Détails du prix */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Détails du prix</h4>
+                    <div className="space-y-2 text-gray-800">
+                      <div className="flex justify-between items-center">
+                        <span>Prix unitaire:</span>
+                        <span className="font-medium">
+                          {discountPercent > 0 ? (
+                            <>
+                              <span className="line-through text-gray-400 mr-2">{product.base_price.toFixed(2)} €</span>
+                              <span className="text-green-600">{discountedPrice.toFixed(2)} €</span>
+                              <span className="ml-1 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">-{discountPercent}%</span>
+                            </>
+                          ) : (
+                            <>{product.base_price.toFixed(2)} €</>
+                          )}
+                        </span>
+                      </div>
+                      
+                      {(() => {
+                        // Vérifier si la personnalisation est complète
+                        const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
+                        
+                        return isPersonnalisationComplete && customizationPrice > 0 ? (
+                          <div className="flex justify-between items-center text-indigo-700">
+                            <span>Personnalisation:</span>
+                            <span className="font-medium">+{customizationPrice.toFixed(2)} €</span>
+                          </div>
+                        ) : customizationPrice > 0 ? (
+                          <div className="flex justify-between items-center text-gray-500">
+                            <span>Personnalisation (incomplète):</span>
+                            <span className="font-medium">(+{customizationPrice.toFixed(2)} €)</span>
+                          </div>
+                        ) : null;
+                      })()}
+                      
+                      <div className="flex justify-between items-center">
+                        <span>Quantité totale:</span>
+                        <span className="font-medium">{totalItemsSelected} article(s)</span>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Total */}
+                  <div className="mt-4 pt-3 border-t border-indigo-200">
+                    <div className="flex justify-between items-center text-lg font-bold text-indigo-900">
+                      <span>Total à payer:</span>
+                      <span>
+                        {(() => {
+                          // Vérifier si la personnalisation est complète
+                          const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
+                          const priceWithCustomization = isPersonnalisationComplete ? customizationPrice : 0;
+                          
+                          // Calculer le prix total avec remise par quantité
+                          const unitPrice = discountPercent > 0 ? discountedPrice : product.base_price;
+                          const totalPrice = (unitPrice + priceWithCustomization) * totalItemsSelected;
+                          return totalPrice.toFixed(2);
+                        })()} €
+                      </span>
+                    </div>
+                    
+                    {/* Affichage des paliers de remise */}
+                    {totalItemsSelected > 0 && (
+                      <div className="mt-3 pt-3 border-t border-indigo-100">
+                        <h4 className="text-sm font-semibold text-indigo-800 mb-2">Remises par quantité</h4>
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className={`p-2 rounded-lg text-center ${totalItemsSelected >= 10 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                            <div className="font-bold">10+ articles</div>
+                            <div>-5% sur le prix unitaire</div>
+                          </div>
+                          <div className={`p-2 rounded-lg text-center ${totalItemsSelected >= 25 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                            <div className="font-bold">25+ articles</div>
+                            <div>-10% sur le prix unitaire</div>
+                          </div>
+                          <div className={`p-2 rounded-lg text-center ${totalItemsSelected >= 50 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                            <div className="font-bold">50+ articles</div>
+                            <div>-15% sur le prix unitaire</div>
+                          </div>
+                        </div>
+                        {totalItemsSelected > 0 && totalItemsSelected < 10 && (
+                          <div className="mt-2 text-sm text-indigo-600 font-medium text-center">
+                            Ajoutez {10 - totalItemsSelected} article(s) de plus pour obtenir une remise de 5% !
+                          </div>
+                        )}
+                        {totalItemsSelected >= 10 && totalItemsSelected < 25 && (
+                          <div className="mt-2 text-sm text-indigo-600 font-medium text-center">
+                            Ajoutez {25 - totalItemsSelected} article(s) de plus pour obtenir une remise de 10% !
+                          </div>
+                        )}
+                        {totalItemsSelected >= 25 && totalItemsSelected < 50 && (
+                          <div className="mt-2 text-sm text-indigo-600 font-medium text-center">
+                            Ajoutez {50 - totalItemsSelected} article(s) de plus pour obtenir une remise de 15% !
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-              
-
               
               {/* Boutons d'action */}
               <div className="mt-auto space-y-4">
