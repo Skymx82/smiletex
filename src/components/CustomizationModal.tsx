@@ -10,7 +10,7 @@ const CUSTOMIZATION_PRICES = {
   // Prix par type d'impression
   types: {
     'broderie': 8.50,
-    'flocage': 5.00,
+    'impression': 5.00,
   },
   // Multiplicateurs de prix par position (certaines positions nécessitent plus de matériel/travail)
   positions: {
@@ -132,16 +132,16 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
   
   // État pour la personnalisation de la face actuellement sélectionnée
   const [currentCustomization, setCurrentCustomization] = useState<SingleCustomization>({
-    type_impression: '',
+    type_impression: 'impression',
     position: 'devant-pec',
     texte: '',
     couleur_texte: '#000000',
     police: 'Arial',
-    type: 'text',
+    type: 'image',
     face: 'devant'
   });
 
-  const [selectedType, setSelectedType] = useState<'texte' | 'image'>('texte');
+  const [selectedType, setSelectedType] = useState<'texte' | 'image'>('image');
   
   // État pour stocker le prix total des personnalisations
   const [customizationPrice, setCustomizationPrice] = useState<number>(0);
@@ -289,17 +289,17 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
         });
         setSelectedType(currentFaceCustomization.type === 'text' ? 'texte' : 'image');
       } else {
-        // Créer une nouvelle personnalisation vide pour cette face
+        // Créer une nouvelle personnalisation pour cette face avec des valeurs par défaut
         setCurrentCustomization({
-          type_impression: '',
+          type_impression: 'impression', // Toujours pré-sélectionner 'impression'
           position: newFace === 'devant' ? 'devant-pec' : 'dos-haut',
           texte: '',
           couleur_texte: '#000000',
           police: 'Arial',
-          type: 'text',
+          type: 'image', // Toujours pré-sélectionner 'image'
           face: newFace
         });
-        setSelectedType('texte');
+        setSelectedType('image');
       }
     }
   };
@@ -388,7 +388,7 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
         <div className={isEmbedded ? '' : 'relative bg-white rounded-lg shadow-xl max-w-4xl w-full'}>
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-xl font-bold text-gray-900">Personnalisation</h2>
+            <div className="w-6"></div> {/* Élément vide pour maintenir l'alignement */}
             {!isEmbedded && (
               <button
                 onClick={onClose}
@@ -447,7 +447,7 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                       <span className="font-medium mr-2">Type:</span> 
                       <span className="font-bold">
                         {currentCustomization.type_impression === 'broderie' ? 'Broderie' : 
-                         currentCustomization.type_impression === 'flocage' ? 'Flocage' : 'Non sélectionné'}
+                         currentCustomization.type_impression === 'impression' ? 'Impression' : 'Non sélectionné'}
                       </span>
                     </div>
                     
@@ -497,6 +497,35 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                   <h3 className="font-bold text-gray-800 text-sm mb-3">Type d'impression</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <button
+                      className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.type_impression === 'impression' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                      onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'impression' })}
+                    >
+                      <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
+                        <Image
+                          src="/images/flocage.jpg"
+                          alt="Impression"
+                          fill
+                          className="object-cover"
+                        />
+                        {currentCustomization.type_impression === 'impression' && (
+                          <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-2 bg-white text-center border-t">
+                        <div className="flex items-center justify-center">
+                          <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                          </svg>
+                          <span className="font-medium">Impression</span>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    <button
                       className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.type_impression === 'broderie' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                       onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'broderie' })}
                     >
@@ -524,136 +553,189 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                         </div>
                       </div>
                     </button>
-                    
-                    <button
-                      className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.type_impression === 'flocage' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
-                      onClick={() => setCurrentCustomization({ ...currentCustomization, type_impression: 'flocage' })}
-                    >
-                      <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
-                        <Image
-                          src="/images/flocage.jpg"
-                          alt="Flocage"
-                          fill
-                          className="object-cover"
-                        />
-                        {currentCustomization.type_impression === 'flocage' && (
-                          <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-2 bg-white text-center border-t">
-                        <div className="flex items-center justify-center">
-                          <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                          </svg>
-                          <span className="font-medium">Flocage</span>
-                        </div>
-                      </div>
-                    </button>
                   </div>
                 </div>
 
                 {/* Section 2: Position */}
-                <div className="space-y-3">
-                  <h3 className="font-bold text-gray-800 text-sm">Position</h3>
+                <div>
+                  <h3 className="font-bold text-gray-800 text-sm mb-3">Position</h3>
                   
                   {currentFace === 'devant' ? (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       <button
-                        className={`p-2 border rounded-lg flex items-center ${currentCustomization.position === 'devant-pec' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.position === 'devant-pec' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-pec' })}
                       >
-                        <div className="w-10 h-10 mr-2 flex items-center justify-center">
+                        <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
                           <Image
                             src="/images/positions/devant-pec.png"
                             alt="Pec Gauche"
-                            width={36}
-                            height={36}
-                            className="object-contain"
+                            fill
+                            className="object-cover p-2"
                           />
+                          {currentCustomization.position === 'devant-pec' && (
+                            <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm">Pec Gauche</span>
+                        <div className="p-2 bg-white text-center border-t">
+                          <div className="flex items-center justify-center">
+                            <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            <span className="font-medium">Pec Gauche</span>
+                          </div>
+                        </div>
                       </button>
+                      
                       <button
-                        className={`p-2 border rounded-lg flex items-center ${currentCustomization.position === 'devant-pecs' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.position === 'devant-pecs' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-pecs' })}
                       >
-                        <div className="w-10 h-10 mr-2 flex items-center justify-center">
+                        <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
                           <Image
                             src="/images/positions/devant-pecs.png"
                             alt="Deux Pecs"
-                            width={36}
-                            height={36}
-                            className="object-contain"
+                            fill
+                            className="object-cover p-2"
                           />
+                          {currentCustomization.position === 'devant-pecs' && (
+                            <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm">Deux Pecs</span>
+                        <div className="p-2 bg-white text-center border-t">
+                          <div className="flex items-center justify-center">
+                            <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            <span className="font-medium">Deux Pecs</span>
+                          </div>
+                        </div>
                       </button>
+                      
                       <button
-                        className={`p-2 border rounded-lg flex items-center ${currentCustomization.position === 'devant-complet' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.position === 'devant-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-complet' })}
                       >
-                        <div className="w-10 h-10 mr-2 flex items-center justify-center">
+                        <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
                           <Image
                             src="/images/positions/devant-complet.png"
                             alt="Devant Complet"
-                            width={36}
-                            height={36}
-                            className="object-contain"
+                            fill
+                            className="object-cover p-2"
                           />
+                          {currentCustomization.position === 'devant-complet' && (
+                            <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm">Devant</span>
+                        <div className="p-2 bg-white text-center border-t">
+                          <div className="flex items-center justify-center">
+                            <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            <span className="font-medium">Devant</span>
+                          </div>
+                        </div>
                       </button>
+                      
                       <button
-                        className={`p-2 border rounded-lg flex items-center ${currentCustomization.position === 'devant-centre' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.position === 'devant-centre' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'devant-centre' })}
                       >
-                        <div className="w-10 h-10 mr-2 flex items-center justify-center">
+                        <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
                           <Image
                             src="/images/positions/devant-centre.png"
                             alt="Centre"
-                            width={36}
-                            height={36}
-                            className="object-contain"
+                            fill
+                            className="object-cover p-2"
                           />
+                          {currentCustomization.position === 'devant-centre' && (
+                            <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm">Centre</span>
+                        <div className="p-2 bg-white text-center border-t">
+                          <div className="flex items-center justify-center">
+                            <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            <span className="font-medium">Centre</span>
+                          </div>
+                        </div>
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       <button
-                        className={`p-2 border rounded-lg flex items-center ${currentCustomization.position === 'dos-haut' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.position === 'dos-haut' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'dos-haut' })}
                       >
-                        <div className="w-10 h-10 mr-2 flex items-center justify-center">
+                        <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
                           <Image
                             src="/images/positions/dos-haut.png"
                             alt="Haut du Dos"
-                            width={36}
-                            height={36}
-                            className="object-contain"
+                            fill
+                            className="object-cover p-2"
                           />
+                          {currentCustomization.position === 'dos-haut' && (
+                            <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm">Haut du Dos</span>
+                        <div className="p-2 bg-white text-center border-t">
+                          <div className="flex items-center justify-center">
+                            <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            <span className="font-medium">Haut du Dos</span>
+                          </div>
+                        </div>
                       </button>
+                      
                       <button
-                        className={`p-2 border rounded-lg flex items-center ${currentCustomization.position === 'dos-complet' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${currentCustomization.position === 'dos-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => setCurrentCustomization({ ...currentCustomization, position: 'dos-complet' })}
                       >
-                        <div className="w-10 h-10 mr-2 flex items-center justify-center">
+                        <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
                           <Image
                             src="/images/positions/dos-complet.png"
                             alt="Dos Complet"
-                            width={36}
-                            height={36}
-                            className="object-contain"
+                            fill
+                            className="object-cover p-2"
                           />
+                          {currentCustomization.position === 'dos-complet' && (
+                            <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm">Dos Complet</span>
+                        <div className="p-2 bg-white text-center border-t">
+                          <div className="flex items-center justify-center">
+                            <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            <span className="font-medium">Dos Complet</span>
+                          </div>
+                        </div>
                       </button>
                     </div>
                   )}
@@ -665,16 +747,16 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                   
                   <div className="flex gap-4 mb-4">
                     <button
-                      className={`flex-1 p-2 border rounded ${selectedType === 'texte' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                      onClick={() => setSelectedType('texte')}
-                    >
-                      Texte
-                    </button>
-                    <button
                       className={`flex-1 p-2 border rounded ${selectedType === 'image' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
                       onClick={() => setSelectedType('image')}
                     >
                       Image
+                    </button>
+                    <button
+                      className={`flex-1 p-2 border rounded ${selectedType === 'texte' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
+                      onClick={() => setSelectedType('texte')}
+                    >
+                      Texte
                     </button>
                   </div>
 
@@ -690,7 +772,22 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                           onChange={(e) => setCurrentCustomization({ ...currentCustomization, texte: e.target.value })}
                           className="w-full p-2 border rounded-md"
                           placeholder="Entrez votre texte"
+                          style={{ fontFamily: currentCustomization.police || 'Arial' }}
                         />
+                        {currentCustomization.texte && (
+                          <div className="mt-2 p-3 border border-gray-200 rounded-md bg-white">
+                            <p 
+                              className="text-center" 
+                              style={{ 
+                                fontFamily: currentCustomization.police || 'Arial',
+                                color: currentCustomization.couleur_texte || '#000000',
+                                fontSize: '18px'
+                              }}
+                            >
+                              {currentCustomization.texte}
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -704,24 +801,55 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                           Police
                         </label>
-                        <select
-                          value={currentCustomization.police || 'Arial'}
-                          onChange={(e) => setCurrentCustomization({ ...currentCustomization, police: e.target.value })}
-                          className="w-full p-2 border rounded-md"
-                        >
-                          <option value="Arial">Arial</option>
-                          <option value="Helvetica">Helvetica</option>
-                          <option value="Times New Roman">Times New Roman</option>
-                        </select>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setCurrentCustomization({ ...currentCustomization, police: 'Arial' })}
+                            className={`p-3 border ${currentCustomization.police === 'Arial' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
+                          >
+                            <p style={{ fontFamily: 'Arial' }} className="text-center font-medium">
+                              Arial
+                            </p>
+                            <p style={{ fontFamily: 'Arial' }} className="text-xs text-gray-500 mt-1">
+                              ABCDEFG abcdefg
+                            </p>
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => setCurrentCustomization({ ...currentCustomization, police: 'Helvetica' })}
+                            className={`p-3 border ${currentCustomization.police === 'Helvetica' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
+                          >
+                            <p style={{ fontFamily: 'Helvetica' }} className="text-center font-medium">
+                              Helvetica
+                            </p>
+                            <p style={{ fontFamily: 'Helvetica' }} className="text-xs text-gray-500 mt-1">
+                              ABCDEFG abcdefg
+                            </p>
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => setCurrentCustomization({ ...currentCustomization, police: 'Times New Roman' })}
+                            className={`p-3 border ${currentCustomization.police === 'Times New Roman' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
+                          >
+                            <p style={{ fontFamily: '"Times New Roman"' }} className="text-center font-medium">
+                              Times New Roman
+                            </p>
+                            <p style={{ fontFamily: '"Times New Roman"' }} className="text-xs text-gray-500 mt-1">
+                              ABCDEFG abcdefg
+                            </p>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ) : (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Télécharger une image
+                        {currentFace === 'devant' ? 'Choisir l\'image devant' : 'Choisir l\'image derrière'}
                       </label>
                       <div className="space-y-3">
                         <input
@@ -766,6 +894,7 @@ export default function CustomizationModal({ isOpen, onClose, onSave, isEmbedded
                             }
                           }}
                           className="w-full p-2 border rounded-md"
+                          title={currentFace === 'devant' ? 'Choisir l\'image devant' : 'Choisir l\'image derrière'}
                         />
                         
                         {currentCustomization.image_url && (

@@ -424,189 +424,232 @@ export default function ProductDetail({ id }: { id: string }) {
             {/* Informations du produit - Colonne de droite qui défile */}
             <div className="flex flex-col text-black md:w-3/5 lg:w-3/5 mt-8 md:mt-0">
               
-              {/* Section de personnalisation intégrée - Déplacée en haut */}
-              <div className="mb-6 border border-indigo-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+              {/* Carte unifiée pour personnalisation, couleur et taille */}
+              <div className="mb-6 border border-indigo-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                {/* En-tête de la carte */}
                 <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 border-b border-indigo-100">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-lg font-bold text-indigo-800 flex items-center">
+                  <h2 className="text-xl font-bold text-indigo-800">Configuration du produit</h2>
+                  <p className="text-sm text-indigo-600 mt-1">Personnalisez votre article selon vos préférences</p>
+                </div>
+                
+                {/* Contenu de la carte avec onglets */}
+                <div className="p-4 bg-white">
+                  {/* Section 1: Couleur */}
+                  {uniqueColors.length > 0 && (
+                    <div className="mb-6 pb-6 border-b border-gray-200">
+                      <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                        </svg>
+                        Couleur
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {uniqueColors.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={`px-4 py-2 border rounded-md transition-all ${
+                              selectedColor === color
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                : 'border-gray-300 text-gray-700 hover:border-indigo-500 hover:bg-indigo-50'
+                            }`}
+                            onClick={() => setSelectedColor(color)}
+                          >
+                            {color}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Section 2: Personnalisation (emplacement/technique) */}
+                  <div className="mb-6 pb-6 border-b border-gray-200">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-bold text-gray-800 flex items-center">
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                         </svg>
-                        Personnalisez votre produit
-                      </h2>
-                      <p className="text-sm text-indigo-600 mt-1">Rendez ce produit unique avec votre texte ou image</p>
+                        Emplacement & Technique
+                      </h3>
+                      {customizationData && customizationData.customizations && customizationData.customizations.length > 0 && !showEmbeddedCustomization && (
+                        <button 
+                          onClick={() => setShowEmbeddedCustomization(true)}
+                          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                        >
+                          Modifier
+                        </button>
+                      )}
                     </div>
+                    
                     {customizationData && customizationData.customizations && customizationData.customizations.length > 0 && !showEmbeddedCustomization && (
-                      <button 
-                        onClick={() => setShowEmbeddedCustomization(true)}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                      >
-                        Modifier
-                      </button>
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg animate-fadeIn cursor-pointer" onClick={() => setShowEmbeddedCustomization(true)}>
+                        {customizationData.customizations.map((customization, index) => (
+                          <div key={index} className="flex items-start mb-4 last:mb-0">
+                            <div className="flex-shrink-0 mr-3">
+                              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                {customization.type === 'text' ? (
+                                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                  </svg>
+                                ) : (
+                                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="flex items-center">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                                  {customization.face === 'devant' ? 'Devant' : 'Derrière'}
+                                </span>
+                                <h4 className="text-sm font-bold text-green-800">Type: {customization.type === 'text' ? 'Texte' : 'Image'}</h4>
+                              </div>
+                              <p className="text-sm text-green-700">Position: {customization.position.replace('-', ' ').charAt(0).toUpperCase() + customization.position.replace('-', ' ').slice(1)}</p>
+                              {customization.type === 'text' && customization.texte && (
+                                <p className="mt-1 text-sm font-medium text-green-800 bg-white p-1 rounded border border-green-200">"{customization.texte}"</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation(); // Empêcher le déclenchement du onClick du parent
+                            setShowEmbeddedCustomization(true);
+                          }}
+                          className="mt-2 px-3 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          Modifier
+                        </button>
+                      </div>
+                    )}
+                    
+                    {showEmbeddedCustomization && (
+                      <CustomizationModal
+                        isOpen={true}
+                        isEmbedded={true}
+                        initialCustomization={customizationData}
+                        onClose={() => {
+                          if (customizationData) {
+                            setShowEmbeddedCustomization(false);
+                          }
+                        }}
+                        onSave={(customization: ProductCustomization, price: number) => {
+                          setCustomizationData(customization);
+                          setCustomizationPrice(price);
+                          setShowEmbeddedCustomization(false);
+                        }}
+                        basePrice={product?.base_price || 0}
+                      />
                     )}
                   </div>
-                </div>
-                
-                {customizationData && customizationData.customizations && customizationData.customizations.length > 0 && !showEmbeddedCustomization && (
-                  <div className="p-4 bg-green-50 border-b border-green-200 animate-fadeIn cursor-pointer" onClick={() => setShowEmbeddedCustomization(true)}>
-                    {customizationData.customizations.map((customization, index) => (
-                      <div key={index} className="flex items-start mb-4 last:mb-0">
+                  
+                  {/* Section 3: Taille et Quantité */}
+                  {uniqueSizes.length > 0 && selectedColor && (
+                    <div className="mb-6 pb-6 border-b border-gray-200">
+                      <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                        </svg>
+                        Taille et Quantité
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {uniqueSizes.map((size) => {
+                          // Trouver la variante pour cette taille et la couleur sélectionnée
+                          const variant = product.variants?.find(
+                            v => v.size === size && v.color === selectedColor
+                          );
+                          
+                          // Si la variante n'existe pas ou est en rupture de stock, ne pas l'afficher
+                          if (!variant || variant.stock_quantity <= 0) return null;
+                          
+                          return (
+                            <div key={size} className="border border-gray-200 rounded-lg p-2 hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm">
+                              <div className="text-center mb-2">
+                                <h3 className="text-md font-bold text-gray-800">{size}</h3>
+                              </div>
+                              
+                              <div className="flex items-center justify-between px-1">
+                                <button
+                                  type="button"
+                                  className={`w-8 h-8 flex items-center justify-center rounded-full ${
+                                    sizeQuantities[size] ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 'bg-gray-100 text-gray-400'
+                                  } transition-colors`}
+                                  onClick={() => decreaseQuantity(size)}
+                                  disabled={!sizeQuantities[size]}
+                                >
+                                  <span className="text-sm font-bold">-</span>
+                                </button>
+                                
+                                <div className="flex items-center justify-center">
+                                  <input 
+                                    type="number" 
+                                    className="w-12 h-8 text-center font-bold text-sm text-gray-800 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500" 
+                                    value={sizeQuantities[size] || 0}
+                                    min="0"
+                                    max={variant.stock_quantity}
+                                    onChange={(e) => {
+                                      const newValue = parseInt(e.target.value) || 0;
+                                      if (newValue >= 0 && newValue <= variant.stock_quantity) {
+                                        setSizeQuantities(prev => ({
+                                          ...prev,
+                                          [size]: newValue
+                                        }));
+                                        setStockError('');
+                                      } else if (newValue > variant.stock_quantity) {
+                                        setStockError(`Stock insuffisant pour la taille ${size}. Maximum: ${variant.stock_quantity}`);
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                
+                                <button
+                                  type="button"
+                                  className={`w-8 h-8 flex items-center justify-center rounded-full ${
+                                    variant.stock_quantity <= (sizeQuantities[size] || 0) 
+                                      ? 'bg-gray-100 text-gray-400' 
+                                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                  } transition-colors`}
+                                  onClick={() => increaseQuantity(size)}
+                                  disabled={variant.stock_quantity <= (sizeQuantities[size] || 0)}
+                                >
+                                  <span className="text-sm font-bold">+</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Section 4: Délai de livraison */}
+                  <div className="mb-2">
+                    <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Délai de livraison
+                    </h3>
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                      <div className="flex items-start">
                         <div className="flex-shrink-0 mr-3">
-                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                            {customization.type === 'text' ? (
-                              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                              </svg>
-                            ) : (
-                              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                              </svg>
-                            )}
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                           </div>
                         </div>
                         <div>
-                          <div className="flex items-center">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
-                              {customization.face === 'devant' ? 'Devant' : 'Derrière'}
-                            </span>
-                            <h4 className="text-sm font-bold text-green-800">Type: {customization.type === 'text' ? 'Texte' : 'Image'}</h4>
-                          </div>
-                          <p className="text-sm text-green-700">Position: {customization.position.replace('-', ' ').charAt(0).toUpperCase() + customization.position.replace('-', ' ').slice(1)}</p>
-                          {customization.type === 'text' && customization.texte && (
-                            <p className="mt-1 text-sm font-medium text-green-800 bg-white p-1 rounded border border-green-200">"{customization.texte}"</p>
-                          )}
+                          <p className="text-sm font-medium text-blue-800">Délai de production estimé : <span className="font-bold">5-7 jours ouvrés</span></p>
+                          <p className="text-sm text-blue-700 mt-1">Livraison standard : <span className="font-bold">2-3 jours ouvrés</span> après production</p>
+                          <p className="text-xs text-blue-600 mt-2">Les délais peuvent varier en fonction de la quantité commandée et de la complexité de la personnalisation.</p>
                         </div>
                       </div>
-                    ))}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation(); // Empêcher le déclenchement du onClick du parent
-                        setShowEmbeddedCustomization(true);
-                      }}
-                      className="mt-2 px-3 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                    >
-                      Modifier
-                    </button>
+                    </div>
                   </div>
-                )}
-                
-                {showEmbeddedCustomization && (
-                  <CustomizationModal
-                    isOpen={true}
-                    isEmbedded={true}
-                    initialCustomization={customizationData}
-                    onClose={() => {
-                      if (customizationData) {
-                        setShowEmbeddedCustomization(false);
-                      }
-                    }}
-                    onSave={(customization: ProductCustomization, price: number) => {
-                      setCustomizationData(customization);
-                      setCustomizationPrice(price);
-                      setShowEmbeddedCustomization(false);
-                    }}
-                    basePrice={product?.base_price || 0}
-                  />
-                )}
+                </div>
               </div>
-              
-              {/* Sélection de couleur */}
-              {uniqueColors.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-gray-800 mb-3">Couleur</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {uniqueColors.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={`px-4 py-2 border rounded-md transition-all ${
-                          selectedColor === color
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                            : 'border-gray-300 text-gray-700 hover:border-indigo-500 hover:bg-indigo-50'
-                        }`}
-                        onClick={() => setSelectedColor(color)}
-                      >
-                        {color}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Sélection de taille avec quantités */}
-              {uniqueSizes.length > 0 && selectedColor && (
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold text-gray-800 mb-2">Tailles</h2>
-                  <div className="grid grid-cols-4 gap-2">
-                    {uniqueSizes.map((size) => {
-                      // Trouver la variante pour cette taille et la couleur sélectionnée
-                      const variant = product.variants?.find(
-                        v => v.size === size && v.color === selectedColor
-                      );
-                      
-                      // Si la variante n'existe pas ou est en rupture de stock, ne pas l'afficher
-                      if (!variant || variant.stock_quantity <= 0) return null;
-                      
-                      return (
-                        <div key={size} className="border border-gray-200 rounded-full p-1 hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm">
-                          <div className="text-center">
-                            <h3 className="text-sm font-bold text-gray-800">{size}</h3>
-                          </div>
-                          
-                          <div className="flex items-center justify-between px-1">
-                            <button
-                              type="button"
-                              className={`w-6 h-6 flex items-center justify-center rounded-full ${
-                                sizeQuantities[size] ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 'bg-gray-100 text-gray-400'
-                              } transition-colors`}
-                              onClick={() => decreaseQuantity(size)}
-                              disabled={!sizeQuantities[size]}
-                            >
-                              <span className="text-xs font-bold">-</span>
-                            </button>
-                            
-                            <div className="flex items-center justify-center">
-                              <input 
-                                type="number" 
-                                className="w-12 h-6 text-center font-bold text-sm text-gray-800 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500" 
-                                value={sizeQuantities[size] || 0}
-                                min="0"
-                                max={variant.stock_quantity}
-                                onChange={(e) => {
-                                  const newValue = parseInt(e.target.value) || 0;
-                                  if (newValue >= 0 && newValue <= variant.stock_quantity) {
-                                    setSizeQuantities(prev => ({
-                                      ...prev,
-                                      [size]: newValue
-                                    }));
-                                    setStockError('');
-                                  } else if (newValue > variant.stock_quantity) {
-                                    setStockError(`Stock insuffisant pour la taille ${size}. Maximum: ${variant.stock_quantity}`);
-                                  }
-                                }}
-                              />
-                            </div>
-                            
-                            <button
-                              type="button"
-                              className={`w-6 h-6 flex items-center justify-center rounded-full ${
-                                variant.stock_quantity <= (sizeQuantities[size] || 0) 
-                                  ? 'bg-gray-100 text-gray-400' 
-                                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                              } transition-colors`}
-                              onClick={() => increaseQuantity(size)}
-                              disabled={variant.stock_quantity <= (sizeQuantities[size] || 0)}
-                            >
-                              <span className="text-xs font-bold">+</span>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
               
               {/* Résumé des sélections et prix total */}
               {totalItemsSelected > 0 && (
