@@ -7,8 +7,29 @@ import { FiCheckCircle, FiClock, FiShield, FiTruck } from 'react-icons/fi';
 export default function DevisRapide() {
   const [step, setStep] = useState(1);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
-    type: '',
+  // Définir le type pour un produit
+  type Product = {
+    type: string;
+    label: string;
+    image: string;
+  };
+
+  // Définir le type pour formData
+  type FormDataType = {
+    selectedProducts: Product[];
+    quantity: string;
+    text: string;
+    email: string;
+    phone: string;
+    name: string;
+    company: string;
+    deadline: string;
+    specifications: string;
+    entityType: string;
+  };
+
+  const [formData, setFormData] = useState<FormDataType>({
+    selectedProducts: [], // Array pour stocker plusieurs produits sélectionnés
     quantity: '',
     text: '',
     email: '',
@@ -62,7 +83,7 @@ export default function DevisRapide() {
         setFormSubmitted(true);
         setStep(1);
         setFormData({
-          type: '',
+          selectedProducts: [],
           quantity: '',
           text: '',
           email: '',
@@ -83,7 +104,7 @@ export default function DevisRapide() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 text-black">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 text-black">
       <div className="max-w-3xl mx-auto">
         {formSubmitted ? (
           <div className="bg-white shadow rounded-lg p-8 text-center">
@@ -103,45 +124,66 @@ export default function DevisRapide() {
           </div>
         ) : (
           <>
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
+            <div className="text-center mb-3">
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
                 Demande de devis
               </h1>
-              <p className="text-gray-600 max-w-2xl mx-auto">
+              <p className="text-sm text-gray-600 max-w-2xl mx-auto">
                 Obtenez un devis personnalisé pour vos besoins en quelques clics
               </p>
             </div>
 
-        {/* Barre de progression */}
-        <div className="mb-8">
-          <div className="flex justify-between mb-2 text-xl">
-            {['Produit', 'Personnalisation', 'Contact'].map((label, index) => (
-              <div
-                key={label}
-                className={`text-xl font-medium ${
-                  step > index + 1 ? 'text-indigo-600' : step === index + 1 ? 'text-indigo-600' : 'text-gray-500'
-                }`}
-              >
-                {label}
-              </div>
-            ))}
-          </div>
-          <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
-            <div
-              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 transition-all duration-500"
-              style={{ width: `${((step - 1) / 2) * 100}%` }}
-            />
+        {/* Barre de progression interactive */}
+        <div className="mb-4">
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            {['Produit', 'Personnalisation', 'Contact'].map((label, index) => {
+              // Déterminer si l'étape est accessible (on peut cliquer sur les étapes précédentes ou l'étape actuelle)
+              const isAccessible = index + 1 <= step;
+              // Déterminer si c'est l'étape active
+              const isActive = step === index + 1;
+              // Déterminer si l'étape est complétée
+              const isCompleted = step > index + 1;
+              // Déterminer le style en fonction de l'état
+              const textStyle = isActive ? 'text-indigo-600 font-semibold' : 
+                                isAccessible ? 'text-indigo-600' : 'text-gray-400';
+              const barStyle = isActive ? 'bg-indigo-600' : 
+                              isCompleted ? 'bg-indigo-600' : 'bg-gray-200';
+              
+              return (
+                <div key={label} className="flex flex-col items-center">
+                  {/* Étape avec numéro */}
+                  <button
+                    onClick={() => isAccessible ? setStep(index + 1) : null}
+                    disabled={!isAccessible}
+                    className={`text-sm flex items-center mb-2 ${isAccessible ? 'cursor-pointer hover:opacity-90' : 'cursor-not-allowed'}`}
+                  >
+                    <span className={`inline-flex items-center justify-center h-5 w-5 rounded-full mr-1 text-xs ${isActive ? 'bg-indigo-600 text-white' : isAccessible ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-500'}`}>
+                      {index + 1}
+                    </span>
+                    <span className={textStyle}>{label}</span>
+                  </button>
+                  
+                  {/* Barre de progression */}
+                  <div 
+                    className={`h-2 rounded-md w-full transition-all duration-300 ${barStyle}`}
+                    onClick={() => isAccessible ? setStep(index + 1) : null}
+                    style={{ cursor: isAccessible ? 'pointer' : 'not-allowed' }}
+                  ></div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Étape 1: Choix du type de produit */}
         {step === 1 && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quel produit souhaitez-vous personnaliser ?</h2>
+          <div className="bg-white shadow rounded-lg p-4 mb-3">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Sélectionnez un ou plusieurs produits à personnaliser</h2>
             
-            {/* Type de produit */}
-            <div className="mb-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {/* Types de produits (sélection multiple) */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">Vous pouvez sélectionner plusieurs articles pour votre devis</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
                   { type: 't-shirt', label: 'T-Shirt', image: '/images/t-shirt.jpg' },
                   { type: 'sweatshirt', label: 'Sweat-shirt', image: '/images/sweatshirt.jpg' },
@@ -149,32 +191,84 @@ export default function DevisRapide() {
                   { type: 'pantalon', label: 'Pantalon', image: '/images/pantalon.png' },
                   { type: 'casquette', label: 'Casquette', image: '/images/casquette.png' },
                   { type: 'other', label: 'Autre produit', image: '/images/other.jpg' }
-                ].map((product) => (
-                  <button
-                    key={product.type}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, type: product.type })}
-                    className={`p-3 border rounded-lg transition-colors ${
-                      formData.type === product.type 
-                        ? 'border-indigo-500 bg-indigo-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="relative w-full pb-[80%] mb-2">
-                      <Image
-                        src={product.image}
-                        alt={product.label}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-contain rounded-md absolute inset-0 w-full h-full"
-                        priority
-                      />
-                    </div>
-                    <p className="text-sm font-medium text-center">{product.label}</p>
-                  </button>
-                ))}
+                ].map((product) => {
+                  // Vérifier si le produit est sélectionné
+                  const isSelected = formData.selectedProducts.some(p => p.type === product.type);
+                  
+                  return (
+                    <button
+                      key={product.type}
+                      type="button"
+                      onClick={() => {
+                        // Logique de sélection/désélection multiple
+                        if (isSelected) {
+                          // Si déjà sélectionné, retirer de la liste
+                          const updatedProducts = formData.selectedProducts.filter(p => p.type !== product.type);
+                          setFormData(prevState => ({
+                            ...prevState,
+                            selectedProducts: updatedProducts
+                          }));
+                        } else {
+                          // Sinon, ajouter à la liste
+                          setFormData(prevState => ({
+                            ...prevState,
+                            selectedProducts: [...prevState.selectedProducts, product]
+                          }));
+                        }
+                      }}
+                      className={`p-3 border rounded-lg transition-colors ${
+                        isSelected 
+                          ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="relative w-full pb-[80%] mb-2">
+                        <Image
+                          src={product.image}
+                          alt={product.label}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-contain rounded-md absolute inset-0 w-full h-full"
+                          priority
+                        />
+                        {isSelected && (
+                          <div className="absolute top-1 right-1 bg-indigo-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                            ✓
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm font-medium text-center">{product.label}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
+            
+            {/* Affichage des produits sélectionnés */}
+            {formData.selectedProducts.length > 0 && (
+              <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Produits sélectionnés ({formData.selectedProducts.length})</h3>
+                <div className="flex flex-wrap gap-2">
+                  {formData.selectedProducts.map((product, index) => (
+                    <div key={index} className="bg-white px-2 py-1 rounded border border-gray-300 text-sm flex items-center">
+                      {product.label}
+                      <button 
+                        className="ml-2 text-gray-500 hover:text-red-500"
+                        onClick={() => {
+                          const updatedProducts = formData.selectedProducts.filter((_, i) => i !== index);
+                          setFormData(prevState => ({
+                            ...prevState,
+                            selectedProducts: updatedProducts
+                          }));
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
             {/* Produit non listé */}
             <div className="mb-6">
@@ -192,7 +286,7 @@ export default function DevisRapide() {
             <div className="mt-6">
               <button
                 onClick={handleNext}
-                disabled={!formData.type && !formData.specifications}
+                disabled={formData.selectedProducts.length === 0 && !formData.specifications}
                 className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md text-base font-medium hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 Continuer
@@ -203,9 +297,9 @@ export default function DevisRapide() {
 
         {/* Étape 2: Type d'entité et détails */}
         {step === 2 && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Détails de votre projet</h2>
-            <div className="space-y-5">
+          <div className="bg-white shadow rounded-lg p-4 mb-3">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Détails de votre projet</h2>
+            <div className="space-y-4">
               {/* Type d'entité */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -216,11 +310,11 @@ export default function DevisRapide() {
                     <button
                       key={entity.id}
                       type="button"
-                      onClick={() => setFormData({ ...formData, entityType: entity.id })}
-                      className={`py-2 px-3 border rounded-md text-sm font-medium transition-colors ${
+                      onClick={() => setFormData(prevState => ({ ...prevState, entityType: entity.id }))}
+                      className={`py-3 px-4 border-2 rounded-lg text-base font-medium transition-colors ${
                         formData.entityType === entity.id 
-                          ? 'bg-indigo-100 border-indigo-500 text-indigo-700' 
-                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                          ? 'bg-indigo-100 border-indigo-500 text-indigo-700 shadow-sm' 
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
                       }`}
                     >
                       {entity.label}
@@ -251,7 +345,7 @@ export default function DevisRapide() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Délai souhaité
+                    Délai de livraison
                   </label>
                   <select
                     name="deadline"
@@ -260,9 +354,9 @@ export default function DevisRapide() {
                     className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                   >
                     <option value="">Sélectionnez un délai</option>
-                    <option value="standard">Standard (2-3 semaines)</option>
-                    <option value="urgent">Urgent (1 semaine)</option>
-                    <option value="tres-urgent">Très urgent (3-5 jours)</option>
+                    <option value="classique">Livraison classique : 3 semaines</option>
+                    <option value="prioritaire">Livraison prioritaire : 2 semaines</option>
+                    <option value="express">Livraison express : 1 semaine (ou moins)</option>
                   </select>
                 </div>
               </div>
@@ -318,9 +412,9 @@ export default function DevisRapide() {
 
         {/* Étape 3: Contact */}
         {step === 3 && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Vos coordonnées</h2>
-            <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="bg-white shadow rounded-lg p-4 mb-3">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Vos coordonnées</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
