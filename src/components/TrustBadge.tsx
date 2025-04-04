@@ -36,20 +36,23 @@ export default function TrustBadge() {
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-sm text-gray-800">Qualité garantie</span>
-              <span className="text-xs text-gray-500">Satisfaction ou remboursé</span>
+              <span className="text-xs text-gray-500">Matériaux premium sélectionnés</span>
             </div>
           </div>
           
-          {/* Badge Livraison rapide */}
+          {/* Badge Prix dégressifs */}
           <div className="group flex items-center space-x-3 transition-all duration-300 hover:translate-y-[-2px]">
             <div className="bg-white p-3 rounded-lg shadow-sm border border-indigo-200 group-hover:shadow-md group-hover:border-indigo-400 transition-all duration-300">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path d="M16 8l-8 8" />
+                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <circle cx="9" cy="9" r="1" />
+                <circle cx="15" cy="15" r="1" />
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-sm text-gray-800">Livraison rapide</span>
-              <span className="text-xs text-gray-500">Expédition sous 24-48h</span>
+              <span className="font-semibold text-sm text-gray-800">Prix dégressifs</span>
+              <span className="text-xs text-gray-500">Économisez sur les grandes quantités</span>
             </div>
           </div>
         </div>

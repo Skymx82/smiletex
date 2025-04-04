@@ -5,8 +5,12 @@ import Image from 'next/image';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    phone: '',
+    organization: '',
+    projectType: '',
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +34,15 @@ export default function Contact() {
       }
 
       setSubmitStatus('success');
-      setFormData({ name: '', email: '', message: '' });
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        organization: '',
+        projectType: '',
+        message: ''
+      });
     } catch (error) {
       setSubmitStatus('error');
     } finally {
@@ -111,7 +123,7 @@ export default function Contact() {
                   </div>
                   <div className="ml-3">
                     <h3 className="text-lg font-medium text-gray-900">Horaires d'ouverture</h3>
-                    <p className="mt-1 text-gray-600">Du lundi au vendredi, 9h - 18h</p>
+                    <p className="mt-1 text-gray-600">Du lundi au dimanche 9h - 18h (7j/7)</p>
                   </div>
                 </div>
               </div>
@@ -124,7 +136,7 @@ export default function Contact() {
                 <iframe
                   className="w-full h-[300px] rounded-lg"
                   loading="lazy"
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=4.801025390625,45.6037887314739,4.816474609375,45.6137887314739&layer=mapnik&marker=45.608788731473896,4.80875"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=4.8064,45.6049,4.8114,45.6099&layer=mapnik&marker=45.6074,4.8089"
                 ></iframe>
               </div>
               <a
@@ -140,49 +152,126 @@ export default function Contact() {
 
           {/* Contact Form */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Formulaire de contact</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Nom
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Demandez un devis en 1h !</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                    Prénom<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    required
+                    placeholder="Votre prénom"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                    Nom<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    required
+                    placeholder="Votre nom"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    placeholder="Votre adresse email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                    Téléphone
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="projectType" className="block text-sm font-medium text-gray-700">
+                    Type<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="projectType"
+                    name="projectType"
+                    required
+                    value={formData.projectType}
+                    onChange={(e) => setFormData(prev => ({ ...prev, projectType: e.target.value }))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  >
+                    <option value="">Choisir</option>
+                    <option value="entreprise">Entreprise</option>
+                    <option value="association">Association</option>
+                    <option value="collectivite">Collectivité</option>
+                    <option value="marque">Marque</option>
+                    <option value="particulier">Particulier</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="organization" className="block text-sm font-medium text-gray-700">
+                    Organisation
+                  </label>
+                  <input
+                    type="text"
+                    id="organization"
+                    name="organization"
+                    placeholder="Nom de votre entreprise, association ou collectivité"
+                    value={formData.organization}
+                    onChange={(e) => setFormData(prev => ({ ...prev, organization: e.target.value }))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
 
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700">
-                  Message
+                  Votre projet
                 </label>
                 <textarea
                   id="message"
                   name="message"
-                  rows={6}
-                  required
+                  rows={4}
+                  placeholder="Présentez votre projet, vos besoins et objectifs..."
                   value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 ></textarea>
               </div>
@@ -190,11 +279,11 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
                   isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
                 }`}
               >
-                {isSubmitting ? 'Envoi en cours...' : 'Envoyer'}
+                {isSubmitting ? 'Envoi en cours...' : 'Demander un devis'}
               </button>
 
               {submitStatus === 'success' && (
