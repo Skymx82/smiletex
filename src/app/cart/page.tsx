@@ -179,7 +179,7 @@ export default function CartPage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Liste des articles */}
-          <div className="lg:col-span-3 order-2 lg:order-1">
+          <div className="lg:col-span-3">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-5 border-b border-gray-200 bg-indigo-50">
                 <div className="flex justify-between items-center">
@@ -266,7 +266,7 @@ export default function CartPage() {
           </div>
           
           {/* Résumé de la commande */}
-          <div className="lg:col-span-1 order-1 lg:order-2 mb-6 lg:mb-0">
+          <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-4 sm:p-5 sticky top-6">
               <h2 className="text-lg font-bold text-gray-900 mb-5">Résumé de la commande</h2>
               
