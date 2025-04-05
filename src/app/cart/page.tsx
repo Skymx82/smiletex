@@ -174,12 +174,12 @@ export default function CartPage() {
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
-      <div className="max-w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Votre Panier</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Liste des articles */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-2 lg:order-1">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-5 border-b border-gray-200 bg-indigo-50">
                 <div className="flex justify-between items-center">
@@ -198,9 +198,10 @@ export default function CartPage() {
               
               {/* Liste des produits */}
               {cart.map((item) => (
-                <div key={item.id} className="border-b border-gray-200 last:border-0 p-5 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start">
-                    <div className="relative h-28 w-28 rounded-lg overflow-hidden mr-5 flex-shrink-0 border border-gray-200 shadow-sm">
+                <div key={item.id} className="border-b border-gray-200 last:border-0 p-4 sm:p-5 hover:bg-gray-50 transition-colors">
+                  <div className="flex flex-col sm:flex-row sm:items-start">
+                    {/* Image du produit - Taille adaptée et centrée sur mobile */}
+                    <div className="relative h-32 w-32 mx-auto sm:mx-0 sm:h-28 sm:w-28 rounded-lg overflow-hidden mb-4 sm:mb-0 sm:mr-5 flex-shrink-0 border border-gray-200 shadow-sm">
                       <Image
                         src={item.imageUrl || '/images/placeholder.jpg'}
                         alt={item.name}
@@ -210,8 +211,9 @@ export default function CartPage() {
                     </div>
                     
                     <div className="flex-1">
-                      <div className="flex justify-between">
-                        <div>
+                      {/* Informations produit - Réorganisées pour mobile */}
+                      <div className="flex flex-col sm:flex-row sm:justify-between">
+                        <div className="text-center sm:text-left mb-2 sm:mb-0">
                           <h3 className="text-lg font-bold text-gray-900">{item.name}</h3>
                           <p className="mt-1 text-sm text-gray-800">
                             {item.color && item.size && (
@@ -221,10 +223,11 @@ export default function CartPage() {
                             )}
                           </p>
                         </div>
-                        <p className="text-lg font-bold text-indigo-700">{item.price.toFixed(2)} €</p>
+                        <p className="text-lg font-bold text-indigo-700 text-center sm:text-right mb-4 sm:mb-0">{item.price.toFixed(2)} €</p>
                       </div>
                       
-                      <div className="mt-5 flex justify-between items-center">
+                      {/* Contrôles de quantité et bouton supprimer - Réorganisés pour mobile */}
+                      <div className="mt-3 sm:mt-5 flex flex-col sm:flex-row justify-center sm:justify-between items-center space-y-4 sm:space-y-0">
                         <div className="flex items-center border-2 border-indigo-200 rounded-lg overflow-hidden bg-white">
                           <button
                             onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
@@ -263,8 +266,8 @@ export default function CartPage() {
           </div>
           
           {/* Résumé de la commande */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-5 sticky top-6">
+          <div className="lg:col-span-1 order-1 lg:order-2 mb-6 lg:mb-0">
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-5 sticky top-6">
               <h2 className="text-lg font-bold text-gray-900 mb-5">Résumé de la commande</h2>
               
               <div className="space-y-4">
