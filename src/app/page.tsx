@@ -1,10 +1,199 @@
 'use client';
 
+import { useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import { useFeaturedProducts } from "@/hooks/useProducts";
 import TrustBadge from "@/components/TrustBadge";
 import TechniquesMarquage from "@/components/TechniquesMarquage";
+
+// Composant pour le formulaire de devis urgent
+function UrgentQuoteForm() {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    projectType: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({...formData, urgent: true}),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'envoi du message');
+      }
+
+      setSubmitStatus('success');
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        projectType: '',
+        message: ''
+      });
+    } catch (error) {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+            Prénom<span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            required
+            placeholder="Votre prénom"
+            value={formData.firstName}
+            onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+            Nom<span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            required
+            placeholder="Votre nom"
+            value={formData.lastName}
+            onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            Email<span className="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="Votre adresse email"
+            value={formData.email}
+            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+            Téléphone<span className="text-red-500">*</span>
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            required
+            placeholder="Votre numéro de téléphone"
+            value={formData.phone}
+            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="projectType" className="block text-sm font-medium text-gray-700">
+          Type de projet<span className="text-red-500">*</span>
+        </label>
+        <select
+          id="projectType"
+          name="projectType"
+          required
+          value={formData.projectType}
+          onChange={(e) => setFormData(prev => ({ ...prev, projectType: e.target.value }))}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+        >
+          <option value="">Choisir</option>
+          <option value="entreprise">Entreprise</option>
+          <option value="association">Association</option>
+          <option value="collectivite">Collectivité</option>
+          <option value="marque">Marque</option>
+          <option value="particulier">Particulier</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+          Détails de votre projet<span className="text-red-500">*</span>
+        </label>
+        <textarea
+          id="message"
+          name="message"
+          rows={4}
+          required
+          placeholder="Décrivez votre projet, quantités, délais souhaités..."
+          value={formData.message}
+          onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+        ></textarea>
+      </div>
+
+      <div className="flex items-center">
+        <div className="flex-shrink-0 mr-3">
+          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+        </div>
+        <p className="text-sm text-indigo-700 font-medium">Devis express : réponse garantie sous 24h</p>
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
+      >
+        {isSubmitting ? 'Envoi en cours...' : 'Demander un devis urgent'}
+      </button>
+
+      {submitStatus === 'success' && (
+        <div className="mt-4 p-4 bg-green-50 rounded-md">
+          <p className="text-green-800">Votre demande a été envoyée avec succès ! Nous vous contacterons sous 24h.</p>
+        </div>
+      )}
+
+      {submitStatus === 'error' && (
+        <div className="mt-4 p-4 bg-red-50 rounded-md">
+          <p className="text-red-800">Une erreur est survenue. Veuillez réessayer ou nous contacter par téléphone.</p>
+        </div>
+      )}
+    </form>
+  );
+}
 
 export default function Home() {
   const { products: featuredProducts, loading, error } = useFeaturedProducts();
@@ -338,31 +527,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Newsletter */}
-      <section className="py-16 md:py-24 bg-indigo-800 text-white">
+      {/* Formulaire de devis urgent */}
+      <section className="py-16 md:py-24 bg-indigo-50 text-gray-800">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Restez informé</h2>
-            <p className="text-lg text-indigo-100 max-w-3xl mx-auto">
-              Inscrivez-vous à notre newsletter pour recevoir nos dernières offres et nouveautés.
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Besoin d'un devis urgent ?</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Remplissez ce formulaire et recevez votre devis personnalisé sous 24h !
             </p>
           </div>
           
-          <div className="max-w-md mx-auto">
-            <form className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="email"
-                placeholder="Votre adresse email"
-                className="flex-grow px-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-              <button
-                type="submit"
-                className="bg-white text-indigo-800 px-6 py-3 rounded-lg font-bold hover:bg-indigo-50 transition-colors"
-              >
-                S'inscrire
-              </button>
-            </form>
+          <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md border border-gray-200 text-black">
+            <UrgentQuoteForm />
           </div>
         </div>
       </section>

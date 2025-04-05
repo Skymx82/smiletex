@@ -141,20 +141,41 @@ export async function POST(request: Request) {
 
     if (orderItemsError) throw orderItemsError;
 
-    // Créer une session de paiement Stripe
+    // Créer une session de paiement Stripe avec une apparence personnalisée
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
+      locale: 'fr',
       shipping_address_collection: {
         allowed_countries: ['FR', 'BE', 'LU', 'CH'],
+      },
+      custom_text: {
+        shipping_address: {
+          message: 'Nous livrons en France, Belgique, Luxembourg et Suisse uniquement.',
+        },
+        submit: {
+          message: 'Nous traiterons votre commande dès réception du paiement. Pour toute question, contactez-nous au 06 41 32 35 04.',
+        },
       },
       metadata: {
         orderId: pendingOrder.id,
         userId: userId || 'guest'
       },
+      payment_intent_data: {
+        description: 'Commande Smiletex - Vêtements personnalisés',
+        receipt_email: body.email,
+      },
+      customer_creation: 'always',
+      // Personnalisation de l'apparence
+      billing_address_collection: 'auto',
+      phone_number_collection: {
+        enabled: true,
+      },
+      // Utiliser les options standard de Stripe pour la personnalisation
+      allow_promotion_codes: true,
     });
 
     // Mettre à jour la commande avec l'ID de la session

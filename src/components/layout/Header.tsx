@@ -7,6 +7,7 @@ import { useCartContext } from '@/components/CartProvider';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 import { useCategories, CategoryWithChildren } from '@/hooks/useProducts';
+import { FaLeaf } from 'react-icons/fa';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -61,10 +62,10 @@ export default function Header() {
           <div className="flex justify-between items-center">
             <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
               <div className="flex items-center">
-                <div className="flex mr-1.5 h-3 items-center">
-                  <div className="w-1 h-full bg-blue-600"></div>
-                  <div className="w-1 h-full bg-white"></div>
-                  <div className="w-1 h-full bg-red-600"></div>
+                <div className="flex mr-1.5 w-3 items-center">
+                  <div className="h-1 w-full bg-blue-600"></div>
+                  <div className="h-1 w-full bg-white"></div>
+                  <div className="h-1 w-full bg-red-600"></div>
                 </div>
                 <span>Made in France</span>
               </div>
@@ -265,17 +266,15 @@ export default function Header() {
                           >
                             {category.name.toLowerCase() === 'bio' && (
                               <span className="mr-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+                                <FaLeaf className="h-5 w-5 text-green-600" />
                               </span>
                             )}
                             {category.name.toLowerCase() === 'made in france' && (
                               <span className="mr-2 flex items-center justify-center w-5 h-5 overflow-hidden rounded-full border border-gray-200">
-                                <div className="flex flex-col">
-                                  <div className="h-1.5 w-5 bg-blue-700"></div>
-                                  <div className="h-1.5 w-5 bg-white"></div>
-                                  <div className="h-1.5 w-5 bg-red-600"></div>
+                                <div className="flex flex-row">
+                                  <div className="w-1.5 h-5 bg-blue-700"></div>
+                                  <div className="w-1.5 h-5 bg-white"></div>
+                                  <div className="w-1.5 h-5 bg-red-600"></div>
                                 </div>
                               </span>
                             )}

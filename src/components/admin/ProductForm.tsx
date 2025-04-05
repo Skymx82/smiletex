@@ -21,7 +21,9 @@ export default function ProductForm({ initialProduct, categories, onSubmit, isSu
       category_id: '',
       is_featured: false,
       is_new: true,
-      image_url: ''
+      image_url: '',
+      weight_gsm: null,
+      supplier_reference: ''
     }
   );
   
@@ -194,6 +196,50 @@ export default function ProductForm({ initialProduct, categories, onSubmit, isSu
                 <span className="text-gray-400">Aucune image</span>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Caractéristiques techniques */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h2 className="text-lg font-medium mb-4">Caractéristiques techniques</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="weight_gsm" className="block text-sm font-medium text-gray-700 mb-1">
+              Grammage (g/m²)
+            </label>
+            <input
+              type="number"
+              id="weight_gsm"
+              name="weight_gsm"
+              value={product.weight_gsm ?? ''}
+              onChange={handleChange}
+              min="0"
+              className="w-full p-2 border rounded-md"
+              placeholder="Ex: 180"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Poids du tissu en grammes par mètre carré
+            </p>
+          </div>
+          
+          <div>
+            <label htmlFor="supplier_reference" className="block text-sm font-medium text-gray-700 mb-1">
+              Référence Fournisseur
+            </label>
+            <input
+              type="text"
+              id="supplier_reference"
+              name="supplier_reference"
+              value={product.supplier_reference || ''}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md"
+              placeholder="Ex: REF-12345"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Référence du produit chez le fournisseur
+            </p>
           </div>
         </div>
       </div>

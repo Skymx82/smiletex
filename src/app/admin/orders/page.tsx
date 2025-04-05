@@ -548,23 +548,85 @@ export default function OrdersPage() {
                                   <div className="flex justify-center bg-white p-2 rounded border border-gray-200">
                                     <div className="h-24 w-24 bg-gray-100 rounded-md overflow-hidden">
                                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img 
-                                        src={customization.image_url.startsWith('data:') 
-                                          ? customization.image_url 
-                                          : customization.image_url.startsWith('blob:') 
-                                            ? '/images/placeholder.jpg' // Fallback pour les URLs blob qui ne sont plus valides
-                                            : customization.image_url
-                                        } 
-                                        alt="Personnalisation" 
-                                        className="w-full h-full object-contain"
-                                      />
+                                      {(() => {
+                                        try {
+                                          // Vérifier si l'image est au format base64 (commence par data:)
+                                          if (customization.image_url && typeof customization.image_url === 'string') {
+                                            if (customization.image_url.startsWith('data:')) {
+                                              return (
+                                                <img 
+                                                  src={customization.image_url} 
+                                                  alt="Personnalisation" 
+                                                  className="w-full h-full object-contain"
+                                                />
+                                              );
+                                            } else if (customization.image_url.startsWith('blob:')) {
+                                              // Fallback pour les URLs blob qui ne sont plus valides
+                                              return (
+                                                <img 
+                                                  src="/images/placeholder.jpg" 
+                                                  alt="Personnalisation (image temporaire)" 
+                                                  className="w-full h-full object-contain"
+                                                />
+                                              );
+                                            } else if (customization.image_url.startsWith('/9j/')) {
+                                              // Ancien format base64 sans le préfixe data:image
+                                              return (
+                                                <img 
+                                                  src={`data:image/jpeg;base64,${customization.image_url}`} 
+                                                  alt="Personnalisation" 
+                                                  className="w-full h-full object-contain"
+                                                />
+                                              );
+                                            } else {
+                                              // URL normale
+                                              return (
+                                                <img 
+                                                  src={customization.image_url} 
+                                                  alt="Personnalisation" 
+                                                  className="w-full h-full object-contain"
+                                                />
+                                              );
+                                            }
+                                          } else {
+                                            // Si l'URL n'est pas une chaîne valide
+                                            return (
+                                              <div className="flex items-center justify-center h-full w-full text-gray-400">
+                                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                              </div>
+                                            );
+                                          }
+                                        } catch (error) {
+                                          console.error('Erreur d\'affichage de l\'image:', error);
+                                          return (
+                                            <div className="flex items-center justify-center h-full w-full text-red-400">
+                                              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                              </svg>
+                                            </div>
+                                          );
+                                        }
+                                      })()}
                                     </div>
                                   </div>
                                   
                                   {/* Bouton de téléchargement */}
                                   <div className="flex justify-center mt-2">
                                     <a
-                                      href={customization.image_url.startsWith('data:') ? customization.image_url : '#'}
+                                      href={(() => {
+                                        if (customization.image_url && typeof customization.image_url === 'string') {
+                                          if (customization.image_url.startsWith('data:')) {
+                                            return customization.image_url;
+                                          } else if (customization.image_url.startsWith('/9j/')) {
+                                            return `data:image/jpeg;base64,${customization.image_url}`;
+                                          } else if (!customization.image_url.startsWith('blob:')) {
+                                            return customization.image_url;
+                                          }
+                                        }
+                                        return '#';
+                                      })()}
                                       download={`personnalisation-${item.id}-${index}.png`}
                                       className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center ${customization.image_url.startsWith('data:') ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
                                       onClick={(e) => {

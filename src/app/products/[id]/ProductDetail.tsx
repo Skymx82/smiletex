@@ -11,6 +11,19 @@ import { ProductCustomization } from '@/types/customization';
 import { Product } from '@/lib/products';
 import { isCustomizationComplete } from '@/lib/customization';
 
+// Fonction pour obtenir une description du grammage
+function getGrammageDescription(gsm: number): string {
+  if (gsm < 140) {
+    return "Tissu léger, parfait pour les t-shirts d'été et vêtements fins.";
+  } else if (gsm >= 140 && gsm < 180) {
+    return "Grammage standard offrant un bon équilibre entre confort et durabilité.";
+  } else if (gsm >= 180 && gsm < 220) {
+    return "Tissu de qualité supérieure, durable et confortable pour un usage quotidien.";
+  } else {
+    return "Textile épais et robuste, idéal pour les sweatshirts et vêtements d'hiver.";
+  }
+}
+
 // Type pour stocker les quantités par taille
 type SizeQuantities = {
   [size: string]: number;
@@ -33,6 +46,10 @@ export default function ProductDetail({ id }: { id: string }) {
   const [customizationData, setCustomizationData] = useState<ProductCustomization | null>(null);
   // État pour stocker le prix supplémentaire dû aux personnalisations
   const [customizationPrice, setCustomizationPrice] = useState<number>(0);
+  // État pour la modale de confirmation
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  // État pour suivre si la personnalisation a été modifiée mais pas enregistrée
+  const [isCustomizationModified, setIsCustomizationModified] = useState(false);
 
   // Récupérer les produits similaires (même catégorie, mais pas le même produit)
   useEffect(() => {
@@ -397,9 +414,13 @@ export default function ProductDetail({ id }: { id: string }) {
 
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-md font-semibold mb-1">Matériaux</h3>
+                      <h3 className="text-md font-semibold mb-1">Grammage</h3>
                       <p className="text-sm text-gray-600">
-                        100% coton bio certifié, tissage de haute qualité pour une durabilité optimale.
+                        {product.weight_gsm ? (
+                          <>
+                            <span className="font-bold">{product.weight_gsm} g/m²</span> - {getGrammageDescription(product.weight_gsm)}
+                          </>
+                        ) : '100% coton bio certifié, tissage de haute qualité pour une durabilité optimale.'}
                       </p>
                     </div>
 
@@ -412,9 +433,11 @@ export default function ProductDetail({ id }: { id: string }) {
 
                     <div>
                       <h3 className="text-md font-semibold mb-1">Livraison</h3>
-                      <p className="text-sm text-gray-600">
-                        Livraison standard en 3-5 jours ouvrables. Livraison express disponible.
-                      </p>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>Livraison classique : 3 semaines</li>
+                        <li>Livraison prioritaire : 2 semaines</li>
+                        <li>Livraison express : 1 semaine (ou moins)</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -641,8 +664,8 @@ export default function ProductDetail({ id }: { id: string }) {
                           </div>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-blue-800">Délai de production estimé : <span className="font-bold">5-7 jours ouvrés</span></p>
-                          <p className="text-sm text-blue-700 mt-1">Livraison standard : <span className="font-bold">2-3 jours ouvrés</span> après production</p>
+                          <p className="text-sm font-medium text-blue-800">Délai de livraison standard :</p>
+                          <p className="text-sm text-blue-700 mt-2 font-bold">Livraison classique : 3 semaines</p>
                           <p className="text-xs text-blue-600 mt-2">Les délais peuvent varier en fonction de la quantité commandée et de la complexité de la personnalisation.</p>
                         </div>
                       </div>
@@ -778,6 +801,25 @@ export default function ProductDetail({ id }: { id: string }) {
               
               {/* Boutons d'action */}
               <div className="mt-auto space-y-4">
+                {/* Avertissement pour la personnalisation */}
+                {showEmbeddedCustomization && customizationData && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 animate-pulse">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-amber-800">N'oubliez pas d'enregistrer votre personnalisation</h3>
+                        <div className="mt-1 text-sm text-amber-700">
+                          <p>Cliquez sur le bouton "Enregistrer" dans l'éditeur de personnalisation avant d'ajouter au panier, sinon vos modifications ne seront pas prises en compte.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <button
                   type="button"
                   className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-all ${
@@ -788,7 +830,11 @@ export default function ProductDetail({ id }: { id: string }) {
                         : 'bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-lg'
                   }`}
                   onClick={() => {
-                    if (customizationData) {
+                    // Vérifier si l'éditeur de personnalisation est ouvert mais que les modifications n'ont pas été enregistrées
+                    if (showEmbeddedCustomization) {
+                      // Afficher la modale de confirmation
+                      setShowConfirmationModal(true);
+                    } else if (customizationData) {
                       handleAddToCartWithCustomization(customizationData, customizationPrice);
                     } else {
                       handleAddToCart();
@@ -942,6 +988,72 @@ export default function ProductDetail({ id }: { id: string }) {
           </div>
         </div>
       </div>
+
+      {/* Modale de confirmation pour l'ajout au panier sans enregistrer la personnalisation */}
+      {showConfirmationModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            {/* Overlay sombre */}
+            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            {/* Centrer la modale */}
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            {/* Contenu de la modale */}
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg className="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Personnalisation non enregistrée
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        Vous n'avez pas enregistré votre personnalisation. Si vous continuez, les modifications en cours ne seront pas appliquées à votre produit.
+                      </p>
+                      <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                        <p className="text-sm text-amber-800">
+                          Pour enregistrer votre personnalisation, cliquez sur le bouton "Enregistrer" dans l'éditeur de personnalisation.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button 
+                  type="button" 
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={() => {
+                    setShowConfirmationModal(false);
+                    if (customizationData) {
+                      handleAddToCartWithCustomization(customizationData, customizationPrice);
+                    } else {
+                      handleAddToCart();
+                    }
+                  }}
+                >
+                  Continuer sans enregistrer
+                </button>
+                <button 
+                  type="button" 
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={() => setShowConfirmationModal(false)}
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

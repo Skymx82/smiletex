@@ -15,6 +15,8 @@ type ProductFormData = {
   is_featured: boolean;
   is_new: boolean;
   image_file: File | null;
+  weight_gsm: number | null;
+  supplier_reference: string;
 };
 
 type VariantFormData = {
@@ -41,6 +43,8 @@ export default function AddProductPage() {
     is_featured: false,
     is_new: false,
     image_file: null,
+    weight_gsm: null,
+    supplier_reference: '',
   });
   
   // État pour les variantes
@@ -215,6 +219,8 @@ export default function AddProductPage() {
         category_id: productData.category_id,
         is_featured: productData.is_featured,
         is_new: productData.is_new,
+        weight_gsm: productData.weight_gsm,
+        supplier_reference: productData.supplier_reference,
       };
       
       const newProduct = await addProduct(productToAdd);
@@ -442,6 +448,37 @@ export default function AddProductPage() {
               <label className="text-gray-700 text-sm font-bold" htmlFor="is_new">
                 Nouveau Produit
               </label>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="weight_gsm">
+                Grammage (g/m²)
+              </label>
+              <input
+                type="number"
+                id="weight_gsm"
+                name="weight_gsm"
+                value={productData.weight_gsm || ''}
+                onChange={handleProductChange}
+                min="0"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="Ex: 180"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="supplier_reference">
+                Référence Fournisseur
+              </label>
+              <input
+                type="text"
+                id="supplier_reference"
+                name="supplier_reference"
+                value={productData.supplier_reference}
+                onChange={handleProductChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="Ex: REF-12345"
+              />
             </div>
           </div>
         </div>

@@ -20,20 +20,20 @@ export default function AboutPage() {
       {/* Section Histoire */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div className="space-y-6">
-          <h2 className="text-3xl font-bold text-black">Une Passion Devenue Métier</h2>
+          <h2 className="text-3xl font-bold text-black">Notre Histoire</h2>
           <p className="text-lg text-gray-700">
-            Passionné par la personnalisation textile depuis plusieurs années, j'ai commencé à explorer cet univers créatif dès 2020 en tant qu'auto-entrepreneur, parallèlement à ma carrière dans le transport.
+            Fondée en 2020, Smiletext est née d'une passion pour la personnalisation textile et d'une vision entrepreneuriale axée sur la qualité et l'innovation.
           </p>
           <p className="text-lg text-gray-700">
-            Ce qui a débuté comme un projet secondaire s'est rapidement transformé en une véritable passion. En 2021, suite à un accident qui a marqué un tournant dans mon parcours, j'ai saisi cette opportunité pour réorienter ma carrière vers ce qui me passionne vraiment.
+            Ce qui a débuté comme une petite entreprise s'est rapidement développé grâce à un engagement constant envers l'excellence et la satisfaction client. En 2021, l'entreprise a connu un tournant décisif avec l'expansion de ses services et techniques de personnalisation.
           </p>
           <p className="text-lg text-gray-700">
-            En 2024, j'ai franchi le pas en me consacrant entièrement à mon art : la personnalisation textile. C'est ainsi qu'est né Smiletext, l'aboutissement d'un cheminement entrepreneurial qui allie expertise technique et créativité sans limites.
+            En 2024, Smiletext a franchi une nouvelle étape en se consacrant entièrement à l'art de la personnalisation textile, consolidant sa position sur le marché comme un acteur innovant alliant expertise technique et créativité sans limites.
           </p>
         </div>
         <div className="relative h-96 rounded-lg overflow-hidden">
           <Image
-            src="/images/yoan.png"
+            src="/images/atelier.jpg"
             alt="Atelier Smiletext"
             fill
             className="object-cover"
@@ -70,7 +70,10 @@ export default function AboutPage() {
       <div className="mt-16 bg-indigo-50 p-12 rounded-lg">
         <h2 className="text-3xl font-bold text-black mb-6">Notre Mission</h2>
         <p className="text-lg text-gray-700">
-          Smiletext est bien plus qu'une marque de vêtements. C'est une communauté de personnes qui croient en l'importance de s'exprimer à travers leur style, tout en faisant des choix responsables.
+          Smiletext est bien plus qu'une entreprise de personnalisation textile. Notre mission est de transformer vos idées en créations uniques qui reflètent votre identité, tout en respectant des valeurs d'excellence, d'innovation et de durabilité.
+        </p>
+        <p className="text-lg text-gray-700 mt-4">
+          Nous nous engageons à fournir des produits de haute qualité, réalisés avec des matériaux soigneusement sélectionnés et des techniques de pointe, pour garantir des résultats qui dépassent vos attentes.
         </p>
       </div>
 
@@ -136,11 +139,34 @@ export default function AboutPage() {
         </div>
       </div>
 
+      {/* Section Expertise */}
+      <div className="mt-16 bg-white p-12 rounded-lg border border-gray-200">
+        <h2 className="text-3xl font-bold text-black mb-6">Notre Expertise</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <p className="text-lg text-gray-700">
+              Avec plusieurs années d'expérience dans le domaine de la personnalisation textile, notre équipe maîtrise les techniques les plus avancées pour garantir des résultats d'exception.
+            </p>
+            <p className="text-lg text-gray-700 mt-4">
+              Nous travaillons avec des entreprises de toutes tailles, des associations et des particuliers pour créer des produits personnalisés qui répondent précisément à leurs besoins et exigences.
+            </p>
+          </div>
+          <div>
+            <p className="text-lg text-gray-700">
+              Notre processus de production rigoureux et notre contrôle qualité systématique nous permettent d'offrir des produits durables qui conservent leur éclat et leur qualité au fil du temps.
+            </p>
+            <p className="text-lg text-gray-700 mt-4">
+              Nous investissons continuellement dans les dernières technologies et formations pour rester à la pointe de l'innovation dans notre secteur.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Section CTA */}
       <div className="mt-16 text-center">
-        <h2 className="text-3xl font-bold text-black mb-6">Rejoignez l'aventure Smiletext</h2>
+        <h2 className="text-3xl font-bold text-black mb-6">Découvrez l'Excellence Smiletext</h2>
         <Link href="/products" className="bg-indigo-600 text-white px-8 py-4 rounded-lg hover:bg-indigo-700 transition-colors text-lg">
-          Découvrez notre collection
+          Explorer notre collection
         </Link>
       </div>
     </div>
