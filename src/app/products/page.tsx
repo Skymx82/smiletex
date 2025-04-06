@@ -62,10 +62,10 @@ function ProductsContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Nos Produits Smiletext</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Nos Produits smiletex</h1>
           <p className="text-lg text-gray-700 max-w-3xl mx-auto">
             Découvrez notre gamme de produits personnalisables. Choisissez un article, 
-            ajoutez votre design et créez un produit unique avec Smiletext.
+            ajoutez votre design et créez un produit unique avec smiletex.
           </p>
         </div>
 

@@ -1,10 +1,10 @@
-# Instructions pour l'IA - Projet E-commerce Smiletext
+# Instructions pour l'IA - Projet E-commerce smiletex
 
-Ce document résume le travail effectué sur le projet e-commerce Smiletext et les prochaines étapes à réaliser. Il sert de guide pour les futures interactions avec l'IA.
+Ce document résume le travail effectué sur le projet e-commerce smiletex et les prochaines étapes à réaliser. Il sert de guide pour les futures interactions avec l'IA.
 
 ## Résumé du Projet
 
-Le projet Smiletext est une plateforme e-commerce permettant aux utilisateurs de personnaliser des vêtements et accessoires, de les ajouter à leur panier et de finaliser leurs achats via un système de paiement sécurisé avec Stripe.
+Le projet smiletex est une plateforme e-commerce permettant aux utilisateurs de personnaliser des vêtements et accessoires, de les ajouter à leur panier et de finaliser leurs achats via un système de paiement sécurisé avec Stripe.
 
 ## Fonctionnalités Implémentées
 

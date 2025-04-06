@@ -1,6 +1,6 @@
 # Guide de Configuration du Webhook Stripe
 
-Ce guide explique comment configurer le webhook Stripe pour votre application e-commerce Smiletext.
+Ce guide explique comment configurer le webhook Stripe pour votre application e-commerce smiletex.
 
 > **Note importante**: La configuration complète du webhook Stripe nécessite que votre site soit accessible en ligne. Cette étape devra être finalisée après le déploiement de l'application. Pour le développement local, vous pouvez utiliser Stripe CLI comme expliqué ci-dessous.
 

@@ -410,7 +410,7 @@ export default function ProductDetail({ id }: { id: string }) {
                 
                 {/* Informations supplémentaires - Maintenant sous l'image */}
                 <div className="mt-4 border-t border-gray-200 pt-4">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Informations produit Smiletext</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Informations produit smiletex</h2>
 
                   <div className="space-y-4">
                     <div>

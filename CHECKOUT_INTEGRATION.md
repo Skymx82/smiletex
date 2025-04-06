@@ -1,6 +1,6 @@
 # Documentation de l'Intégration du Checkout avec Stripe
 
-Ce document détaille l'intégration du processus de paiement avec Stripe dans l'application e-commerce Smiletext.
+Ce document détaille l'intégration du processus de paiement avec Stripe dans l'application e-commerce smiletex.
 
 > **Note importante**: La configuration complète du webhook Stripe nécessite que votre site soit accessible en ligne. Cette étape devra être finalisée après le déploiement de l'application. Pour le moment, le code est en place mais la configuration finale du webhook sera effectuée ultérieurement.
 

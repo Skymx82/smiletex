@@ -18,6 +18,7 @@
     "@supabase/supabase-js": "^2.49.1",
     "date-fns": "^4.1.0",
     "fabric": "^6.6.1",
+    "framer-motion": "^12.6.3",
     "next": "15.2.0",
     "next-transpile-modules": "^10.0.1",
     "nodemailer": "^6.10.0",

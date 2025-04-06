@@ -161,7 +161,7 @@ export default function CartPage() {
   if (cart.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Votre Panier Smiletext</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Votre Panier smiletex</h1>
         <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
           <p className="text-gray-600 mb-6">Votre panier est vide</p>
           <Link href="/products" className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">

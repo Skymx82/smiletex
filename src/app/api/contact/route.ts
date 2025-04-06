@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
     // Envoyer l'email en utilisant notre module mailer
     const emailSent = await sendEmail({
-      to: process.env.EMAIL_USER || 'contact@smiletext.fr',
+      to: process.env.EMAIL_USER || 'contact@smiletex.fr',
       subject: subject,
       html: htmlContent,
       text: textContent,

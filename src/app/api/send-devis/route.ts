@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         
         <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
         
-        <p>L'équipe Smiletext</p>
+        <p>L'équipe smiletex</p>
       `
     });
 

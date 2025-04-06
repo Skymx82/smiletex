@@ -70,7 +70,7 @@ export default function MentionsLegales() {
                       69360 Ternay<br />
                       France<br />
                       <strong>Téléphone :</strong> <a href="tel:0641323504" className="text-indigo-600 hover:underline">06 41 32 35 04</a><br />
-                      <strong>Email :</strong> <a href="mailto:contact@smiletext.fr" className="text-indigo-600 hover:underline">contact@smiletext.fr</a>
+                      <strong>Email :</strong> <a href="mailto:contact@smiletex.fr" className="text-indigo-600 hover:underline">contact@smiletex.fr</a>
                     </p>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default function MentionsLegales() {
                     <li>Droit d'opposition</li>
                   </ul>
                   <p className="text-gray-600 leading-relaxed mt-3">
-                    Pour exercer ces droits, vous pouvez nous contacter à l'adresse email suivante : <a href="mailto:privacy@smiletext.fr" className="text-indigo-600 hover:underline">privacy@smiletext.fr</a>
+                    Pour exercer ces droits, vous pouvez nous contacter à l'adresse email suivante : <a href="mailto:privacy@smiletex.fr" className="text-indigo-600 hover:underline">privacy@smiletex.fr</a>
                   </p>
                 </div>
                 

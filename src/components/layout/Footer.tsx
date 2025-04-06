@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">Smiletext</h3>
+            <h3 className="text-lg font-semibold mb-4">smiletex</h3>
             <p className="text-gray-300 text-sm">
               Personnalisez vos vêtements et accessoires selon vos envies. Créez des designs uniques et exprimez votre style personnel.
             </p>
@@ -88,7 +88,7 @@ export default function Footer() {
         <div className="mt-8 pt-8 border-t border-gray-700">
           <div className="flex justify-between items-center flex-col md:flex-row">
             <p className="text-gray-300 text-sm">
-              &copy; {new Date().getFullYear()} Smiletext. Tous droits réservés. Site développé par <a href="https://www.tolarys-toulouse.fr" className="text-white hover:text-gray-300">Tolarys Toulouse</a>
+              &copy; {new Date().getFullYear()} smiletex. Tous droits réservés. Site développé par <a href="https://www.tolarys-toulouse.fr" className="text-white hover:text-gray-300">Tolarys Toulouse</a>
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-400 hover:text-white">

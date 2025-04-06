@@ -9,7 +9,7 @@ export default function FAQPage() {
       <div className="relative h-64 mb-12 rounded-lg overflow-hidden">
         <Image
           src="/images/hero-bg.png"
-          alt="FAQ Smiletext"
+          alt="FAQ smiletex"
           fill
           className="object-cover"
         />

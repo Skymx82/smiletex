@@ -8,7 +8,7 @@ export default function AboutPage() {
       <div className="relative h-96 mb-12 rounded-lg overflow-hidden">
         <Image
           src="/images/lyon.avif"
-          alt="Atelier Smiletext"
+          alt="Atelier smiletex"
           fill
           className="object-cover"
         />
@@ -22,19 +22,19 @@ export default function AboutPage() {
         <div className="space-y-6">
           <h2 className="text-3xl font-bold text-black">Notre Histoire</h2>
           <p className="text-lg text-gray-700">
-            Fondée en 2020, Smiletext est née d'une passion pour la personnalisation textile et d'une vision entrepreneuriale axée sur la qualité et l'innovation.
+            Fondée en 2020, smiletex est née d'une passion pour la personnalisation textile et d'une vision entrepreneuriale axée sur la qualité et l'innovation.
           </p>
           <p className="text-lg text-gray-700">
             Ce qui a débuté comme une petite entreprise s'est rapidement développé grâce à un engagement constant envers l'excellence et la satisfaction client. En 2021, l'entreprise a connu un tournant décisif avec l'expansion de ses services et techniques de personnalisation.
           </p>
           <p className="text-lg text-gray-700">
-            En 2024, Smiletext a franchi une nouvelle étape en se consacrant entièrement à l'art de la personnalisation textile, consolidant sa position sur le marché comme un acteur innovant alliant expertise technique et créativité sans limites.
+            En 2024, smiletex a franchi une nouvelle étape en se consacrant entièrement à l'art de la personnalisation textile, consolidant sa position sur le marché comme un acteur innovant alliant expertise technique et créativité sans limites.
           </p>
         </div>
         <div className="relative h-96 rounded-lg overflow-hidden">
           <Image
             src="/images/atelier.jpg"
-            alt="Atelier Smiletext"
+            alt="Atelier smiletex"
             fill
             className="object-cover"
           />
@@ -70,7 +70,7 @@ export default function AboutPage() {
       <div className="mt-16 bg-indigo-50 p-12 rounded-lg">
         <h2 className="text-3xl font-bold text-black mb-6">Notre Mission</h2>
         <p className="text-lg text-gray-700">
-          Smiletext est bien plus qu'une entreprise de personnalisation textile. Notre mission est de transformer vos idées en créations uniques qui reflètent votre identité, tout en respectant des valeurs d'excellence, d'innovation et de durabilité.
+          smiletex est bien plus qu'une entreprise de personnalisation textile. Notre mission est de transformer vos idées en créations uniques qui reflètent votre identité, tout en respectant des valeurs d'excellence, d'innovation et de durabilité.
         </p>
         <p className="text-lg text-gray-700 mt-4">
           Nous nous engageons à fournir des produits de haute qualité, réalisés avec des matériaux soigneusement sélectionnés et des techniques de pointe, pour garantir des résultats qui dépassent vos attentes.
@@ -164,7 +164,7 @@ export default function AboutPage() {
 
       {/* Section CTA */}
       <div className="mt-16 text-center">
-        <h2 className="text-3xl font-bold text-black mb-6">Découvrez l'Excellence Smiletext</h2>
+        <h2 className="text-3xl font-bold text-black mb-6">Découvrez l'Excellence smiletex</h2>
         <Link href="/products" className="bg-indigo-600 text-white px-8 py-4 rounded-lg hover:bg-indigo-700 transition-colors text-lg">
           Explorer notre collection
         </Link>
