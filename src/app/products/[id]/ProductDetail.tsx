@@ -467,20 +467,37 @@ export default function ProductDetail({ id }: { id: string }) {
                         Couleur
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {uniqueColors.map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            className={`px-4 py-2 border rounded-md transition-all ${
-                              selectedColor === color
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                                : 'border-gray-300 text-gray-700 hover:border-indigo-500 hover:bg-indigo-50'
-                            }`}
-                            onClick={() => setSelectedColor(color)}
-                          >
-                            {color}
-                          </button>
-                        ))}
+                        {uniqueColors.map((color) => {
+                          // Vérifier si la couleur est un code hexadécimal valide
+                          const isHexColor = /^#[0-9A-F]{6}$/i.test(color);
+                          
+                          return (
+                            <button
+                              key={color}
+                              type="button"
+                              className={`p-2 transition-all ${
+                                selectedColor === color
+                                  ? 'scale-110 transform'
+                                  : ''
+                              }`}
+                              onClick={() => setSelectedColor(color)}
+                              title={color}
+                            >
+                              {isHexColor ? (
+                                <div 
+                                  className={`w-10 h-10 rounded-full border-2 ${selectedColor === color ? 'border-indigo-600 ring-2 ring-indigo-300' : 'border-gray-300 hover:border-indigo-400'}`} 
+                                  style={{ backgroundColor: color }}
+                                />
+                              ) : (
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 border-2 ${selectedColor === color ? 'border-indigo-600 ring-2 ring-indigo-300' : 'border-gray-300 hover:border-indigo-400'}`}>
+                                  <span className={`text-xs ${selectedColor === color ? 'font-bold text-indigo-700' : 'text-gray-700'}`}>
+                                    {color.substring(0, 3)}
+                                  </span>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

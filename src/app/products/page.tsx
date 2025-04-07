@@ -237,7 +237,7 @@ function ProductsContent() {
                           </Link>
                           <p className="text-gray-700 mb-4">{product.description}</p>
                           <div className="flex justify-between items-center">
-                            <span className="text-lg font-bold">{product.base_price.toFixed(2)} €</span>
+                            <span className="text-lg font-bold">À partir de {product.base_price.toFixed(2)} €</span>
                             <Link 
                               href={`/products/${product.id}`} 
                               className="text-indigo-600 hover:text-indigo-800 font-medium"

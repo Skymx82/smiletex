@@ -29,7 +29,14 @@ type VariantFormData = {
 
 // Tailles et couleurs prédéfinies pour faciliter la génération de variantes
 const PREDEFINED_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
-const PREDEFINED_COLORS = ['Blanc', 'Noir', 'Gris', 'Bleu', 'Rouge', 'Vert'];
+const PREDEFINED_COLORS = [
+  { name: 'Blanc', hex: '#FFFFFF' },
+  { name: 'Noir', hex: '#000000' },
+  { name: 'Gris', hex: '#808080' },
+  { name: 'Bleu', hex: '#0000FF' },
+  { name: 'Rouge', hex: '#FF0000' },
+  { name: 'Vert', hex: '#008000' }
+];
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -146,12 +153,15 @@ export default function AddProductPage() {
     // Génération de toutes les combinaisons possibles
     sizes.forEach(size => {
       colors.forEach(color => {
+        // Utiliser le code hexadécimal sans le # pour le SKU
+        const colorHex = color.replace('#', '');
+        
         // Générer un SKU basique
-        const sku = `${productData.name.substring(0, 3).toUpperCase() || 'PRD'}-${size}-${color.substring(0, 3).toUpperCase()}`;
+        const sku = `${productData.name.substring(0, 3).toUpperCase() || 'PRD'}-${size}-${colorHex}`;
         
         newVariants.push({
           size,
-          color,
+          color, // Le code hexa complet est stocké comme couleur
           stock_quantity: defaultStock,
           price_adjustment: defaultPriceAdjustment,
           sku
@@ -521,7 +531,7 @@ export default function AddProductPage() {
                     type="text"
                     value={colorsInput}
                     onChange={(e) => setColorsInput(e.target.value)}
-                    placeholder="NOIR,BLANC,BLEU,ROUGE"
+                    placeholder="#000000,#FFFFFF,#FF0000,#0000FF"
                     className="shadow appearance-none border rounded w-full py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-indigo-500"
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
@@ -530,7 +540,28 @@ export default function AddProductPage() {
                     </svg>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Exemple: JAUNE,BLEU,ROSE,NOIR</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {PREDEFINED_COLORS.map((color) => (
+                    <div 
+                      key={color.hex} 
+                      className="flex items-center cursor-pointer hover:bg-gray-100 p-1 rounded"
+                      onClick={() => {
+                        const currentColors = colorsInput.split(',').map(c => c.trim()).filter(c => c !== '');
+                        if (!currentColors.includes(color.hex)) {
+                          const newColors = [...currentColors, color.hex].join(',');
+                          setColorsInput(newColors);
+                        }
+                      }}
+                    >
+                      <div 
+                        className="w-6 h-6 mr-1 rounded border border-gray-300" 
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <span className="text-xs">{color.name}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Exemple: #000000,#FFFFFF,#FF0000 (codes hexadécimaux)</p>
               </div>
             </div>
             
