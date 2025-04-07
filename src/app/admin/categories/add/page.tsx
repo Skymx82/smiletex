@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Category } from '@/lib/products';
 import { fetchCategories } from '@/lib/supabase/services/productService';
-import { addCategory, uploadProductImage, uploadImageViaLocalApi } from '@/lib/supabase/services/adminService';
+import { addCategory, uploadProductImage } from '@/lib/supabase/services/adminService';
 
 type CategoryFormData = {
   name: string;
@@ -85,21 +85,13 @@ export default function AddCategoryPage() {
       let imageUrl = '';
       if (categoryData.image_file) {
         try {
-          // Essayer d'abord l'API locale
-          const uploadedUrl = await uploadImageViaLocalApi(categoryData.image_file);
-          if (uploadedUrl) {
-            imageUrl = uploadedUrl;
+          // Télécharger directement vers Supabase Storage
+          const fileName = `category-${Date.now()}-${categoryData.image_file.name.replace(/\s+/g, '-')}`;
+          const supabaseUrl = await uploadProductImage(categoryData.image_file, fileName);
+          if (supabaseUrl) {
+            imageUrl = supabaseUrl;
           } else {
-            console.warn('Impossible de télécharger l\'image via l\'API locale, essai via Supabase');
-            
-            // Fallback à Supabase si l'API locale échoue
-            const fileName = `category-${Date.now()}-${categoryData.image_file.name.replace(/\s+/g, '-')}`;
-            const supabaseUrl = await uploadProductImage(categoryData.image_file, fileName);
-            if (supabaseUrl) {
-              imageUrl = supabaseUrl;
-            } else {
-              console.warn('Impossible de télécharger l\'image, continuation sans image');
-            }
+            console.warn('Impossible de télécharger l\'image, continuation sans image');
           }
         } catch (uploadError) {
           console.warn('Erreur lors du téléchargement de l\'image, continuation sans image:', uploadError);

@@ -10,6 +10,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    domains: ['smbfyruzxrozzhrrdast.supabase.co'],
+  },
   webpack: (config) => {
     config.externals = [...(config.externals || []), { canvas: 'canvas' }];
     

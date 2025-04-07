@@ -345,34 +345,9 @@ export async function deleteCategory(id: string): Promise<boolean> {
  */
 export async function uploadProductImage(file: File, fileName: string): Promise<string | null> {
   try {
-    // Vérifier si le bucket existe
-    const { data: buckets, error: bucketError } = await supabase.storage
-      .listBuckets();
-    
     const bucketName = 'product-images';
-    const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
     
-    // Si le bucket n'existe pas, essayer de le créer
-    if (!bucketExists) {
-      try {
-        const { error: createError } = await supabase.storage
-          .createBucket(bucketName, {
-            public: true
-          });
-        
-        if (createError) {
-          console.error('Error creating bucket:', createError);
-          // Retourner une URL d'image placeholder
-          return '/images/placeholder.jpg';
-        }
-      } catch (err) {
-        console.error('Error creating bucket:', err);
-        // Retourner une URL d'image placeholder
-        return '/images/placeholder.jpg';
-      }
-    }
-    
-    // Télécharger le fichier
+    // Upload direct du fichier - cette méthode fonctionne avec les politiques RLS configurées
     const { data, error } = await supabase.storage
       .from(bucketName)
       .upload(fileName, file, {
@@ -382,11 +357,10 @@ export async function uploadProductImage(file: File, fileName: string): Promise<
     
     if (error) {
       console.error('Error uploading product image:', error);
-      // Retourner une URL d'image placeholder
       return '/images/placeholder.jpg';
     }
     
-    // Récupérer l'URL publique de l'image
+    // Récupérer l'URL publique
     const { data: { publicUrl } } = supabase.storage
       .from(bucketName)
       .getPublicUrl(data.path);
@@ -399,27 +373,4 @@ export async function uploadProductImage(file: File, fileName: string): Promise<
   }
 }
 
-/**
- * Télécharge une image de produit via l'API locale (alternative à Supabase Storage)
- */
-export async function uploadImageViaLocalApi(file: File): Promise<string | null> {
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await fetch('/api/admin/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return data.url;
-  } catch (error) {
-    console.error('Error uploading image via local API:', error);
-    return '/images/placeholder.jpg';
-  }
-}
+
