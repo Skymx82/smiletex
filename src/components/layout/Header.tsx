@@ -86,6 +86,8 @@ export default function Header() {
         </div>
       </div>
       <header className={`${scrolled ? 'bg-white' : 'bg-indigo-50'} text-black shadow-md sticky top-0 transition-all duration-300 ease-in-out z-40`}>
+        {/* Élément graphique subtil */}
+        <div className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#FCEB14] opacity-10"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
@@ -113,7 +115,7 @@ export default function Header() {
               >
                 <Link 
                   href="/products" 
-                  className={`${pathname === '/products' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200`}
+                  className={`${pathname === '/products' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200 group relative`}
                   onClick={() => setProductsMenuOpen(false)}
                 >
                   <span>Produits</span>
@@ -126,6 +128,7 @@ export default function Header() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
+                  {pathname !== '/products' && <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-100 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>}
                 </Link>
                 
                 {/* Sous-menu des catégories */}
@@ -134,10 +137,11 @@ export default function Header() {
                 >
                   <Link 
                     href="/products" 
-                    className="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                    className="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors relative group overflow-hidden"
                     onClick={() => setProductsMenuOpen(false)}
                   >
-                    Tous les produits
+                    <span className="relative z-10">Tous les produits</span>
+                    <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-70 group-hover:w-full transition-all duration-300"></span>
                   </Link>
                   {categoriesLoading ? (
                     <div className="px-4 py-2 text-sm text-gray-500">Chargement...</div>
@@ -201,11 +205,13 @@ export default function Header() {
                   )}
                 </div>
               </div>
-              <Link href="/devis" className={`${pathname === '/devis' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200`}>
+              <Link href="/devis" className={`${pathname === '/devis' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200 group relative`}>
                 Devis Rapide
+                {pathname !== '/devis' && <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-100 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>}
               </Link>
-              <Link href="/about" className={`${pathname === '/about' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200`}>
+              <Link href="/about" className={`${pathname === '/about' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200 group relative`}>
                 À propos
+                {pathname !== '/about' && <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-100 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>}
               </Link>
               <div 
                 ref={collectionMenuRef}
@@ -225,12 +231,13 @@ export default function Header() {
               >
                 <Link 
                   href="/products"
-                  className={`${pathname === '/products' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200`}
+                  className={`${pathname === '/products' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200 group relative`}
                 >
                   Collection
                   <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
+                  {pathname !== '/products' && <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-100 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>}
                 </Link>
                 
                 {/* Menu déroulant pour Collection (Bio et Made in France uniquement) */}
@@ -261,7 +268,7 @@ export default function Header() {
                           <Link 
                             key={category.id} 
                             href={`/products?category=${category.id}`}
-                            className={`flex items-center px-4 py-2 text-sm hover:bg-indigo-50 transition-colors ${category.name.toLowerCase() === 'bio' ? 'text-green-600 font-medium' : 'text-gray-800 hover:text-indigo-700'}`}
+                            className={`flex items-center px-4 py-2 text-sm hover:bg-indigo-50 transition-colors relative group overflow-hidden ${category.name.toLowerCase() === 'bio' ? 'text-green-600 font-medium' : 'text-gray-800 hover:text-indigo-700'}`}
                             onClick={() => setCollectionMenuOpen(false)}
                           >
                             {category.name.toLowerCase() === 'bio' && (
@@ -278,7 +285,8 @@ export default function Header() {
                                 </div>
                               </span>
                             )}
-                            {category.name}
+                            <span className="relative z-10">{category.name}</span>
+                            <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-70 group-hover:w-full transition-all duration-300"></span>
                           </Link>
                         ))
                     )}
@@ -310,27 +318,29 @@ export default function Header() {
                 </Link>
                 <Link
                   href="/register"
-                  className={`${scrolled ? 'bg-indigo-700' : 'bg-indigo-600'} text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
+                  className={`${scrolled ? 'bg-indigo-700' : 'bg-indigo-600'} text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative overflow-hidden group`}
                 >
-                  Inscription
+                  <span className="relative z-10">Inscription</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-1 bg-[#FCEB14] opacity-30 group-hover:opacity-100 group-hover:w-full transition-all duration-300"></span>
                 </Link>
               </div>
             )}
-            <Link href="/cart" className={`p-2 ${scrolled ? 'text-indigo-800 hover:text-indigo-600' : 'text-black hover:text-indigo-700'} relative transition-colors duration-200`}>
+            <Link href="/cart" className={`p-2 ${scrolled ? 'text-indigo-800 hover:text-indigo-600' : 'text-black hover:text-indigo-700'} relative transition-colors duration-200 group`}>
               <span className="sr-only">Panier</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               {itemCount > 0 && (
-                <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-indigo-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-[#FCEB14] text-black text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium">
                   {itemCount}
                 </span>
               )}
+              <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-100 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
             </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               type="button"
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-black hover:text-indigo-700 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-black hover:text-[#FCEB14] hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FCEB14]"
               aria-expanded="false"
             >
               <span className="sr-only">Ouvrir le menu principal</span>
@@ -397,14 +407,15 @@ export default function Header() {
           </div>
           <div className="px-4 py-2 space-y-3">
             <div className="space-y-1">
-              <div className="flex items-center justify-between px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150">
+              <div className="flex items-center justify-between px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150 relative overflow-hidden group">
                 <Link 
                   href="/products" 
-                  className="flex-grow"
+                  className="flex-grow relative z-10"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Produits
                 </Link>
+                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-70 group-hover:w-full transition-all duration-300"></span>
                 <button 
                   onClick={(e) => {
                     e.preventDefault();
@@ -432,10 +443,11 @@ export default function Header() {
               <div id="mobile-products-submenu" className="pl-4 hidden space-y-1">
                 <Link 
                   href="/products" 
-                  className="block px-4 py-2 text-sm font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
+                  className="block px-4 py-2 text-sm font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150 relative overflow-hidden group"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Tous les produits
+                  <span className="relative z-10">Tous les produits</span>
+                  <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#FCEB14] opacity-0 group-hover:opacity-70 group-hover:w-full transition-all duration-300"></span>
                 </Link>
                 {categoriesLoading ? (
                   <div className="px-4 py-2 text-sm text-gray-500">Chargement...</div>

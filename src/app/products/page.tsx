@@ -61,9 +61,22 @@ function ProductsContent() {
     <div className="bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Nos Produits smiletex</h1>
-          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+        <div className="text-center mb-12 relative">
+          {/* Éléments graphiques abstraits évoquant le sourire */}
+          <div className="absolute -top-8 left-1/4 w-64 h-64 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
+          <div className="absolute -bottom-8 right-1/4 w-56 h-56 rounded-full bg-indigo-200 opacity-10 blur-3xl"></div>
+          <div className="absolute -bottom-16 left-1/3 right-1/3 h-24 border-b-2 border-[#FCEB14] opacity-10 rounded-b-full"></div>
+          
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 relative inline-block">
+            Nos Produits
+            <span className="relative ml-2 text-indigo-700">
+              Smiletex
+              <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
+                <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+              </svg>
+            </span>
+          </h1>
+          <p className="text-lg text-gray-700 max-w-3xl mx-auto relative z-10">
             Découvrez notre gamme de produits personnalisables. Choisissez un article, 
             ajoutez votre design et créez un produit unique avec smiletex.
           </p>
@@ -73,12 +86,14 @@ function ProductsContent() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar des catégories - à gauche */}
           <div className="lg:w-1/4">
-            <div className="sticky top-24 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <div className="sticky top-24 bg-white p-4 rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              {/* Élément graphique subtil */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-[#FCEB14] to-indigo-700 opacity-50"></div>
               <h2 className="text-xl font-bold text-gray-900 mb-6">Catégories</h2>
               
               {categoriesLoading ? (
                 <div className="py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 border-r-2 border-r-[#FCEB14] mx-auto"></div>
                   <p className="mt-2 text-sm text-gray-700 text-center">Chargement...</p>
                 </div>
               ) : categoriesError ? (
@@ -91,9 +106,10 @@ function ProductsContent() {
                   <button 
                     key="all"
                     onClick={() => setSelectedCategory('')}
-                    className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-200 ${!selectedCategory ? 'bg-indigo-600 text-white font-medium' : 'bg-gray-50 text-gray-800 hover:bg-gray-100'}`}
+                    className={`w-full text-left px-4 py-2 rounded-md transition-all duration-200 relative overflow-hidden ${!selectedCategory ? 'bg-indigo-600 text-white font-medium' : 'bg-gray-50 text-gray-800 hover:bg-gray-100'}`}
                   >
-                    Tous les produits
+                    <span className="relative z-10">Tous les produits</span>
+                    {!selectedCategory && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#FCEB14] opacity-70"></span>}
                   </button>
                   
                   {/* Catégories principales avec sous-catégories */}
@@ -131,9 +147,10 @@ function ProductsContent() {
                           {/* Catégorie principale */}
                           <button 
                             onClick={handleCategoryClick}
-                            className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-200 flex items-center justify-between ${selectedCategory === rootCat.id ? 'bg-indigo-600 text-white font-medium' : 'bg-gray-50 text-gray-800 hover:bg-gray-100'}`}
+                            className={`w-full text-left px-4 py-2 rounded-md transition-all duration-200 flex items-center justify-between relative overflow-hidden ${selectedCategory === rootCat.id ? 'bg-indigo-600 text-white font-medium' : 'bg-gray-50 text-gray-800 hover:bg-gray-100'}`}
                           >
-                            <span>{rootCat.name}</span>
+                            <span className="relative z-10">{rootCat.name}</span>
+                            {selectedCategory === rootCat.id && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#FCEB14] opacity-70"></span>}
                             {childCategories.length > 0 && (
                               <svg 
                                 className={`w-4 h-4 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`} 
@@ -154,9 +171,10 @@ function ProductsContent() {
                                 <button 
                                   key={childCat.id} 
                                   onClick={() => setSelectedCategory(childCat.id)}
-                                  className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-200 text-sm ${selectedCategory === childCat.id ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                                  className={`w-full text-left px-4 py-2 rounded-md transition-all duration-200 text-sm relative overflow-hidden ${selectedCategory === childCat.id ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-700 hover:bg-gray-100 hover:text-indigo-600'}`}
                                 >
-                                  {childCat.name}
+                                  <span className="relative z-10">{childCat.name}</span>
+                                  {selectedCategory === childCat.id && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#FCEB14] opacity-50"></span>}
                                 </button>
                               ))}
                             </div>
@@ -174,7 +192,7 @@ function ProductsContent() {
           <div className="lg:w-3/4">
             {productsLoading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 border-r-2 border-r-[#FCEB14] mx-auto"></div>
                 <p className="mt-4 text-gray-700">Chargement des produits...</p>
               </div>
             ) : productsError ? (
@@ -184,14 +202,15 @@ function ProductsContent() {
             ) : (
               <div>
                 <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-gray-900 relative inline-block">
                     {selectedCategory ? 
                       categories.find(c => c.id === selectedCategory)?.name || 'Produits filtrés' : 
                       'Tous les Produits'}
+                    <div className="absolute -bottom-2 left-0 w-1/2 h-1 bg-[#FCEB14] opacity-40 rounded-full"></div>
                   </h2>
                   <div>
                     <select 
-                      className="border border-gray-300 rounded-md py-2 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="border border-gray-300 rounded-md py-2 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-[#FCEB14] transition-colors duration-200"
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
                     >
@@ -204,13 +223,17 @@ function ProductsContent() {
                 </div>
 
                 {sortedProducts.length === 0 ? (
-                  <div className="text-center py-12 text-gray-700 bg-gray-50 rounded-lg">
-                    Aucun produit ne correspond à vos critères.
+                  <div className="text-center py-12 text-gray-700 bg-gray-50 rounded-lg relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-[#FCEB14] to-indigo-700 opacity-30"></div>
+                    <div className="absolute bottom-0 left-1/4 right-1/4 h-12 border-b-2 border-[#FCEB14] opacity-10 rounded-b-full"></div>
+                    <p className="relative z-10">Aucun produit ne correspond à vos critères.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     {sortedProducts.map((product) => (
-                      <div key={product.id} className="bg-gray-50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow text-black">
+                      <div key={product.id} className="bg-gray-50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 text-black hover:translate-y-[-4px] group relative">
+                        {/* Élément graphique subtil */}
+                        <div className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-[#FCEB14] opacity-0 group-hover:opacity-40 transition-opacity duration-300 rounded-full"></div>
                         <Link href={`/products/${product.id}`}>
                           <div className="relative h-64">
                             <Image
@@ -220,7 +243,7 @@ function ProductsContent() {
                               className="object-cover"
                             />
                             {product.is_featured && (
-                              <div className="absolute top-2 right-2 bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded">
+                              <div className="absolute top-2 right-2 bg-[#FCEB14] text-black text-xs font-bold px-2 py-1 rounded shadow-sm">
                                 Populaire
                               </div>
                             )}
@@ -233,14 +256,14 @@ function ProductsContent() {
                         </Link>
                         <div className="p-6">
                           <Link href={`/products/${product.id}`}>
-                            <h3 className="text-lg font-semibold mb-2 hover:text-indigo-600">{product.name}</h3>
+                            <h3 className="text-lg font-semibold mb-2 hover:text-indigo-600 group-hover:text-indigo-600 transition-colors duration-300">{product.name}</h3>
                           </Link>
                           <p className="text-gray-700 mb-4">{product.description}</p>
                           <div className="flex justify-between items-center">
                             <span className="text-lg font-bold">À partir de {product.base_price.toFixed(2)} €</span>
                             <Link 
                               href={`/products/${product.id}`} 
-                              className="text-indigo-600 hover:text-indigo-800 font-medium"
+                              className="text-indigo-600 hover:text-indigo-800 font-medium relative inline-block group-hover:after:w-full after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FCEB14] after:transition-all after:duration-300"
                             >
                               Personnaliser
                             </Link>

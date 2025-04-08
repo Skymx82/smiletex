@@ -98,20 +98,38 @@ export default function TechniquesMarquage() {
   };
 
   return (
-    <section className="py-16 md:py-24 text-black">
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 md:py-24 text-black relative overflow-hidden">
+      {/* Éléments graphiques abstraits évoquant le sourire */}
+      <div className="absolute left-0 top-0 w-64 h-64 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
+      <div className="absolute right-0 bottom-0 w-72 h-72 rounded-full bg-indigo-300 opacity-10 blur-3xl"></div>
+      <div className="absolute left-1/4 right-1/4 bottom-1/3 h-32 border-b-8 border-[#FCEB14] opacity-5 rounded-b-full"></div>
+      
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Nos techniques de marquage</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <span className="relative inline-block">
+              Nos techniques de
+              <span className="relative inline-block text-indigo-600 ml-2">
+                marquage
+                <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
+                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+                </svg>
+              </span>
+            </span>
+          </h2>
           <p className="text-lg text-gray-700 max-w-3xl mx-auto">
             Découvrez nos différentes techniques pour personnaliser vos textiles. Cliquez pour plus de détails.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+          {/* Ligne courbe évoquant un sourire */}
+          <div className="absolute -top-8 left-1/4 right-1/4 h-16 border-t-4 border-[#FCEB14] opacity-10 rounded-t-full"></div>
+          
           {techniquesData.map((technique) => (
             <div 
               key={technique.id} 
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all cursor-pointer"
+              className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-1 hover:shadow-indigo-200/50 group"
               onClick={() => openModal(technique)}
             >
               <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
@@ -119,11 +137,13 @@ export default function TechniquesMarquage() {
                   src={technique.image}
                   alt={technique.title}
                   fill
-                  className="object-cover hover:scale-105 transition-transform duration-300"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/0 to-transparent group-hover:from-indigo-900/30 transition-all duration-300"></div>
               </div>
-              <h3 className="text-xl font-bold text-black mb-2">{technique.title}</h3>
+              <h3 className="text-xl font-bold text-indigo-700 mb-2 transition-colors duration-300 group-hover:text-indigo-600">{technique.title}</h3>
               <p className="text-gray-700">{technique.description}</p>
+              <div className="mt-4 h-1 w-12 bg-[#FCEB14] rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:w-24"></div>
               <p className="text-indigo-600 mt-3 font-medium">En savoir plus →</p>
             </div>
           ))}
