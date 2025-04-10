@@ -160,11 +160,23 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Votre Panier smiletex</h1>
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
+        {/* Éléments graphiques abstraits */}
+        <div className="absolute left-0 top-0 w-96 h-96 rounded-full bg-indigo-100 opacity-30 blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute right-0 bottom-0 w-96 h-96 rounded-full bg-[#FCEB14] opacity-10 blur-3xl translate-x-1/3 translate-y-1/3"></div>
+        
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 relative inline-block">
+          Votre Panier smiletex
+          <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
+            <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+          </svg>
+        </h1>
+        <div className="bg-white p-8 rounded-xl shadow-md border border-gray-200 text-center relative overflow-hidden">
+          {/* Élément graphique abstrait */}
+          <div className="absolute right-0 top-0 w-32 h-32 rounded-full bg-[#FCEB14] opacity-5 blur-xl"></div>
+          
           <p className="text-gray-600 mb-6">Votre panier est vide</p>
-          <Link href="/products" className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">
+          <Link href="/products" className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden group inline-block">
             Découvrir nos produits
           </Link>
         </div>
@@ -173,17 +185,32 @@ export default function CartPage() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50">
-      <div className="max-w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Votre Panier</h1>
+    <div className="w-full min-h-screen bg-gray-50 relative overflow-hidden">
+      {/* Éléments graphiques abstraits */}
+      <div className="absolute left-0 top-0 w-96 h-96 rounded-full bg-indigo-100 opacity-30 blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute right-0 bottom-0 w-96 h-96 rounded-full bg-[#FCEB14] opacity-10 blur-3xl translate-x-1/3 translate-y-1/3"></div>
+      
+      <div className="max-w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-8 relative">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6 relative inline-block">
+          Votre Panier
+          <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
+            <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+          </svg>
+        </h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Liste des articles */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-5 border-b border-gray-200 bg-indigo-50">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-bold text-indigo-900">Articles ({cart.length})</h2>
+              <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-indigo-100 relative overflow-hidden">
+                {/* Élément graphique abstrait */}
+                <div className="absolute right-0 top-0 w-24 h-24 rounded-full bg-[#FCEB14] opacity-5 blur-xl"></div>
+                
+                <div className="flex justify-between items-center relative">
+                  <h2 className="text-lg font-bold text-indigo-900 relative inline-block">
+                    Articles ({cart.length})
+                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                  </h2>
                   <button 
                     onClick={clearCart}
                     className="text-sm text-red-600 hover:text-red-800 flex items-center transition-colors font-bold"
@@ -228,10 +255,10 @@ export default function CartPage() {
                       
                       {/* Contrôles de quantité et bouton supprimer - Réorganisés pour mobile */}
                       <div className="mt-3 sm:mt-5 flex flex-col sm:flex-row justify-center sm:justify-between items-center space-y-4 sm:space-y-0">
-                        <div className="flex items-center border-2 border-indigo-200 rounded-lg overflow-hidden bg-white">
+                        <div className="flex items-center border-2 border-indigo-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow transition-all duration-300">
                           <button
                             onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                            className="px-4 py-2 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                            className="px-4 py-2 text-indigo-700 hover:bg-indigo-100 transition-colors relative overflow-hidden group"
                             aria-label="Diminuer la quantité"
                           >
                             <span className="font-bold text-lg">-</span>
@@ -239,7 +266,7 @@ export default function CartPage() {
                           <span className="px-4 py-2 text-gray-900 font-bold text-lg border-l border-r border-indigo-200">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="px-4 py-2 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                            className="px-4 py-2 text-indigo-700 hover:bg-indigo-100 transition-colors relative overflow-hidden group"
                             aria-label="Augmenter la quantité"
                           >
                             <span className="font-bold text-lg">+</span>
@@ -267,8 +294,15 @@ export default function CartPage() {
           
           {/* Résumé de la commande */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-5 sticky top-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-5">Résumé de la commande</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-5 sticky top-6 overflow-hidden">
+              {/* Éléments graphiques abstraits */}
+              <div className="absolute right-0 top-0 w-32 h-32 rounded-full bg-[#FCEB14] opacity-5 blur-xl"></div>
+              <div className="absolute left-1/4 bottom-0 w-24 h-24 rounded-full bg-indigo-200 opacity-10 blur-lg"></div>
+              
+              <h2 className="text-lg font-bold text-gray-900 mb-5 relative inline-block">
+                Résumé de la commande
+                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+              </h2>
               
               <div className="space-y-4">
                 <div className="flex justify-between">
@@ -282,7 +316,10 @@ export default function CartPage() {
                 </div>
                 
                 <div className="border-t-2 border-gray-200 pt-4 flex justify-between">
-                  <p className="text-xl font-bold text-gray-900">Total</p>
+                  <p className="text-xl font-bold text-gray-900 relative inline-block">
+                    Total
+                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                  </p>
                   <p className="text-xl font-bold text-indigo-700">{totalWithShipping.toFixed(2)} €</p>
                 </div>
               </div>
@@ -290,8 +327,8 @@ export default function CartPage() {
               <button
                 onClick={handleCheckout}
                 disabled={isProcessing}
-                className={`w-full mt-6 py-4 px-4 rounded-lg font-bold text-lg text-white transition-all ${
-                  isProcessing ? 'bg-gray-500 cursor-not-allowed' : 'bg-indigo-700 hover:bg-indigo-800 shadow-lg hover:shadow-xl'
+                className={`w-full mt-6 py-4 px-4 rounded-xl font-bold text-lg text-white transition-all relative overflow-hidden group ${
+                  isProcessing ? 'bg-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-md hover:shadow-lg'
                 }`}
               >
                 {isProcessing ? (
@@ -303,14 +340,14 @@ export default function CartPage() {
                     Traitement en cours...
                   </span>
                 ) : (
-                  'Procéder au paiement'
+                  "Procéder au paiement"
                 )}
               </button>
               
               <div className="mt-6">
                 <Link
                   href="/products"
-                  className="flex items-center justify-center text-base font-bold text-indigo-700 hover:text-indigo-900 transition-colors"
+                  className="flex items-center justify-center text-base font-bold text-indigo-700 hover:text-indigo-900 transition-colors relative overflow-hidden group"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

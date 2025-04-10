@@ -341,12 +341,14 @@ export default function ProductDetail({ id }: { id: string }) {
                 <div className="relative h-96 md:h-[70vh] max-h-[600px] rounded-lg overflow-hidden">
                   {/* Affichage de la catégorie en petit rectangle */}
                   {product.category_id && (
-                    <div className="absolute top-4 left-4 z-10 bg-indigo-600 text-white text-xs font-medium px-2 py-1 rounded">
-                      {(() => {
-                        // Obtenir le nom de la catégorie à partir de l'ID
-                        const category = categories.find(cat => cat.id === product.category_id);
-                        return category ? category.name : 'Autre';
-                      })()}
+                    <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-md group hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300">
+                      <span className="relative">
+                        {(() => {
+                          // Obtenir le nom de la catégorie à partir de l'ID
+                          const category = categories.find(cat => cat.id === product.category_id);
+                          return category ? category.name : 'Autre';
+                        })()}
+                      </span>
                     </div>
                   )}
                   <Image
@@ -359,19 +361,23 @@ export default function ProductDetail({ id }: { id: string }) {
                   />
                   
                   {/* Badge de personnalisation */}
-                  <div className="absolute top-4 right-4 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md flex items-center">
+                  <div className="absolute top-4 right-4 z-10 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md flex items-center group hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 cursor-pointer">
                     <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                     </svg>
-                    Personnalisable
+                    <span className="relative">Personnalisable
+                    </span>
                   </div>
                 </div>
                 
                 {/* Prix et description - Au-dessus des informations supplémentaires */}
                 <div className="mt-4 pt-2">
-                  <h1 className="text-xl font-bold mb-1">{product.name}</h1>
+                  <h1 className="text-2xl font-bold mb-2 relative inline-block">
+                    {product.name}
+                    <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
+                  </h1>
                   {/* Affichage du prix avec personnalisation */}
-                  <div className="text-lg font-semibold text-indigo-700 mb-3">
+                  <div className="text-lg font-semibold text-indigo-700 mb-3 mt-4">
                     <div className="text-xl font-bold text-gray-900">
                       {(() => {
                         // Vérifier si la personnalisation est complète
@@ -410,7 +416,15 @@ export default function ProductDetail({ id }: { id: string }) {
                 
                 {/* Informations supplémentaires - Maintenant sous l'image */}
                 <div className="mt-4 border-t border-gray-200 pt-4">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Informations produit smiletex</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 relative inline-block">
+                    Informations produit
+                    <span className="ml-1 relative inline-block text-indigo-600">
+                      smiletex
+                      <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
+                        <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+                      </svg>
+                    </span>
+                  </h2>
 
                   <div className="space-y-4">
                     <div>
@@ -448,10 +462,17 @@ export default function ProductDetail({ id }: { id: string }) {
             <div className="flex flex-col text-black md:w-3/5 lg:w-3/5 mt-8 md:mt-0">
               
               {/* Carte unifiée pour personnalisation, couleur et taille */}
-              <div className="mb-6 border border-indigo-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div className="mb-6 border border-indigo-200 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-indigo-200/50">
                 {/* En-tête de la carte */}
-                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 border-b border-indigo-100">
-                  <h2 className="text-xl font-bold text-indigo-800">Configuration du produit</h2>
+                <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-4 border-b border-indigo-100 relative overflow-hidden">
+                  {/* Éléments graphiques abstraits */}
+                  <div className="absolute right-0 top-0 w-24 h-24 rounded-full bg-[#FCEB14] opacity-5 blur-xl"></div>
+                  <div className="absolute left-1/4 bottom-0 w-16 h-16 rounded-full bg-indigo-300 opacity-10 blur-lg"></div>
+                  
+                  <h2 className="text-xl font-bold text-indigo-800 relative inline-block">
+                    Configuration du produit
+                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                  </h2>
                   <p className="text-sm text-indigo-600 mt-1">Personnalisez votre article selon vos préférences</p>
                 </div>
                 
@@ -461,10 +482,13 @@ export default function ProductDetail({ id }: { id: string }) {
                   {uniqueColors.length > 0 && (
                     <div className="mb-6 pb-6 border-b border-gray-200">
                       <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                         </svg>
-                        Couleur
+                        <span className="relative">
+                          Couleur
+                          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                        </span>
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {uniqueColors.map((color) => {
@@ -506,10 +530,13 @@ export default function ProductDetail({ id }: { id: string }) {
                   <div className="mb-6 pb-6 border-b border-gray-200">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                         </svg>
-                        Emplacement & Technique
+                        <span className="relative">
+                          Emplacement & Technique
+                          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                        </span>
                       </h3>
                       {customizationData && customizationData.customizations && customizationData.customizations.length > 0 && !showEmbeddedCustomization && (
                         <button 
@@ -588,10 +615,13 @@ export default function ProductDetail({ id }: { id: string }) {
                   {uniqueSizes.length > 0 && selectedColor && (
                     <div className="mb-6 pb-6 border-b border-gray-200">
                       <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                         </svg>
-                        Taille et Quantité
+                        <span className="relative">
+                          Taille et Quantité
+                          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                        </span>
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {uniqueSizes.map((size) => {
@@ -666,16 +696,19 @@ export default function ProductDetail({ id }: { id: string }) {
                   {/* Section 4: Délai de livraison */}
                   <div className="mb-2">
                     <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-5 h-5 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Délai de livraison
+                      <span className="relative">
+                        Délai de livraison
+                        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                      </span>
                     </h3>
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mr-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </div>
@@ -693,12 +726,19 @@ export default function ProductDetail({ id }: { id: string }) {
               
               {/* Résumé des sélections et prix total */}
               {totalItemsSelected > 0 && (
-                <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100 shadow-sm">
+                <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden transform transition-all duration-300 hover:shadow-md hover:shadow-indigo-200/50">
+                  {/* Éléments graphiques abstraits */}
+                  <div className="absolute right-0 top-0 w-24 h-24 rounded-full bg-[#FCEB14] opacity-5 blur-xl"></div>
+                  <div className="absolute left-1/4 bottom-0 w-16 h-16 rounded-full bg-indigo-300 opacity-10 blur-lg"></div>
+                  
                   <h3 className="text-lg font-bold text-indigo-800 mb-3 flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                     </svg>
-                    Votre sélection
+                    <span className="relative">
+                      Votre sélection
+                      <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                    </span>
                   </h3>
                   
                   {/* Articles sélectionnés */}
@@ -762,8 +802,11 @@ export default function ProductDetail({ id }: { id: string }) {
                   {/* Total */}
                   <div className="mt-4 pt-3 border-t border-indigo-200">
                     <div className="flex justify-between items-center text-lg font-bold text-indigo-900">
-                      <span>Total à payer:</span>
-                      <span>
+                      <span className="relative">
+                        Total à payer:
+                        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                      </span>
+                      <span className="text-xl">
                         {(() => {
                           // Vérifier si la personnalisation est complète
                           const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
@@ -780,7 +823,10 @@ export default function ProductDetail({ id }: { id: string }) {
                     {/* Affichage des paliers de remise */}
                     {totalItemsSelected > 0 && (
                       <div className="mt-3 pt-3 border-t border-indigo-100">
-                        <h4 className="text-sm font-semibold text-indigo-800 mb-2">Remises par quantité</h4>
+                        <h4 className="text-sm font-semibold text-indigo-800 mb-2 relative inline-block">
+                          Remises par quantité
+                          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
+                        </h4>
                         <div className="grid grid-cols-3 gap-2 text-xs">
                           <div className={`p-2 rounded-lg text-center ${totalItemsSelected >= 10 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
                             <div className="font-bold">10+ articles</div>
@@ -818,33 +864,14 @@ export default function ProductDetail({ id }: { id: string }) {
               
               {/* Boutons d'action */}
               <div className="mt-auto space-y-4">
-                {/* Avertissement pour la personnalisation */}
-                {showEmbeddedCustomization && customizationData && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 animate-pulse">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-medium text-amber-800">N'oubliez pas d'enregistrer votre personnalisation</h3>
-                        <div className="mt-1 text-sm text-amber-700">
-                          <p>Cliquez sur le bouton "Enregistrer" dans l'éditeur de personnalisation avant d'ajouter au panier, sinon vos modifications ne seront pas prises en compte.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
                 <button
                   type="button"
-                  className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-all ${
+                  className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all relative overflow-hidden group ${
                     isAddingToCart || totalItemsSelected === 0
                       ? 'bg-gray-400 cursor-not-allowed'
                       : customizationData 
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg'
-                        : 'bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-lg'
+                        ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-md hover:shadow-lg'
+                        : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-md hover:shadow-lg'
                   }`}
                   onClick={() => {
                     // Vérifier si l'éditeur de personnalisation est ouvert mais que les modifications n'ont pas été enregistrées
@@ -868,7 +895,7 @@ export default function ProductDetail({ id }: { id: string }) {
                       Ajout en cours...
                     </span>
                   ) : (
-                    <span className="flex items-center justify-center">
+                    <span className="flex items-center justify-center relative z-10">
                       {customizationData && (
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
@@ -880,7 +907,7 @@ export default function ProductDetail({ id }: { id: string }) {
                 </button>
                 
                 {/* Bouton pour accéder au panier - toujours visible */}
-                <Link href="/cart" className="block w-full py-2.5 px-4 bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-sm font-medium rounded-md transition-colors shadow-sm hover:shadow-md text-center">
+                <Link href="/cart" className="block w-full py-2.5 px-4 bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-sm font-medium rounded-xl transition-all shadow-sm hover:shadow-md text-center relative overflow-hidden group">
                   <div className="flex items-center justify-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -971,41 +998,61 @@ export default function ProductDetail({ id }: { id: string }) {
           </div>
           
           {/* Section d'informations supplémentaires déplacée sous l'image dans la colonne de gauche */}
-          
-          {/* Produits similaires - Maintenant dans la colonne de droite */}
-          <div className="mt-12 md:pl-0 md:ml-[40%] lg:ml-[40%]">
-            <h2 className="text-2xl font-bold mb-6">Produits similaires</h2>
-
-            {similarProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {similarProducts.map((similarProduct) => (
-                  <Link key={similarProduct.id} href={`/products/${similarProduct.id}`}>
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                      <div className="relative h-48">
-                        <Image
-                          src={similarProduct.image_url || '/images/placeholder-product.jpg'}
-                          alt={similarProduct.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-medium text-gray-900">{similarProduct.name}</h3>
-                        <p className="text-gray-600 text-sm mt-1">À partir de {similarProduct.base_price.toFixed(2)} €</p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-50 p-6 rounded-lg text-center">
-                <p className="text-gray-600">Aucun produit similaire trouvé</p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
-
+      
+      {/* Section des produits similaires */}
+      {similarProducts.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-8 border-t border-gray-200 relative overflow-hidden">
+          {/* Éléments graphiques abstraits */}
+          <div className="absolute left-0 top-1/3 w-64 h-64 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
+          <div className="absolute right-0 bottom-1/4 w-72 h-72 rounded-full bg-indigo-200 opacity-10 blur-3xl"></div>
+          
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 relative inline-block">
+            Produits
+            <span className="ml-2 relative inline-block text-indigo-600">
+              similaires
+              <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
+                <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+              </svg>
+            </span>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            {/* Ligne courbe évoquant un sourire */}
+            <div className="absolute -top-8 left-1/4 right-1/4 h-16 border-t-4 border-[#FCEB14] opacity-10 rounded-t-full"></div>
+            
+            {similarProducts.map((similarProduct) => (
+              <Link 
+                key={similarProduct.id} 
+                href={`/products/${similarProduct.id}`}
+                className="group"
+              >
+                <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-indigo-200/50">
+                  <div className="relative h-64 overflow-hidden">
+                    <Image
+                      src={similarProduct.image_url || '/images/placeholder.jpg'}
+                      alt={similarProduct.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-0 right-0 bg-[#FCEB14] text-indigo-800 font-bold py-1 px-3 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      Découvrir
+                    </div>
+                  </div>
+                  <div className="p-4 relative">
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">{similarProduct.name}</h3>
+                    <p className="text-gray-600 text-sm mt-1">{similarProduct.description}</p>
+                    <p className="text-indigo-600 font-bold mt-2">{similarProduct.base_price.toFixed(2)} €</p>
+                    <div className="mt-4 h-0.5 w-12 bg-[#FCEB14] opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:w-24"></div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+      
       {/* Modale de confirmation pour l'ajout au panier sans enregistrer la personnalisation */}
       {showConfirmationModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
