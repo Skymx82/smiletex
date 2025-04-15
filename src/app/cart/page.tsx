@@ -293,12 +293,12 @@ export default function CartPage() {
                                     {/* Badges plus compacts et adaptés au mobile */}
                                     <div className="mt-1.5 flex flex-wrap gap-1 text-gray-600">
                                       {custom.position && (
-                                        <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs bg-gray-100 text-xs">
+                                        <span className="inline-flex items-center px-1 py-0.5 rounded-full bg-gray-100 text-xs">
                                           {custom.position.replace('-', ' ')}
                                         </span>
                                       )}
                                       {custom.type_impression && (
-                                        <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs bg-gray-100 text-xs">
+                                        <span className="inline-flex items-center px-1 py-0.5 rounded-full bg-gray-100 text-xs">
                                           {custom.type_impression}
                                         </span>
                                       )}

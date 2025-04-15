@@ -24,7 +24,8 @@ export type SingleCustomization = {
   type_impression: string;
   
   // Position prédéfinie (plus facile pour l'utilisateur que des coordonnées x/y)
-  position: Position | string;
+  // Peut être undefined si aucune position n'est sélectionnée
+  position?: Position | string;
   
   // Type de contenu (texte ou image)
   type: ContentType;

@@ -104,37 +104,63 @@ export default function DevisRapide() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 text-black">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-8 px-4 sm:px-6 lg:px-8 text-black relative overflow-hidden">
+      {/* Éléments graphiques abstraits */}
+      <div className="absolute left-0 top-1/4 w-72 h-72 rounded-full bg-[#FCEB14] opacity-5 blur-3xl animate-pulse-slow"></div>
+      <div className="absolute right-0 bottom-1/4 w-64 h-64 rounded-full bg-indigo-200 opacity-10 blur-3xl animate-pulse-slow"></div>
+      <div className="absolute left-1/3 bottom-1/2 w-48 h-48 rounded-full bg-indigo-300 opacity-5 blur-3xl animate-pulse-slow"></div>
+      
+      <div className="max-w-3xl mx-auto relative z-10">
         {formSubmitted ? (
-          <div className="bg-white shadow rounded-lg p-8 text-center">
-            <div className="flex justify-center mb-6">
-              <FiCheckCircle className="h-16 w-16 text-green-500" />
+          <div className="bg-white shadow-lg rounded-xl p-8 text-center border border-gray-100">
+            <div className="flex justify-center mb-6 relative">
+              <div className="absolute -z-10 w-32 h-32 bg-green-100 rounded-full opacity-60 blur-xl"></div>
+              <div className="bg-green-50 rounded-full p-4 shadow-sm">
+                <FiCheckCircle className="h-16 w-16 text-green-500" />
+              </div>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Demande envoyée avec succès !</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <span className="relative inline-block">
+                Demande envoyée avec succès !
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
+              </span>
+            </h2>
             <p className="text-xl text-gray-600 mb-6">
               Merci pour votre demande de devis. Notre équipe vous contactera dans les 24 heures avec une proposition personnalisée.
             </p>
             <button
               onClick={() => setFormSubmitted(false)}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-md text-base font-medium hover:bg-indigo-700"
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl text-base font-medium hover:from-indigo-700 hover:to-indigo-800 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden group"
             >
-              Faire une nouvelle demande
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-transparent w-1/2 blur-xl transform transition-transform duration-500 ease-out translate-x-[-200%] group-hover:translate-x-[200%]"></div>
+              <span className="relative z-10 flex items-center justify-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Faire une nouvelle demande
+              </span>
+              <span className="absolute bottom-0 left-0 w-full h-1 bg-[#FCEB14] transform transition-transform duration-300 ease-out translate-y-full group-hover:translate-y-0"></span>
             </button>
           </div>
         ) : (
           <>
-            <div className="text-center mb-3">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                Demande de devis
+            <div className="text-center mb-6">
+              <div className="inline-block mb-3 bg-indigo-100 text-indigo-800 px-4 py-1 rounded-full text-sm font-semibold tracking-wide shadow-sm">
+                DEVIS PERSONNALISÉ
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <span className="relative inline-block">
+                  Demande de devis
+                  <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full transform scale-x-100"></span>
+                </span>
               </h1>
-              <p className="text-sm text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Obtenez un devis personnalisé pour vos besoins en quelques clics
               </p>
             </div>
 
         {/* Barre de progression interactive */}
-        <div className="mb-4">
+        <div className="mb-6">
           <div className="grid grid-cols-3 gap-4 mb-4">
             {['Produit', 'Personnalisation', 'Contact'].map((label, index) => {
               // Déterminer si l'étape est accessible (on peut cliquer sur les étapes précédentes ou l'étape actuelle)
@@ -177,7 +203,7 @@ export default function DevisRapide() {
 
         {/* Étape 1: Choix du type de produit */}
         {step === 1 && (
-          <div className="bg-white shadow rounded-lg p-4 mb-3">
+          <div className="bg-white shadow-lg rounded-xl p-6 mb-4 border border-gray-100">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Sélectionnez un ou plusieurs produits à personnaliser</h2>
             
             {/* Types de produits (sélection multiple) */}
@@ -190,7 +216,10 @@ export default function DevisRapide() {
                   { type: 'polo', label: 'Polo', image: '/images/polo.jpg' },
                   { type: 'pantalon', label: 'Pantalon', image: '/images/pantalon.png' },
                   { type: 'casquette', label: 'Casquette', image: '/images/casquette.png' },
-                  { type: 'other', label: 'Autre produit', image: '/images/other.jpg' }
+                  { type: 'other', label: 'Autre produit', image: '/images/other.jpg' },
+                  { type: 'tote-bag', label: 'Tote bag', image: '/images/tote-bag.jpg' },
+                  { type: 'veste', label: 'Veste softshell', image: '/images/veste.jpg' },
+                  { type: 'workwear', label: 'Vêtements de travail', image: '/images/workwear.jpg' }
                 ].map((product) => {
                   // Vérifier si le produit est sélectionné
                   const isSelected = formData.selectedProducts.some(p => p.type === product.type);
@@ -216,10 +245,10 @@ export default function DevisRapide() {
                           }));
                         }
                       }}
-                      className={`p-3 border rounded-lg transition-colors ${
+                      className={`p-3 border rounded-xl transition-all duration-300 shadow-sm hover:shadow-md ${
                         isSelected 
-                          ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' 
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200 transform scale-[1.02]' 
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       <div className="relative w-full pb-[80%] mb-2">
@@ -270,18 +299,7 @@ export default function DevisRapide() {
               </div>
             )}
             
-            {/* Produit non listé */}
-            <div className="mb-6">
-              <p className="text-sm text-gray-600 mb-2">Vous ne trouvez pas votre produit ?</p>
-              <textarea
-                name="specifications"
-                value={formData.specifications}
-                onChange={handleInputChange as any}
-                placeholder="Décrivez le produit que vous souhaitez personnaliser..."
-                rows={2}
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              />
-            </div>
+
             
             <div className="mt-6">
               <button
@@ -297,7 +315,7 @@ export default function DevisRapide() {
 
         {/* Étape 2: Type d'entité et détails */}
         {step === 2 && (
-          <div className="bg-white shadow rounded-lg p-4 mb-3">
+          <div className="bg-white shadow-lg rounded-xl p-6 mb-4 border border-gray-100">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Détails de votre projet</h2>
             <div className="space-y-4">
               {/* Type d'entité */}
@@ -394,16 +412,28 @@ export default function DevisRapide() {
               <div className="flex justify-between pt-4">
                 <button
                   onClick={handleBack}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-all duration-300 hover:border-gray-400"
                 >
-                  Retour
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Retour
+                  </span>
                 </button>
                 <button
                   onClick={handleNext}
                   disabled={!formData.quantity || !formData.entityType}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl text-sm font-medium hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden group"
                 >
-                  Suivant
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-transparent w-1/2 blur-xl transform transition-transform duration-500 ease-out translate-x-[-200%] group-hover:translate-x-[200%]"></div>
+                  <span className="relative z-10 flex items-center justify-center">
+                    Suivant
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                  </span>
+                  <span className="absolute bottom-0 left-0 w-full h-1 bg-[#FCEB14] transform transition-transform duration-300 ease-out translate-y-full group-hover:translate-y-0"></span>
                 </button>
               </div>
             </div>
@@ -412,7 +442,7 @@ export default function DevisRapide() {
 
         {/* Étape 3: Contact */}
         {step === 3 && (
-          <div className="bg-white shadow rounded-lg p-4 mb-3">
+          <div className="bg-white shadow-lg rounded-xl p-6 mb-4 border border-gray-100">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Vos coordonnées</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -482,7 +512,7 @@ export default function DevisRapide() {
                 </div>
               </div>
               
-              <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+              <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 shadow-sm">
                 <div className="flex items-start">
                   <div className="flex items-center h-5">
                     <input
@@ -490,7 +520,7 @@ export default function DevisRapide() {
                       name="privacy"
                       type="checkbox"
                       required
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      className="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 focus:ring-offset-2"
                     />
                   </div>
                   <div className="ml-3 text-sm">
@@ -505,15 +535,27 @@ export default function DevisRapide() {
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-all duration-300 hover:border-gray-400"
                 >
-                  Retour
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Retour
+                  </span>
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl text-sm font-medium hover:from-indigo-700 hover:to-indigo-800 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden group"
                 >
-                  Envoyer la demande
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-transparent w-1/2 blur-xl transform transition-transform duration-500 ease-out translate-x-[-200%] group-hover:translate-x-[200%]"></div>
+                  <span className="relative z-10 flex items-center justify-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Envoyer la demande
+                  </span>
+                  <span className="absolute bottom-0 left-0 w-full h-1 bg-[#FCEB14] transform transition-transform duration-300 ease-out translate-y-full group-hover:translate-y-0"></span>
                 </button>
               </div>
             </form>
