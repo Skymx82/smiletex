@@ -12,6 +12,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { items, userId }: { items: CartItem[]; userId?: string } = body;
     
+    // Variables pour le type de livraison
+    const hasUrgentShipping = items.some(item => item.shippingType === 'urgent');
+    const hasFastShipping = items.some(item => item.shippingType === 'fast');
+    
     console.log('Checkout request body:', { items: items.length, userId });
 
     if (!items || items.length === 0) {
@@ -92,14 +96,45 @@ export async function POST(request: Request) {
       quantity: item.quantity,
     }));
 
+    // Déterminer le type de livraison et les frais associés
+    const getShippingCost = () => {
+      if (items.length === 0) return { cost: 0, name: 'Frais de livraison', unit_amount: 0 };
+      
+      // Vérifier si au moins un article a un type de livraison spécifique
+      const hasUrgentShipping = items.some(item => item.shippingType === 'urgent');
+      const hasFastShipping = items.some(item => item.shippingType === 'fast');
+      
+      if (hasUrgentShipping) {
+        return { 
+          cost: 14.99, 
+          name: 'Livraison express (1 semaine)',
+          unit_amount: 1499
+        };
+      }
+      if (hasFastShipping) {
+        return { 
+          cost: 9.99, 
+          name: 'Livraison prioritaire (2 semaines)',
+          unit_amount: 999
+        };
+      }
+      return { 
+        cost: 4.99, 
+        name: 'Livraison classique (3 semaines)',
+        unit_amount: 499
+      };
+    };
+    
+    const shippingInfo = getShippingCost();
+    
     // Ajouter les frais de livraison
     lineItems.push({
       price_data: {
         currency: 'eur',
         product_data: {
-          name: 'Frais de livraison',
+          name: shippingInfo.name,
         },
-        unit_amount: 499, // 4.99€
+        unit_amount: shippingInfo.unit_amount,
       },
       quantity: 1,
     });
@@ -108,8 +143,9 @@ export async function POST(request: Request) {
     const orderData = {
       user_id: userId || null,
       status: 'pending',
-      total_amount: items.reduce((sum: number, item: CartItem) => sum + (item.price * item.quantity), 0) + 4.99,
-      shipping_cost: 4.99
+      total_amount: items.reduce((sum: number, item: CartItem) => sum + (item.price * item.quantity), 0) + shippingInfo.cost,
+      shipping_cost: shippingInfo.cost,
+      shipping_type: hasUrgentShipping ? 'urgent' : hasFastShipping ? 'fast' : 'normal'
     };
     
     console.log('Creating order with data:', orderData);

@@ -23,6 +23,8 @@ interface Order {
   total_amount: number;
   shipping_cost: number;
   shipping_address: any;
+  shipping_method: string;
+  shipping_type?: 'normal' | 'fast' | 'urgent';
   user_id: string;
   customer_profile?: CustomerProfile;
   items: Array<{
@@ -248,6 +250,9 @@ export default function OrdersPage() {
                 Statut
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                Type de livraison
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Total
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
@@ -269,6 +274,14 @@ export default function OrdersPage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
                     {order.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.shipping_type === 'urgent' ? 'bg-yellow-100 text-yellow-800' : order.shipping_type === 'fast' ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {order.shipping_type === 'urgent' ? 'Express' : 
+                     order.shipping_type === 'fast' ? 'Prioritaire' : 
+                     order.shipping_type === 'normal' ? 'Classique' : 
+                     order.shipping_method || 'Standard'}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -334,6 +347,17 @@ export default function OrdersPage() {
                   <p>Statut: <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>
                     {selectedOrder.status}
                   </span></p>
+                  
+                  {/* Affichage du type de livraison */}
+                  <p>Type de livraison: 
+                    <span className={`ml-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedOrder.shipping_type === 'urgent' ? 'bg-yellow-100 text-yellow-800' : selectedOrder.shipping_type === 'fast' ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>
+                      {selectedOrder.shipping_type === 'urgent' ? 'Express (1 semaine)' : 
+                       selectedOrder.shipping_type === 'fast' ? 'Prioritaire (2 semaines)' : 
+                       selectedOrder.shipping_type === 'normal' ? 'Classique (3 semaines)' : 
+                       selectedOrder.shipping_method || 'Standard'}
+                    </span>
+                  </p>
+                  
                   <p>Frais de livraison: {selectedOrder.shipping_cost.toFixed(2)}€</p>
                   <p className="font-semibold">Total: {selectedOrder.total_amount.toFixed(2)}€</p>
                   

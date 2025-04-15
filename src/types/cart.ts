@@ -1,3 +1,5 @@
+import { ProductCustomization } from './customization';
+
 export interface CartItem {
   id: string;
   productId: string;
@@ -8,15 +10,8 @@ export interface CartItem {
   size: string;
   color: string;
   imageUrl: string;
-  customization?: {
-    text?: string;
-    textColor?: string;
-    font?: string;
-    imageUrl?: string;
-    position?: string;
-    type?: 'broderie' | 'flocage';
-    price?: number;
-  };
+  customization?: ProductCustomization;
+  shippingType?: 'normal' | 'fast' | 'urgent';
 }
 
 export interface Cart {

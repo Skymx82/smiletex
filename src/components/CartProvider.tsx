@@ -16,6 +16,7 @@ export type CartItem = {
   color?: string;
   imageUrl: string;
   customization?: ProductCustomization;
+  shippingType?: 'normal' | 'fast' | 'urgent';
 };
 
 // Type pour le contexte du panier

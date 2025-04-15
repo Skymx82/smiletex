@@ -380,6 +380,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Marques partenaires */}
+      <BrandsMarquee />
+
       {/* Why Choose Us */}
       <section className="py-16 md:py-24 bg-indigo-50 relative overflow-hidden">
         {/* Éléments graphiques abstraits évoquant le sourire */}
@@ -586,9 +589,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Marques partenaires */}
-      <BrandsMarquee />
       
       {/* Testimonials */}
       <section className="py-8 md:py-24 relative overflow-hidden">
@@ -709,9 +709,9 @@ export default function Home() {
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
               <span className="relative inline-block">
-                Besoin d'un devis
+                Besoin de nous contacter
                 <span className="relative inline-block text-indigo-700 ml-2">
-                  urgent
+                  rapidement
                   <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
                     <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
                   </svg>

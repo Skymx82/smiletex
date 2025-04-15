@@ -19,7 +19,21 @@ export default function CartPage() {
   const router = useRouter();
   const { user } = useAuth();
   
-  const shippingCost = cart.length > 0 ? 4.99 : 0;
+  // Calculer les frais de livraison en fonction du type choisi par l'utilisateur
+  const calculateShippingCost = () => {
+    if (cart.length === 0) return 0;
+    
+    // Vérifier si au moins un article a un type de livraison spécifique
+    const hasUrgentShipping = cart.some(item => item.shippingType === 'urgent');
+    const hasFastShipping = cart.some(item => item.shippingType === 'fast');
+    
+    // Priorité à la livraison la plus rapide
+    if (hasUrgentShipping) return 14.99;
+    if (hasFastShipping) return 9.99;
+    return 4.99; // Livraison classique par défaut
+  };
+  
+  const shippingCost = calculateShippingCost();
   const subtotal = total;
   const totalWithShipping = subtotal + shippingCost;
 
@@ -242,6 +256,8 @@ export default function CartPage() {
                       <div className="flex flex-col sm:flex-row sm:justify-between">
                         <div className="text-center sm:text-left mb-2 sm:mb-0">
                           <h3 className="text-lg font-bold text-gray-900">{item.name}</h3>
+                          
+                          {/* Informations sur la couleur et la taille */}
                           <p className="mt-1 text-sm text-gray-800">
                             {item.color && item.size && (
                               <span className="font-semibold">
@@ -249,6 +265,101 @@ export default function CartPage() {
                               </span>
                             )}
                           </p>
+                          
+                          {/* Informations sur la personnalisation - Version responsive */}
+                          {item.customization && item.customization.customizations && item.customization.customizations.length > 0 && (
+                            <div className="mt-2 bg-indigo-50 p-2 rounded-md border border-indigo-100 text-xs">
+                              <p className="font-semibold text-indigo-800 mb-1">Personnalisation :</p>
+                              
+                              {/* Version mobile */}
+                              <ul className="space-y-2 sm:hidden">
+                                {item.customization.customizations.map((custom, index) => (
+                                  <li key={index} className="bg-white p-2 rounded border border-indigo-100">
+                                    {/* Badge de face et type plus compact */}
+                                    <div className="flex items-center justify-between mb-1.5">
+                                      <span className="font-medium text-indigo-800 text-xs">
+                                        {custom.face === 'devant' ? 'Devant' : 'Derrière'}
+                                      </span>
+                                      <span className={`px-1.5 py-0.5 rounded-full text-xs ${custom.type === 'text' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
+                                        {custom.type === 'text' ? 'Texte' : 'Image'}
+                                      </span>
+                                    </div>
+                                    
+                                    {/* Texte personnalisé avec style adapté pour mobile */}
+                                    {custom.type === 'text' && custom.texte && (
+                                      <p className="text-indigo-700 italic text-xs bg-indigo-50 p-1 rounded">« {custom.texte} »</p>
+                                    )}
+                                    
+                                    {/* Badges plus compacts et adaptés au mobile */}
+                                    <div className="mt-1.5 flex flex-wrap gap-1 text-gray-600">
+                                      {custom.position && (
+                                        <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs bg-gray-100 text-xs">
+                                          {custom.position.replace('-', ' ')}
+                                        </span>
+                                      )}
+                                      {custom.type_impression && (
+                                        <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs bg-gray-100 text-xs">
+                                          {custom.type_impression}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                              
+                              {/* Version desktop (inchangée) */}
+                              <ul className="space-y-2 hidden sm:block">
+                                {item.customization.customizations.map((custom, index) => (
+                                  <li key={index} className="bg-white p-1.5 rounded border border-indigo-100">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-medium text-indigo-800">
+                                        {custom.face === 'devant' ? 'Devant' : 'Derrière'}
+                                      </span>
+                                      <span className={`px-1.5 py-0.5 rounded-full text-xs ${custom.type === 'text' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
+                                        {custom.type === 'text' ? 'Texte' : 'Image'}
+                                      </span>
+                                    </div>
+                                    
+                                    {custom.type === 'text' && custom.texte && (
+                                      <p className="mt-1 text-indigo-700 italic">« {custom.texte} »</p>
+                                    )}
+                                    
+                                    <div className="mt-1 flex flex-wrap gap-1 text-gray-600">
+                                      {custom.position && (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100">
+                                          Position: {custom.position.replace('-', ' ')}
+                                        </span>
+                                      )}
+                                      {custom.type_impression && (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100">
+                                          {custom.type_impression}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {/* Badge pour le type de livraison - Responsive */}
+                          <div className="mt-2">
+                            <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium ${item.shippingType === 'urgent' ? 'bg-yellow-100 text-yellow-800' : item.shippingType === 'fast' ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>
+                              <svg className="w-3 h-3 mr-1 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              <span className="hidden sm:inline">
+                                {item.shippingType === 'urgent' ? 'Express (1 semaine)' : 
+                                 item.shippingType === 'fast' ? 'Prioritaire (2 semaines)' : 
+                                 'Classique (3 semaines)'}
+                              </span>
+                              <span className="sm:hidden">
+                                {item.shippingType === 'urgent' ? 'Express' : 
+                                 item.shippingType === 'fast' ? 'Prioritaire' : 
+                                 'Classique'}
+                              </span>
+                            </span>
+                          </div>
                         </div>
                         <p className="text-lg font-bold text-indigo-700 text-center sm:text-right mb-4 sm:mb-0">{item.price.toFixed(2)} €</p>
                       </div>
@@ -311,7 +422,19 @@ export default function CartPage() {
                 </div>
                 
                 <div className="flex justify-between">
-                  <p className="text-gray-800 font-medium">Frais de livraison</p>
+                  <div>
+                    <p className="text-gray-800 font-medium">Frais de livraison</p>
+                    {/* Afficher le type de livraison choisi avec badge coloré */}
+                    {cart.length > 0 && (
+                      <span className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cart.some(item => item.shippingType === 'urgent') ? 'bg-yellow-100 text-yellow-800' : cart.some(item => item.shippingType === 'fast') ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>
+                        {cart.some(item => item.shippingType === 'urgent') ? 
+                          'Express (1 semaine)' : 
+                          cart.some(item => item.shippingType === 'fast') ? 
+                          'Prioritaire (2 semaines)' : 
+                          'Classique (3 semaines)'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-900 font-bold">{shippingCost.toFixed(2)} €</p>
                 </div>
                 
