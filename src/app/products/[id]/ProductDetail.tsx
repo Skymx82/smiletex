@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProduct, useStockCheck, useCategories, useAllProducts } from '@/hooks/useProducts';
 import { useCartContext } from '@/components/CartProvider';
-import CustomizationModal from '@/components/CustomizationModal';
+import ProductCustomizer from '@/components/ProductCustomizer';
 import { ProductCustomization } from '@/types/customization';
 import { Product } from '@/lib/products';
 import { isCustomizationComplete } from '@/lib/customization';
@@ -41,9 +41,10 @@ export default function ProductDetail({ id }: { id: string }) {
   const [addedToCart, setAddedToCart] = useState(false);
   const [stockError, setStockError] = useState('');
   const [isCustomizationModalOpen, setIsCustomizationModalOpen] = useState(false);
-  // Personnalisation toujours visible par défaut
-  const [showEmbeddedCustomization, setShowEmbeddedCustomization] = useState(true);
+  // Personnalisation toujours visible
+  const [showEmbeddedCustomization, setShowEmbeddedCustomization] = useState(true); // Gardons cette variable pour compatibilité
   const [customizationData, setCustomizationData] = useState<ProductCustomization | null>(null);
+  const [currentCustomization, setCurrentCustomization] = useState<ProductCustomization | null>(null);
   // État pour stocker le prix supplémentaire dû aux personnalisations
   const [customizationPrice, setCustomizationPrice] = useState<number>(0);
   // État pour la modale de confirmation
@@ -531,87 +532,31 @@ export default function ProductDetail({ id }: { id: string }) {
                   
                   {/* Section 2: Personnalisation (emplacement/technique) */}
                   <div className="mb-6 pb-6 border-b border-gray-200">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-bold text-gray-800 flex items-center">
                         <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                         <span className="relative">
-                          Emplacement & Technique
+                          Personnalisation
                           <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
                         </span>
                       </h3>
-                      {customizationData && customizationData.customizations && customizationData.customizations.length > 0 && !showEmbeddedCustomization && (
-                        <button 
-                          onClick={() => setShowEmbeddedCustomization(true)}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                        >
-                          Modifier
-                        </button>
-                      )}
                     </div>
-                    
-                    {customizationData && customizationData.customizations && customizationData.customizations.length > 0 && !showEmbeddedCustomization && (
-                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg animate-fadeIn cursor-pointer" onClick={() => setShowEmbeddedCustomization(true)}>
-                        {customizationData.customizations.map((customization, index) => (
-                          <div key={index} className="flex items-start mb-4 last:mb-0">
-                            <div className="flex-shrink-0 mr-3">
-                              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                {customization.type === 'text' ? (
-                                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                  </svg>
-                                ) : (
-                                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="flex items-center">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
-                                  {customization.face === 'devant' ? 'Devant' : 'Derrière'}
-                                </span>
-                                <h4 className="text-sm font-bold text-green-800">Type: {customization.type === 'text' ? 'Texte' : 'Image'}</h4>
-                              </div>
-                              <p className="text-sm text-green-700">Position: {customization.position.replace('-', ' ').charAt(0).toUpperCase() + customization.position.replace('-', ' ').slice(1)}</p>
-                              {customization.type === 'text' && customization.texte && (
-                                <p className="mt-1 text-sm font-medium text-green-800 bg-white p-1 rounded border border-green-200">"{customization.texte}"</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation(); // Empêcher le déclenchement du onClick du parent
-                            setShowEmbeddedCustomization(true);
-                          }}
-                          className="mt-2 px-3 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                        >
-                          Modifier
-                        </button>
-                      </div>
-                    )}
-                    
-                    {showEmbeddedCustomization && (
-                      <CustomizationModal
-                        isOpen={true}
-                        isEmbedded={true}
-                        initialCustomization={customizationData}
-                        onClose={() => {
-                          if (customizationData) {
-                            setShowEmbeddedCustomization(false);
-                          }
-                        }}
-                        onSave={(customization: ProductCustomization, price: number) => {
-                          setCustomizationData(customization);
-                          setCustomizationPrice(price);
-                          setShowEmbeddedCustomization(false);
-                        }}
-                        basePrice={product?.base_price || 0}
-                      />
-                    )}
+                    <ProductCustomizer
+                      initialCustomization={customizationData}
+                      onSave={(customization: ProductCustomization, price: number) => {
+                        // Mettre à jour le prix de personnalisation
+                        setCustomizationPrice(price);
+                        
+                        // Stocker la personnalisation
+                        setCurrentCustomization(customization);
+                        setCustomizationData(customization);
+                        
+                        console.log('Personnalisation sauvegardée');
+                      }}
+                      basePrice={product?.base_price || 0}
+                    />
                   </div>
                   
                   {/* Section 3: Taille et Quantité */}
@@ -934,11 +879,8 @@ export default function ProductDetail({ id }: { id: string }) {
                         : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-md hover:shadow-lg'
                   }`}
                   onClick={() => {
-                    // Vérifier si l'éditeur de personnalisation est ouvert mais que les modifications n'ont pas été enregistrées
-                    if (showEmbeddedCustomization) {
-                      // Afficher la modale de confirmation
-                      setShowConfirmationModal(true);
-                    } else if (customizationData) {
+                    // Ajouter directement au panier, sans afficher de message d'avertissement
+                    if (customizationData) {
                       handleAddToCartWithCustomization(customizationData, customizationPrice);
                     } else {
                       handleAddToCart();
@@ -976,71 +918,7 @@ export default function ProductDetail({ id }: { id: string }) {
                   </div>
                 </Link>
 
-                {/* Modal de personnalisation */}
-                <CustomizationModal
-                  isOpen={isCustomizationModalOpen}
-                  onClose={() => setIsCustomizationModalOpen(false)}
-                  onSave={async (customization: ProductCustomization) => {
-                    try {
-                      // Vérifier qu'une couleur est sélectionnée
-                      if (!selectedColor) {
-                        setStockError('Veuillez sélectionner une couleur');
-                        return;
-                      }
-
-                      // Vérifier qu'au moins une taille est sélectionnée
-                      const selectedSizesWithQuantities = Object.entries(sizeQuantities)
-                        .filter(([_, quantity]) => quantity > 0);
-
-                      if (selectedSizesWithQuantities.length === 0) {
-                        setStockError('Veuillez sélectionner au moins une taille et sa quantité');
-                        return;
-                      }
-
-                      // Ajouter au panier pour chaque taille sélectionnée
-                      for (const [size, quantity] of selectedSizesWithQuantities) {
-                        const variant = product.variants?.find(
-                          v => v.size === size && v.color === selectedColor
-                        );
-
-                        if (variant) {
-                          const cartItemId = `${product.id}-${variant.id}-${Date.now()}-${size}`;
-                          
-                          addToCart({
-                            id: cartItemId,
-                            productId: product.id,
-                            variantId: variant.id,
-                            name: product.name,
-                            price: product.base_price + (variant.price_adjustment || 0),
-                            quantity: quantity,
-                            size: size,
-                            color: selectedColor,
-                            imageUrl: product.image_url || '/images/placeholder.jpg',
-                            customization: customization,
-                            shippingType: selectedShippingType
-                          });
-                        }
-                      }
-
-                      // Réinitialiser les quantités
-                      const resetQuantities: SizeQuantities = {};
-                      Object.keys(sizeQuantities).forEach(size => {
-                        resetQuantities[size] = 0;
-                      });
-                      setSizeQuantities(resetQuantities);
-
-                      setAddedToCart(true);
-                      setTimeout(() => {
-                        setAddedToCart(false);
-                      }, 3000);
-                      
-                      setIsCustomizationModalOpen(false);
-                    } catch (error) {
-                      console.error('Erreur lors de la personnalisation:', error);
-                      setStockError('Une erreur est survenue lors de l\'ajout au panier');
-                    }
-                  }}
-                />
+                {/* La section de personnalisation est maintenant uniquement dans la section "Personnalisation" */}
               </div>
 
               {stockError && (
@@ -1402,72 +1280,6 @@ export default function ProductDetail({ id }: { id: string }) {
           </div>
         </div>
       </div>
-      
-      {/* Modale de confirmation pour l'ajout au panier sans enregistrer la personnalisation */}
-      {showConfirmationModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            {/* Overlay sombre */}
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-
-            {/* Centrer la modale */}
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            {/* Contenu de la modale */}
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg className="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      Personnalisation non enregistrée
-                    </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        Vous n'avez pas enregistré votre personnalisation. Si vous continuez, les modifications en cours ne seront pas appliquées à votre produit.
-                      </p>
-                      <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                        <p className="text-sm text-amber-800">
-                          Pour enregistrer votre personnalisation, cliquez sur le bouton "Enregistrer" dans l'éditeur de personnalisation.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button 
-                  type="button" 
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={() => {
-                    setShowConfirmationModal(false);
-                    if (customizationData) {
-                      handleAddToCartWithCustomization(customizationData, customizationPrice);
-                    } else {
-                      handleAddToCart();
-                    }
-                  }}
-                >
-                  Continuer sans enregistrer
-                </button>
-                <button 
-                  type="button" 
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={() => setShowConfirmationModal(false)}
-                >
-                  Annuler
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -456,7 +456,17 @@ export default function OrdersPage() {
                         {item.customization_data.customizations && item.customization_data.customizations.map((customization: any, index: number) => {
                           // Déterminer les icônes et couleurs en fonction du type de personnalisation
                           const isText = customization.type === 'text';
-                          const isFront = customization.face === 'devant';
+                          
+                          // Déterminer si c'est la face avant ou arrière en fonction des nouvelles propriétés
+                          // Vérifier d'abord les nouvelles propriétés position_avant et position_arriere
+                          const hasPositionAvant = !!customization.position_avant;
+                          const hasPositionArriere = !!customization.position_arriere;
+                          
+                          // Pour la rétro-compatibilité, vérifier aussi l'ancienne propriété face
+                          const isFront = hasPositionAvant || (!hasPositionArriere && customization.face === 'devant');
+                          
+                          // Afficher les deux positions si la personnalisation est recto-verso
+                          const isRectoVerso = hasPositionAvant && hasPositionArriere;
                           
                           // Icônes pour le type de personnalisation
                           const typeIcon = isText ? (
@@ -482,18 +492,32 @@ export default function OrdersPage() {
                           
                           return (
                             <div key={index} className="mb-3 last:mb-0 bg-white p-3 rounded-lg border-l-4 border border-indigo-200 shadow-sm"
-                                 style={{ borderLeftColor: isFront ? '#4f46e5' : '#7e22ce' }}>
+                                  style={{ borderLeftColor: isRectoVerso ? '#059669' : isFront ? '#4f46e5' : '#7e22ce' }}>
                               <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center">
-                                  <div className={`p-1.5 rounded-full mr-2 ${isFront ? 'bg-indigo-100 text-indigo-700' : 'bg-purple-100 text-purple-700'}`}>
-                                    {faceIcon}
+                                  <div className={`p-1.5 rounded-full mr-2 ${isRectoVerso ? 'bg-emerald-100 text-emerald-700' : isFront ? 'bg-indigo-100 text-indigo-700' : 'bg-purple-100 text-purple-700'}`}>
+                                    {isRectoVerso ? (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                    </svg>
+                                  ) : faceIcon}
                                   </div>
                                   <div>
-                                    <p className="font-bold text-sm">
-                                      {isFront ? 'FACE AVANT' : 'FACE ARRIÈRE'}
-                                    </p>
+                                     <p className="font-bold text-sm">
+                                       {isRectoVerso ? 'RECTO-VERSO' : isFront ? 'FACE AVANT' : 'FACE ARRIÈRE'}
+                                     </p>
                                     <p className="text-xs text-gray-600">
-                                      Position: {customization.position.replace(/-/g, ' ').replace(/(^\w|\s\w)/g, (m: string) => m.toUpperCase())}
+                                       Position: {(() => {
+                                         if (isRectoVerso) {
+                                           const posAvant = customization.position_avant ? customization.position_avant.replace(/-/g, ' ').replace(/(^\w|\s\w)/g, (m: string) => m.toUpperCase()) : '';
+                                           const posArriere = customization.position_arriere ? customization.position_arriere.replace(/-/g, ' ').replace(/(^\w|\s\w)/g, (m: string) => m.toUpperCase()) : '';
+                                           return `${posAvant} (avant) / ${posArriere} (arrière)`;
+                                         } else {
+                                           // Déterminer quelle position afficher en fonction des propriétés disponibles
+                                           const position = customization.position_avant || customization.position_arriere || customization.position;
+                                           return position ? position.replace(/-/g, ' ').replace(/(^\w|\s\w)/g, (m: string) => m.toUpperCase()) : 'Non spécifiée';
+                                         }
+                                       })()}
                                     </p>
                                   </div>
                                 </div>
@@ -513,11 +537,15 @@ export default function OrdersPage() {
                                   <p className="text-xs font-semibold text-indigo-800">TECHNIQUE</p>
                                 </div>
                                 <p className="text-sm font-medium bg-white p-1.5 rounded border border-gray-200 text-center">
-                                  {customization.type_impression || 'Impression standard'}
+                                  <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                                    {customization.type_impression 
+                                      ? customization.type_impression.charAt(0).toUpperCase() + customization.type_impression.slice(1) 
+                                      : 'Impression standard'}
+                                  </span>
                                 </p>
                               </div>
                               
-                              {isText && customization.texte && (
+                              {isText && (customization.texte || customization.text) && (
                                 <div className="bg-gray-50 p-2 rounded-md border border-gray-200 mb-2">
                                   <div className="flex items-center mb-1">
                                     <svg className="w-4 h-4 text-indigo-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -531,7 +559,7 @@ export default function OrdersPage() {
                                       fontFamily: customization.police || 'inherit',
                                       fontWeight: 'bold'
                                     }}>
-                                      {customization.texte}
+                                      {customization.texte || customization.text}
                                     </p>
                                   </div>
                                   
@@ -561,7 +589,7 @@ export default function OrdersPage() {
                                 </div>
                               )}
                               
-                              {!isText && customization.image_url && (
+                              {!isText && (customization.image_url || customization.imageUrl) && (
                                 <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                                   <div className="flex items-center mb-1">
                                     <svg className="w-4 h-4 text-indigo-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -574,17 +602,21 @@ export default function OrdersPage() {
                                       {/* eslint-disable-next-line @next/next/no-img-element */}
                                       {(() => {
                                         try {
-                                          // Vérifier si l'image est au format base64 (commence par data:)
-                                          if (customization.image_url && typeof customization.image_url === 'string') {
-                                            if (customization.image_url.startsWith('data:')) {
+                                          // Récupérer l'URL de l'image depuis les nouvelles ou anciennes propriétés
+                                          const imageUrl = customization.image_url || customization.imageUrl;
+                                          
+                                          // Vérifier si l'image est valide
+                                          if (imageUrl && typeof imageUrl === 'string') {
+                                            if (imageUrl.startsWith('data:')) {
+                                              // Format base64 avec préfixe data:
                                               return (
                                                 <img 
-                                                  src={customization.image_url} 
+                                                  src={imageUrl} 
                                                   alt="Personnalisation" 
                                                   className="w-full h-full object-contain"
                                                 />
                                               );
-                                            } else if (customization.image_url.startsWith('blob:')) {
+                                            } else if (imageUrl.startsWith('blob:')) {
                                               // Fallback pour les URLs blob qui ne sont plus valides
                                               return (
                                                 <img 
@@ -593,11 +625,11 @@ export default function OrdersPage() {
                                                   className="w-full h-full object-contain"
                                                 />
                                               );
-                                            } else if (customization.image_url.startsWith('/9j/')) {
+                                            } else if (imageUrl.startsWith('/9j/')) {
                                               // Ancien format base64 sans le préfixe data:image
                                               return (
                                                 <img 
-                                                  src={`data:image/jpeg;base64,${customization.image_url}`} 
+                                                  src={`data:image/jpeg;base64,${imageUrl}`} 
                                                   alt="Personnalisation" 
                                                   className="w-full h-full object-contain"
                                                 />
@@ -606,7 +638,7 @@ export default function OrdersPage() {
                                               // URL normale
                                               return (
                                                 <img 
-                                                  src={customization.image_url} 
+                                                  src={imageUrl} 
                                                   alt="Personnalisation" 
                                                   className="w-full h-full object-contain"
                                                 />
@@ -640,21 +672,23 @@ export default function OrdersPage() {
                                   <div className="flex justify-center mt-2">
                                     <a
                                       href={(() => {
-                                        if (customization.image_url && typeof customization.image_url === 'string') {
-                                          if (customization.image_url.startsWith('data:')) {
-                                            return customization.image_url;
-                                          } else if (customization.image_url.startsWith('/9j/')) {
-                                            return `data:image/jpeg;base64,${customization.image_url}`;
-                                          } else if (!customization.image_url.startsWith('blob:')) {
-                                            return customization.image_url;
+                                        const imageUrl = customization.image_url || customization.imageUrl;
+                                        if (imageUrl && typeof imageUrl === 'string') {
+                                          if (imageUrl.startsWith('data:')) {
+                                            return imageUrl;
+                                          } else if (imageUrl.startsWith('/9j/')) {
+                                            return `data:image/jpeg;base64,${imageUrl}`;
+                                          } else if (!imageUrl.startsWith('blob:')) {
+                                            return imageUrl;
                                           }
                                         }
                                         return '#';
                                       })()}
                                       download={`personnalisation-${item.id}-${index}.png`}
-                                      className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center ${customization.image_url.startsWith('data:') ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                                      className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center ${(customization.image_url || customization.imageUrl || '').startsWith('data:') ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
                                       onClick={(e) => {
-                                        if (!customization.image_url.startsWith('data:')) {
+                                        const imageUrl = customization.image_url || customization.imageUrl || '';
+                                      if (!imageUrl.startsWith('data:')) {
                                           e.preventDefault();
                                           alert('Cette image ne peut pas être téléchargée. Format non supporté.');
                                         }
@@ -674,7 +708,7 @@ export default function OrdersPage() {
                                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                   </svg>
-                                  Instructions: {isText ? 'Imprimer ce texte' : 'Imprimer cette image'} sur la {isFront ? 'face avant' : 'face arrière'} du produit à la position indiquée.
+                                  Instructions: {isText ? 'Imprimer ce texte' : 'Imprimer cette image'} sur {isRectoVerso ? 'les deux faces' : isFront ? 'la face avant' : 'la face arrière'} du produit aux positions indiquées. Technique: <span className="font-semibold">{customization.type_impression ? customization.type_impression.charAt(0).toUpperCase() + customization.type_impression.slice(1) : 'Impression standard'}</span>
                                 </p>
                               </div>
                             </div>

@@ -18,14 +18,16 @@ export type ContentType = 'text' | 'image';
 // Face du vêtement (devant ou derrière)
 export type Face = 'devant' | 'derriere';
 
-// Définition d'une personnalisation individuelle (pour le devant ou le derrière)
+// Définition d'une personnalisation individuelle (pour le devant et/ou le derrière)
 export type SingleCustomization = {
   // Type d'impression (broderie, flocage, etc.)
   type_impression: string;
   
-  // Position prédéfinie (plus facile pour l'utilisateur que des coordonnées x/y)
+  // Positions prédéfinies pour chaque face (plus facile pour l'utilisateur que des coordonnées x/y)
   // Peut être undefined si aucune position n'est sélectionnée
-  position?: Position | string;
+  position?: Position | string; // Pour rétro-compatibilité
+  position_avant?: Position | string;
+  position_arriere?: Position | string;
   
   // Type de contenu (texte ou image)
   type: ContentType;
@@ -38,8 +40,8 @@ export type SingleCustomization = {
   // Champ pour personnalisation d'image
   image_url?: string;
   
-  // Face du vêtement (devant ou derrière)
-  face: Face;
+  // Face du vêtement (devant ou derrière) - pour rétro-compatibilité
+  face?: Face;
   
   // Champ interne pour suivre l'état du téléchargement de l'image
   _uploadingImage?: boolean;
