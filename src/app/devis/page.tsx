@@ -273,31 +273,7 @@ export default function DevisRapide() {
               </div>
             </div>
             
-            {/* Affichage des produits sélectionnés */}
-            {formData.selectedProducts.length > 0 && (
-              <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Produits sélectionnés ({formData.selectedProducts.length})</h3>
-                <div className="flex flex-wrap gap-2">
-                  {formData.selectedProducts.map((product, index) => (
-                    <div key={index} className="bg-white px-2 py-1 rounded border border-gray-300 text-sm flex items-center">
-                      {product.label}
-                      <button 
-                        className="ml-2 text-gray-500 hover:text-red-500"
-                        onClick={() => {
-                          const updatedProducts = formData.selectedProducts.filter((_, i) => i !== index);
-                          setFormData(prevState => ({
-                            ...prevState,
-                            selectedProducts: updatedProducts
-                          }));
-                        }}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
             
 
             

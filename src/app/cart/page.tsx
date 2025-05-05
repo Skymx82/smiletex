@@ -278,7 +278,7 @@ export default function CartPage() {
                                     {/* Badge de face et type plus compact */}
                                     <div className="flex items-center justify-between mb-1.5">
                                       <span className="font-medium text-indigo-800 text-xs">
-                                        {custom.face === 'devant' ? 'Devant' : 'Derrière'}
+                                        {custom.position_avant ? 'Devant' : custom.position_arriere ? 'Derrière' : custom.face === 'devant' ? 'Devant' : 'Derrière'}
                                       </span>
                                       <span className={`px-1.5 py-0.5 rounded-full text-xs ${custom.type === 'text' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
                                         {custom.type === 'text' ? 'Texte' : 'Image'}
@@ -292,7 +292,17 @@ export default function CartPage() {
                                     
                                     {/* Badges plus compacts et adaptés au mobile */}
                                     <div className="mt-1.5 flex flex-wrap gap-1 text-gray-600">
-                                      {custom.position && (
+                                      {custom.position_avant && (
+                                        <span className="inline-flex items-center px-1 py-0.5 rounded-full bg-gray-100 text-xs">
+                                          {custom.position_avant.replace('devant-', '').replace('-', ' ')}
+                                        </span>
+                                      )}
+                                      {custom.position_arriere && (
+                                        <span className="inline-flex items-center px-1 py-0.5 rounded-full bg-gray-100 text-xs">
+                                          {custom.position_arriere.replace('dos-', '').replace('-', ' ')}
+                                        </span>
+                                      )}
+                                      {!custom.position_avant && !custom.position_arriere && custom.position && (
                                         <span className="inline-flex items-center px-1 py-0.5 rounded-full bg-gray-100 text-xs">
                                           {custom.position.replace('-', ' ')}
                                         </span>
@@ -313,7 +323,7 @@ export default function CartPage() {
                                   <li key={index} className="bg-white p-1.5 rounded border border-indigo-100">
                                     <div className="flex items-center justify-between">
                                       <span className="font-medium text-indigo-800">
-                                        {custom.face === 'devant' ? 'Devant' : 'Derrière'}
+                                        {custom.position_avant ? 'Devant' : custom.position_arriere ? 'Derrière' : custom.face === 'devant' ? 'Devant' : 'Derrière'}
                                       </span>
                                       <span className={`px-1.5 py-0.5 rounded-full text-xs ${custom.type === 'text' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
                                         {custom.type === 'text' ? 'Texte' : 'Image'}
@@ -325,14 +335,24 @@ export default function CartPage() {
                                     )}
                                     
                                     <div className="mt-1 flex flex-wrap gap-1 text-gray-600">
-                                      {custom.position && (
+                                      {custom.position_avant && (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100">
+                                          Position avant: {custom.position_avant.replace('devant-', '').replace('-', ' ')}
+                                        </span>
+                                      )}
+                                      {custom.position_arriere && (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100">
+                                          Position arrière: {custom.position_arriere.replace('dos-', '').replace('-', ' ')}
+                                        </span>
+                                      )}
+                                      {!custom.position_avant && !custom.position_arriere && custom.position && (
                                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100">
                                           Position: {custom.position.replace('-', ' ')}
                                         </span>
                                       )}
                                       {custom.type_impression && (
                                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100">
-                                          {custom.type_impression}
+                                          Technique: {custom.type_impression}
                                         </span>
                                       )}
                                     </div>
@@ -341,7 +361,6 @@ export default function CartPage() {
                               </ul>
                             </div>
                           )}
-                          
                           {/* Badge pour le type de livraison - Responsive */}
                           <div className="mt-2">
                             <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium ${item.shippingType === 'urgent' ? 'bg-yellow-100 text-yellow-800' : item.shippingType === 'fast' ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>

@@ -14,6 +14,7 @@ function ProductsContent() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const searchParams = useSearchParams();
 
   // Récupérer le paramètre de catégorie depuis l'URL
@@ -88,25 +89,25 @@ function ProductsContent() {
     <div className="bg-gray-50 min-h-screen text-black">
       {/* Hero section avec fond dégradé */}
       <div className="relative bg-gradient-to-b from-white to-gray-50 overflow-hidden">
-        {/* Éléments graphiques abstraits */}
-        <div className="absolute left-0 top-0 w-96 h-96 rounded-full bg-indigo-100 opacity-30 blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute right-0 top-1/4 w-96 h-96 rounded-full bg-[#FCEB14] opacity-10 blur-3xl translate-x-1/3"></div>
-        <div className="absolute bottom-0 left-1/4 right-1/4 h-32 border-b-4 border-[#FCEB14] opacity-10 rounded-b-full"></div>
+        {/* Éléments graphiques abstraits - responsive */}
+        <div className="absolute left-0 top-0 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 rounded-full bg-indigo-100 opacity-30 blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute right-0 top-1/4 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 rounded-full bg-indigo-200 opacity-10 blur-3xl translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-1/4 right-1/4 h-16 sm:h-24 md:h-32 border-b-2 sm:border-b-4 border-indigo-300 opacity-10 rounded-b-full"></div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6 relative inline-block">
-              <span className="relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16 relative">
+          <div className="text-center mb-6 sm:mb-8 md:mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6 relative inline-block">
+              <span className="relative block sm:inline-block">
                 Nos Produits
-                <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+                <svg className="absolute -bottom-1 sm:-bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
+                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#6366F1" />
                 </svg>
               </span>
-              <span className="ml-3 text-indigo-600">Smiletex</span>
+              <span className="block sm:inline-block sm:ml-3 text-indigo-600 mt-1 sm:mt-0">Smiletex</span>
             </h1>
-            <p className="text-xl text-gray-700 max-w-3xl mx-auto mt-6 relative z-10">
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mt-3 sm:mt-4 md:mt-6 relative z-10 px-2">
               Découvrez notre gamme de produits personnalisables de haute qualité.
-              Choisissez un article, ajoutez votre design et créez un produit unique qui vous ressemble.
+              <span className="hidden sm:inline"> Choisissez un article, ajoutez votre design et créez un produit unique qui vous ressemble.</span>
             </p>
           </div>
         </div>
@@ -114,10 +115,28 @@ function ProductsContent() {
       
       {/* Layout principal avec catégories à gauche et produits à droite */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-8">
+        {/* Bouton pour afficher/masquer les filtres sur mobile */}
+        <div className="lg:hidden mb-4">
+          <button 
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="w-full flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+          >
+            <span className="font-medium text-gray-800 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+              </svg>
+              Filtrer par catégorie {selectedCategory && `(${getSelectedCategoryPath()})`}
+            </span>
+            <svg className={`w-5 h-5 text-gray-500 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+        </div>
+        
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar des catégories - à gauche */}
-          <div className="lg:w-1/4">
-            <div className="sticky top-24 bg-white p-6 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className={`lg:w-1/4 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'} transition-all duration-300`}>
+            <div className="lg:sticky lg:top-24 bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               {/* Éléments graphiques */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-[#FCEB14] to-indigo-700 opacity-50"></div>
               <div className="absolute right-0 bottom-0 w-32 h-32 rounded-full bg-[#FCEB14] opacity-5 blur-xl"></div>
@@ -239,8 +258,8 @@ function ProductsContent() {
             </div>
           </div>
 
-          {/* Section des produits - à droite */}
-          <div className="lg:w-3/4">
+          {/* Grille de produits - à droite */}
+          <div className="lg:w-3/4 w-full transition-all duration-300">
             {productsLoading ? (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm">
                 <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-indigo-600 border-r-2 border-r-[#FCEB14] mx-auto"></div>
@@ -255,11 +274,11 @@ function ProductsContent() {
               </div>
             ) : (
               <div>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 gap-4 w-full">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900 relative inline-block">
                       {getSelectedCategoryPath()}
-                      <div className="absolute -bottom-2 left-0 w-full h-1 bg-[#FCEB14] opacity-40 rounded-full"></div>
+                      <div className="absolute -bottom-2 left-0 w-full h-1 bg-indigo-500 opacity-40 rounded-full"></div>
                     </h2>
                     <p className="text-gray-600 mt-2">{sortedProducts.length} produit{sortedProducts.length > 1 ? 's' : ''} trouvé{sortedProducts.length > 1 ? 's' : ''}</p>
                   </div>
@@ -301,19 +320,19 @@ function ProductsContent() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                     {sortedProducts.map((product) => (
                       <div 
                         key={product.id} 
-                        className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:translate-y-[-4px] group relative"
+                        className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:translate-y-[-4px] group relative flex flex-col h-full"
                         onMouseEnter={() => setHoveredProduct(product.id)}
                         onMouseLeave={() => setHoveredProduct(null)}
                       >
                         {/* Élément graphique subtil */}
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-[#FCEB14] to-indigo-700 opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-indigo-400 to-indigo-700 opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
                         
-                        <Link href={`/products/${product.id}`} className="block relative h-64 overflow-hidden">
+                        <Link href={`/products/${product.id}`} className="block relative h-44 sm:h-52 md:h-64 overflow-hidden">
                           <Image
                             src={product.image_url || '/images/placeholder.jpg'}
                             alt={product.name}
@@ -321,7 +340,7 @@ function ProductsContent() {
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                           />
                           {product.is_featured && (
-                            <div className="absolute top-3 right-3 bg-[#FCEB14] text-indigo-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow-md">
+                            <div className="absolute top-3 right-3 bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-md">
                               Populaire
                             </div>
                           )}
@@ -339,16 +358,16 @@ function ProductsContent() {
                           )}
                         </Link>
                         
-                        <div className="p-6 relative">
+                        <div className="p-3 sm:p-4 md:p-6 relative flex-grow flex flex-col">
                           <Link href={`/products/${product.id}`}>
                             <h3 className="text-lg font-semibold mb-2 group-hover:text-indigo-600 transition-colors duration-300">{product.name}</h3>
                           </Link>
-                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
-                          <div className="flex justify-between items-center">
-                            <span className="text-lg font-bold text-indigo-700">À partir de {product.base_price.toFixed(2)} €</span>
+                          <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-4 line-clamp-2 flex-grow">{product.description}</p>
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mt-auto">
+                            <span className="text-base sm:text-lg font-bold text-indigo-700">À partir de {product.base_price.toFixed(2)} €</span>
                             <Link 
                               href={`/products/${product.id}`} 
-                              className="text-indigo-600 hover:text-indigo-800 font-medium px-3 py-1 rounded-lg hover:bg-indigo-50 transition-colors duration-300 flex items-center"
+                              className="text-indigo-600 hover:text-indigo-800 font-medium px-2 sm:px-3 py-1 rounded-lg hover:bg-indigo-50 transition-colors duration-300 flex items-center text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start"
                             >
                               Personnaliser
                               <svg className="w-4 h-4 ml-1 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -373,7 +392,10 @@ function ProductsContent() {
 // Composant principal avec Suspense
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto p-4">Chargement des produits...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 border-r-2 border-r-[#FCEB14]"></div>
+      <p className="ml-3 text-gray-700">Chargement...</p>
+    </div>}>
       <ProductsContent />
     </Suspense>
   );

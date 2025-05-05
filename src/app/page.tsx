@@ -1,12 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import BrandsMarquee from "@/components/BrandsMarquee";
-import { useFeaturedProducts } from "@/hooks/useProducts";
 import TrustBadge from "@/components/TrustBadge";
 import TechniquesMarquage from "@/components/TechniquesMarquage";
+import ProjectSteps from "@/components/ProjectSteps";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
+  base_price: number;
+  is_featured: boolean;
+  is_new: boolean;
+  category: string;
+  created_at: string;
+  weight_gsm?: number;        // Grammage du tissu en g/m²
+  supplier_reference?: string; // Référence du produit chez le fournisseur
+};
 
 // Composant pour les courbes souriantes
 const SmileCurve = ({ className, color = "text-white", rotate = false }: { className: string; color?: string; rotate?: boolean }) => (
@@ -70,7 +85,7 @@ function UrgentQuoteForm() {
       {/* En-tête du formulaire */}
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-lg font-bold text-indigo-800 flex items-center">
-          <svg className="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           Formulaire de devis express
@@ -99,9 +114,9 @@ function UrgentQuoteForm() {
               onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
               onFocus={() => setFocusedField('firstName')}
               onBlur={() => setFocusedField(null)}
-              className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-[#FCEB14] p-3 border transition-all duration-300 bg-gray-50 focus:bg-white"
+              className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border transition-all duration-300 bg-gray-50 focus:bg-white"
             />
-            <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-[#FCEB14] transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
+            <div className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
           </div>
         </div>
 
@@ -123,9 +138,9 @@ function UrgentQuoteForm() {
               onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
               onFocus={() => setFocusedField('lastName')}
               onBlur={() => setFocusedField(null)}
-              className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-[#FCEB14] p-3 border transition-all duration-300 bg-gray-50 focus:bg-white"
+              className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border transition-all duration-300 bg-gray-50 focus:bg-white"
             />
-            <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-[#FCEB14] transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
+            <div className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
           </div>
         </div>
       </div>
@@ -154,9 +169,9 @@ function UrgentQuoteForm() {
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               onFocus={() => setFocusedField('email')}
               onBlur={() => setFocusedField(null)}
-              className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-[#FCEB14] p-3 pl-10 border transition-all duration-300 bg-gray-50 focus:bg-white"
+              className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 pl-10 border transition-all duration-300 bg-gray-50 focus:bg-white"
             />
-            <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-[#FCEB14] transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
+            <div className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
           </div>
         </div>
 
@@ -183,9 +198,9 @@ function UrgentQuoteForm() {
               onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
               onFocus={() => setFocusedField('phone')}
               onBlur={() => setFocusedField(null)}
-              className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-[#FCEB14] p-3 pl-10 border transition-all duration-300 bg-gray-50 focus:bg-white"
+              className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 pl-10 border transition-all duration-300 bg-gray-50 focus:bg-white"
             />
-            <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-[#FCEB14] transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
+            <div className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
           </div>
         </div>
       </div>
@@ -211,7 +226,7 @@ function UrgentQuoteForm() {
             onChange={(e) => setFormData(prev => ({ ...prev, projectType: e.target.value }))}
             onFocus={() => setFocusedField('projectType')}
             onBlur={() => setFocusedField(null)}
-            className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-[#FCEB14] p-3 pl-10 border transition-all duration-300 bg-gray-50 focus:bg-white appearance-none"
+            className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 pl-10 border transition-all duration-300 bg-gray-50 focus:bg-white appearance-none"
           >
             <option value="">Sélectionnez un type de projet</option>
             <option value="t-shirt">T-shirt personnalisé</option>
@@ -224,7 +239,7 @@ function UrgentQuoteForm() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
-          <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-[#FCEB14] transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
+          <div className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
         </div>
       </div>
 
@@ -246,25 +261,25 @@ function UrgentQuoteForm() {
             onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
             onFocus={() => setFocusedField('message')}
             onBlur={() => setFocusedField(null)}
-            className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-[#FCEB14] p-3 border transition-all duration-300 bg-gray-50 focus:bg-white"
+            className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border transition-all duration-300 bg-gray-50 focus:bg-white"
           />
-          <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-[#FCEB14] transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
+          <div className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
         </div>
       </div>
       
       {/* Option de livraison express */}
-      <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-xl border border-yellow-100 shadow-sm">
+      <div className="flex items-center space-x-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm">
         <input
           type="checkbox"
           id="urgentDelivery"
           name="urgentDelivery"
           checked={formData.urgentDelivery}
           onChange={(e) => setFormData(prev => ({ ...prev, urgentDelivery: e.target.checked }))}
-          className="h-5 w-5 text-yellow-500 rounded border-gray-300 focus:ring-yellow-400"
+          className="h-5 w-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-400"
         />
         <div className="flex-1">
           <label htmlFor="urgentDelivery" className="text-sm font-medium text-gray-700 flex items-center cursor-pointer">
-            <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-2 py-0.5 rounded-full mr-2 shadow-sm">
+            <span className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full mr-2 shadow-sm">
               Express
             </span>
             Livraison express (1 semaine)
@@ -278,7 +293,7 @@ function UrgentQuoteForm() {
         disabled={isSubmitting}
         className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 relative overflow-hidden group transform hover:scale-[1.01] active:scale-[0.98]"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-transparent w-1/2 blur-xl transform transition-transform duration-500 ease-out translate-x-[-200%] group-hover:translate-x-[200%]"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#FCEB14]/20 to-transparent w-1/2 blur-xl transform transition-transform duration-500 ease-out translate-x-[-200%] group-hover:translate-x-[200%]"></div>
         <span className="relative z-10 flex items-center justify-center">
           {isSubmitting ? (
             <>
@@ -297,7 +312,7 @@ function UrgentQuoteForm() {
             </>
           )}
         </span>
-        <span className="absolute bottom-0 left-0 w-full h-1 bg-[#FCEB14] transform transition-transform duration-300 ease-out translate-y-full group-hover:translate-y-0"></span>
+        <span className="absolute bottom-0 left-0 w-full h-1 bg-yellow-500 transform transition-transform duration-300 ease-out translate-y-full group-hover:translate-y-0"></span>
       </button>
 
       {submitStatus === 'success' && (
@@ -332,7 +347,98 @@ function UrgentQuoteForm() {
 }
 
 export default function Home() {
-  const { products: featuredProducts, loading, error } = useFeaturedProducts();
+  const supabase = createClientComponentClient();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [categoryProducts, setCategoryProducts] = useState<{[key: string]: Product[]}>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  
+  const categories = [
+    { id: 't-shirt', name: 'T-shirts' },
+    { id: 'polo', name: 'Polos' },
+    { id: 'sweat', name: 'Sweats' },
+    { id: 'pull', name: 'Pulls' },
+    { id: 'veste', name: 'Vestes' },
+    { id: 'workwear', name: 'Tenues de travail' },
+    { id: 'accessoire', name: 'Accessoires' },
+    { id: 'bas', name: 'Bas' }
+  ];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // 1. Récupérer d'abord les catégories depuis la base de données
+        const { data: dbCategories, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name');
+          
+        if (categoriesError) throw categoriesError;
+        
+        // Mapper les catégories de la base de données avec nos catégories locales
+        const categoryMapping: {[key: string]: string} = {};
+        const categoryData: {[key: string]: Product[]} = {};
+        
+        // Initialiser les tableaux vides pour chaque catégorie
+        categories.forEach(localCat => {
+          // Trouver la catégorie correspondante dans la base de données
+          const dbCategory = dbCategories.find(dbCat => 
+            dbCat.name.toLowerCase() === localCat.name.toLowerCase() ||
+            dbCat.name.toLowerCase().includes(localCat.id.toLowerCase())
+          );
+          
+          if (dbCategory) {
+            // Stocker la correspondance entre notre ID local et l'ID de la base de données
+            categoryMapping[localCat.id] = dbCategory.id;
+            categoryData[localCat.id] = [];
+          } else {
+            console.log(`Catégorie non trouvée dans la base de données: ${localCat.name}`);
+            categoryData[localCat.id] = [];
+          }
+        });
+        
+        console.log('Mapping des catégories:', categoryMapping);
+        
+        // 2. Récupérer tous les produits
+        const { data: products, error: productsError } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (productsError) throw productsError;
+        
+        // Filtrer les produits mis en avant
+        const featured = products?.filter(product => product.is_featured) || [];
+        setFeaturedProducts(featured);
+        
+        // Organiser les produits par catégorie
+        products?.forEach(product => {
+          // Pour chaque catégorie dans notre mapping
+          Object.entries(categoryMapping).forEach(([localId, dbId]) => {
+            // Si le produit appartient à cette catégorie
+            if (product.category_id === dbId) {
+              categoryData[localId].push(product);
+            }
+          });
+        });
+        
+        // Log pour débogage
+        console.log('Catégories dans la base de données:', dbCategories);
+        console.log('Produits par catégorie:', categoryData);
+        
+        setCategoryProducts(categoryData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError(error as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []); // Ajout d'une dépendance vide pour éviter les rechargements infinis
 
   return (
     <div className="bg-gray-50">
@@ -348,7 +454,7 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 via-indigo-700 to-indigo-600 opacity-50"></div>
           {/* Éléments graphiques abstraits */}
-          <div className="absolute right-0 top-1/4 w-64 h-64 rounded-full bg-[#FCEB14] opacity-10 blur-3xl"></div>
+          <div className="absolute right-0 top-1/4 w-64 h-64 rounded-full bg-indigo-300 opacity-10 blur-3xl"></div>
           <div className="absolute left-1/4 bottom-1/3 w-48 h-48 rounded-full bg-indigo-300 opacity-20 blur-3xl"></div>
         </div>
         <div className="relative max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
@@ -376,20 +482,19 @@ export default function Home() {
         </div>
         {/* Courbe souriante en bas du hero */}
         <div className="absolute bottom-0 left-0 right-0 overflow-hidden">
-          <SmileCurve className="w-full h-16" />
+          <SmileCurve className="w-full h-16" color="text-indigo-50" />
         </div>
       </section>
 
       {/* Trust Badge */}
       <TrustBadge />
 
-      {/* Featured Products */}
+      {/* Catégories de produits */}
       <section className="py-16 md:py-24 relative overflow-hidden">
         {/* Éléments graphiques abstraits */}
-        {/* Formes abstraites évoquant le sourire */}
-        <div className="absolute left-1/4 top-1/3 w-64 h-64 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
+        <div className="absolute left-1/4 top-1/3 w-64 h-64 rounded-full bg-indigo-200 opacity-5 blur-3xl"></div>
         <div className="absolute right-1/3 bottom-1/4 w-72 h-72 rounded-full bg-indigo-200 opacity-10 blur-3xl"></div>
-        <div className="absolute right-1/2 top-1/2 w-96 h-32 rounded-b-full border-b-8 border-[#FCEB14] opacity-5 transform rotate-6"></div>
+        <div className="absolute right-1/2 top-1/2 w-96 h-32 rounded-b-full border-b-8 border-indigo-200 opacity-5 transform rotate-6"></div>
         
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
@@ -405,82 +510,124 @@ export default function Home() {
               </span>
             </h2>
             <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-              Découvrez notre sélection de vêtements les plus appréciés par nos clients.
+              Découvrez notre sélection de vêtements personnalisables par catégorie.
             </p>
           </div>
-          
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Chargement des produits...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-8 text-red-600">
-              Une erreur est survenue lors du chargement des produits.
-            </div>
-          ) : featuredProducts.length === 0 ? (
-            <div className="text-center py-8 text-gray-600">
-              Aucun produit populaire n'est disponible pour le moment.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <div className="flex gap-6 md:grid md:grid-cols-2 lg:grid-cols-3 min-w-max md:min-w-0 mt-8 relative">
-                {/* Ligne courbe évoquant un sourire */}
-                <div className="absolute -top-8 left-1/4 right-1/4 h-16 border-t-4 border-[#FCEB14] opacity-10 rounded-t-full"></div>
-                {featuredProducts.map((product) => (
-                  <div key={product.id} className="w-80 md:w-auto bg-white text-black rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0 group transform hover:-translate-y-1 hover:shadow-indigo-200/50">
-                    <Link href={`/products/${product.id}`}>
-                      <div className="relative h-64 overflow-hidden">
-                        <Image
-                          src={product.image_url}
-                          alt={product.name}
-                          fill
-                          sizes="(max-width: 640px) 320px, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute top-0 right-0 bg-[#FCEB14] text-indigo-800 font-bold py-1 px-3 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          Populaire
-                        </div>
-                      </div>
-                    </Link>
-                    <div className="p-4 relative">
-                      {/* Forme abstraite de sourire */}
-                      <div className="absolute -right-12 -bottom-12 w-24 h-24 rounded-tl-full border-8 border-[#FCEB14]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      
-                      <Link href={`/products/${product.id}`}>
-                        <h3 className="text-lg font-semibold mb-1 hover:text-indigo-600 transition-colors duration-300">{product.name}</h3>
-                      </Link>
-                      <p className="text-gray-600 mb-2">{product.description}</p>
-                      <p className="text-indigo-600 font-bold">{product.base_price.toFixed(2)} €</p>
-                      <Link href={`/products/${product.id}`}>
-                        <button className="w-full mt-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-2 px-4 rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 relative overflow-hidden group-hover:shadow-md">
-                          <span className="relative z-10">Voir le produit</span>
-                          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#FCEB14] transform transition-transform duration-300 ease-out translate-y-full group-hover:translate-y-0"></span>
-                        </button>
-                      </Link>
+          {categories.map((category, index) => (
+            <div key={category.id} className={index < categories.length - 1 ? "mb-6" : ""}>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-bold text-gray-900">
+                  <span className="text-indigo-600">{category.name} personnalisés</span>
+                </h3>
+                <Link href={`/products?category=${category.id}`} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center">
+                  Voir tout
+                  <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </Link>
+              </div>
+              
+              {loading ? (
+                <div className="flex items-center justify-center py-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 mr-2"></div>
+                  <p className="text-sm text-gray-700">Chargement...</p>
+                </div>
+              ) : !categoryProducts[category.id] || categoryProducts[category.id].length === 0 ? (
+                <p className="text-xs text-gray-700 py-2">Aucun produit disponible</p>
+              ) : (
+                <div className="relative group">
+                  {/* Conteneur du carousel avec défilement horizontal */}
+                  <div className="relative overflow-hidden">
+                    <div className="flex space-x-5 overflow-x-auto pb-4 px-1 scrollbar-hide scroll-smooth snap-x snap-mandatory" id={`carousel-${category.id}`}>
+                      {categoryProducts[category.id].slice(0, 6).map((product) => (
+                        <Link href={`/products/${product.id}`} key={product.id} className="flex-shrink-0 relative group snap-start">
+                          {/* Image du produit plus grande */}
+                          <div className="relative w-52 h-52 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
+                            <Image
+                              src={product.image_url || '/images/placeholder.jpg'}
+                              alt={product.name}
+                              fill
+                              sizes="(max-width: 640px) 45vw, (max-width: 768px) 208px, 208px"
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                            
+                            {/* Léger dégradé en bas pour assurer la lisibilité du texte */}
+                            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            
+                            {/* Nom du produit en bas de l'image */}
+                            <div className="absolute bottom-0 left-0 right-0 p-3">
+                              <p className="text-white font-medium truncate text-center">{product.name}</p>
+                            </div>
+                            
+                            {/* Bouton esthétique avec icône (indicateur visuel uniquement) */}
+                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-indigo-600 rounded-full p-2 shadow-md group-hover:bg-white transition-colors duration-200 transform group-hover:scale-105">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                  
+                  {/* Boutons de navigation - visibles seulement au survol sur desktop, toujours visibles sur mobile */}
+                  {categoryProducts[category.id].length > 3 && (
+                    <>
+                      <button 
+                        onClick={() => {
+                          const carousel = document.getElementById(`carousel-${category.id}`);
+                          if (carousel) carousel.scrollBy({ left: -208, behavior: 'smooth' });
+                        }}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 text-indigo-600 rounded-full p-2 shadow-md z-10 opacity-0 group-hover:opacity-100 md:block hidden focus:opacity-100 transition-opacity"
+                        aria-label="Précédent"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const carousel = document.getElementById(`carousel-${category.id}`);
+                          if (carousel) carousel.scrollBy({ left: 208, behavior: 'smooth' });
+                        }}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 text-indigo-600 rounded-full p-2 shadow-md z-10 opacity-0 group-hover:opacity-100 md:block hidden focus:opacity-100 transition-opacity"
+                        aria-label="Suivant"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                      
+                      {/* Indicateurs de défilement pour mobile */}
+                      <div className="flex justify-center mt-2 space-x-1 md:hidden">
+                        {Array.from({ length: Math.min(Math.ceil(categoryProducts[category.id].length / 2), 3) }).map((_, i) => (
+                          <div key={i} className="w-2 h-2 rounded-full bg-gray-300"></div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-          
-          <div className="text-center mt-12 relative">
-            {/* Formes abstraites évoquant le sourire */}
-            <div className="absolute left-1/3 -top-8 w-1/3 h-16 border-t-4 border-[#FCEB14] opacity-10 rounded-t-full"></div>
-            
-            <Link 
-              href="/products" 
-              className="inline-block bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-3 px-8 rounded-xl text-lg shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
-            >
-              <span className="relative z-10">
-                Voir tous les produits
-              </span>
-              <span className="absolute bottom-0 left-0 w-full h-1 bg-[#FCEB14] transform transition-transform duration-300 ease-out translate-y-full group-hover:translate-y-0"></span>
-            </Link>
-          </div>
+          ))}
         </div>
       </section>
+      
+      <div className="text-center mt-8 mb-16 relative">
+        {/* Formes abstraites évoquant le sourire */}
+        <div className="absolute left-1/3 -top-8 w-1/3 h-16 border-t-4 border-indigo-200 opacity-10 rounded-t-full"></div>
+        
+        <Link 
+          href="/products" 
+          className="inline-block bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-3 px-8 rounded-xl text-lg shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
+        >
+          <span className="relative z-10">
+            Voir tous les produits
+          </span>
+          <span className="absolute bottom-0 left-0 w-full h-1 bg-[#FCEB14] transform transition-transform duration-300 ease-out translate-y-full group-hover:translate-y-0"></span>
+        </Link>
+      </div>
 
       {/* Marques partenaires */}
       <BrandsMarquee />
@@ -488,10 +635,10 @@ export default function Home() {
       {/* Why Choose Us */}
       <section className="py-16 md:py-24 bg-indigo-50 relative overflow-hidden">
         {/* Éléments graphiques abstraits évoquant le sourire */}
-        <div className="absolute left-0 top-0 w-64 h-64 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
+        <div className="absolute left-0 top-0 w-64 h-64 rounded-full bg-indigo-200 opacity-5 blur-3xl"></div>
         <div className="absolute right-0 bottom-0 w-72 h-72 rounded-full bg-indigo-300 opacity-10 blur-3xl"></div>
-        <div className="absolute left-1/4 right-1/4 bottom-1/3 h-32 border-b-8 border-[#FCEB14] opacity-5 rounded-b-full"></div>
-        <div className="absolute right-1/4 top-1/4 w-32 h-32 border-4 border-[#FCEB14] opacity-5 rounded-full"></div>
+        <div className="absolute left-1/4 right-1/4 bottom-1/3 h-32 border-b-8 border-indigo-200 opacity-5 rounded-b-full"></div>
+        <div className="absolute right-1/4 top-1/4 w-32 h-32 border-4 border-indigo-200 opacity-5 rounded-full"></div>
         
         {/* Courbe souriante en haut de la section */}
         <div className="absolute top-0 left-0 right-0 overflow-hidden">
@@ -521,7 +668,7 @@ export default function Home() {
             {/* Ligne courbe évoquant un sourire */}
             <div className="absolute -top-8 left-1/4 right-1/4 h-16 border-t-4 border-[#FCEB14] opacity-10 rounded-t-full"></div>
             <div className="bg-white p-8 rounded-xl shadow-md text-center transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:shadow-indigo-200/50 group">
-              <div className="bg-indigo-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-300 group-hover:bg-[#FCEB14]/20 relative overflow-hidden">
+              <div className="bg-indigo-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-300 group-hover:bg-indigo-200 relative overflow-hidden">
                 <div className="absolute w-full h-3 bg-[#FCEB14]/20 bottom-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -531,11 +678,11 @@ export default function Home() {
               <p className="text-gray-700">
                 Tous nos produits sont fabriqués avec des matériaux de haute qualité pour garantir confort et durabilité.
               </p>
-              <div className="mt-4 h-1 w-12 bg-[#FCEB14] mx-auto rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:w-24"></div>
+              <div className="mt-4 h-1 w-12 bg-indigo-400 mx-auto rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:w-24"></div>
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-md text-center transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:shadow-indigo-200/50 group">
-              <div className="bg-indigo-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-300 group-hover:bg-[#FCEB14]/20 relative overflow-hidden">
+              <div className="bg-indigo-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-300 group-hover:bg-indigo-200 relative overflow-hidden">
                 <div className="absolute w-full h-3 bg-[#FCEB14]/20 bottom-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
@@ -545,11 +692,11 @@ export default function Home() {
               <p className="text-gray-700">
                 Créez des vêtements qui vous ressemblent avec nos options de personnalisation avancées.
               </p>
-              <div className="mt-4 h-1 w-12 bg-[#FCEB14] mx-auto rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:w-24"></div>
+              <div className="mt-4 h-1 w-12 bg-indigo-400 mx-auto rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:w-24"></div>
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-md text-center transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:shadow-indigo-200/50 group">
-              <div className="bg-indigo-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-300 group-hover:bg-[#FCEB14]/20 relative overflow-hidden">
+              <div className="bg-indigo-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-300 group-hover:bg-indigo-200 relative overflow-hidden">
                 <div className="absolute w-full h-3 bg-[#FCEB14]/20 bottom-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -559,7 +706,7 @@ export default function Home() {
               <p className="text-gray-700">
                 Profitez de notre service de livraison rapide et sécurisé pour recevoir vos commandes en temps record.
               </p>
-              <div className="mt-4 h-1 w-12 bg-[#FCEB14] mx-auto rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:w-24"></div>
+              <div className="mt-4 h-1 w-12 bg-indigo-400 mx-auto rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:w-24"></div>
             </div>
           </div>
         </div>
@@ -577,9 +724,9 @@ export default function Home() {
       <section className="py-16 md:py-24 relative overflow-hidden">
         {/* Éléments graphiques abstraits */}
         {/* Formes abstraites évoquant le sourire */}
-        <div className="absolute left-0 top-1/3 w-64 h-64 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
+        <div className="absolute left-0 top-1/3 w-64 h-64 rounded-full bg-indigo-200 opacity-5 blur-3xl"></div>
         <div className="absolute right-0 bottom-1/4 w-72 h-72 rounded-full bg-indigo-200 opacity-10 blur-3xl"></div>
-        <div className="absolute left-1/4 right-1/4 top-1/3 h-32 border-b-8 border-[#FCEB14] opacity-5 rounded-b-full"></div>
+        <div className="absolute left-1/4 right-1/4 top-1/3 h-32 border-b-8 border-indigo-200 opacity-5 rounded-b-full"></div>
         
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
@@ -619,7 +766,7 @@ export default function Home() {
                   </span>
                 </div>
                 {/* Forme abstraite de sourire */}
-                <div className="absolute -left-4 -top-4 w-16 h-16 rounded-br-full border-4 border-[#FCEB14] opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                <div className="absolute -left-4 -top-4 w-16 h-16 rounded-br-full border-4 border-indigo-200 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </div>
               <div className="w-72 md:w-auto relative aspect-square overflow-hidden rounded-xl shadow-lg group transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-200/50">
                 <Image
@@ -636,7 +783,7 @@ export default function Home() {
                   </span>
                 </div>
                 {/* Forme abstraite de sourire */}
-                <div className="absolute -right-4 -top-4 w-16 h-16 rounded-bl-full border-4 border-[#FCEB14] opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                <div className="absolute -right-4 -top-4 w-16 h-16 rounded-bl-full border-4 border-indigo-200 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </div>
               <div className="w-72 md:w-auto relative aspect-square overflow-hidden rounded-xl shadow-lg group transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-200/50">
                 <Image
@@ -653,7 +800,7 @@ export default function Home() {
                   </span>
                 </div>
                 {/* Forme abstraite de sourire */}
-                <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-tr-full border-4 border-[#FCEB14] opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                <div className="absolute -left-4 -bottom-4 w-16 h-16 rounded-tr-full border-4 border-indigo-200 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </div>
               <div className="w-72 md:w-auto relative aspect-square overflow-hidden rounded-xl shadow-lg group transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-200/50">
                 <Image
@@ -670,14 +817,14 @@ export default function Home() {
                   </span>
                 </div>
                 {/* Forme abstraite de sourire */}
-                <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-tl-full border-4 border-[#FCEB14] opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-tl-full border-4 border-indigo-200 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </div>
             </div>
           </div>
           
           <div className="text-center mt-12 relative">
             {/* Formes abstraites évoquant le sourire */}
-            <div className="absolute left-1/3 -top-8 w-1/3 h-16 border-t-4 border-[#FCEB14] opacity-10 rounded-t-full"></div>
+            <div className="absolute left-1/3 -top-8 w-1/3 h-16 border-t-4 border-indigo-200 opacity-10 rounded-t-full"></div>
             
             <Link 
               href="/inspiration" 
@@ -695,7 +842,7 @@ export default function Home() {
       {/* Testimonials */}
       <section className="py-8 md:py-24 relative overflow-hidden">
         {/* Éléments graphiques abstraits */}
-        <div className="absolute right-1/4 top-1/3 w-56 h-56 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
+        <div className="absolute right-1/4 top-1/3 w-56 h-56 rounded-full bg-indigo-200 opacity-5 blur-3xl"></div>
         <div className="absolute left-1/3 bottom-1/4 w-64 h-64 rounded-full bg-indigo-200 opacity-10 blur-3xl"></div>
         
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -717,11 +864,11 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-xl shadow-md relative overflow-hidden transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:shadow-indigo-200/50 group">
               {/* Forme abstraite de sourire */}
-              <div className="absolute -right-12 -top-12 w-24 h-24 rounded-full border-8 border-[#FCEB14]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute -right-12 -top-12 w-24 h-24 rounded-full border-8 border-indigo-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
               <div className="flex items-center mb-4">
                 {[1, 2, 3, 4, 5].map((_, index) => (
-                  <div key={index} className="text-[#FCEB14] ml-1 first:ml-0">
+                  <div key={index} className="text-amber-400 ml-1 first:ml-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
@@ -733,21 +880,21 @@ export default function Home() {
                 <span className="relative">J'adore mes nouveaux t-shirts personnalisés de Smiletex ! La qualité est exceptionnelle et le service client est impeccable.</span>
               </p>
               <div className="font-bold text-gray-900 flex items-center">
-                <span className="inline-block w-8 h-0.5 bg-[#FCEB14] mr-2"></span>
+                <span className="inline-block w-8 h-0.5 bg-indigo-400 mr-2"></span>
                 Sophie Martin
               </div>
               
               {/* Indicateur de sourire subtil */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#FCEB14] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-md relative overflow-hidden transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:shadow-indigo-200/50 group">
               {/* Forme abstraite de sourire */}
-              <div className="absolute -right-12 -top-12 w-24 h-24 rounded-full border-8 border-[#FCEB14]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute -right-12 -top-12 w-24 h-24 rounded-full border-8 border-indigo-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
               <div className="flex items-center mb-4">
                 {[1, 2, 3, 4, 5].map((_, index) => (
-                  <div key={index} className="text-[#FCEB14] ml-1 first:ml-0">
+                  <div key={index} className="text-amber-400 ml-1 first:ml-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
@@ -759,21 +906,21 @@ export default function Home() {
                 <span className="relative">La personnalisation est incroyable ! J'ai pu créer exactement ce que je voulais et la livraison a été plus rapide que prévu.</span>
               </p>
               <div className="font-bold text-gray-900 flex items-center">
-                <span className="inline-block w-8 h-0.5 bg-[#FCEB14] mr-2"></span>
+                <span className="inline-block w-8 h-0.5 bg-indigo-400 mr-2"></span>
                 Thomas Dubois
               </div>
               
               {/* Indicateur de sourire subtil */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#FCEB14] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-md relative overflow-hidden transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:shadow-indigo-200/50 group">
               {/* Forme abstraite de sourire */}
-              <div className="absolute -right-12 -top-12 w-24 h-24 rounded-full border-8 border-[#FCEB14]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute -right-12 -top-12 w-24 h-24 rounded-full border-8 border-indigo-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
               <div className="flex items-center mb-4">
                 {[1, 2, 3, 4, 5].map((_, index) => (
-                  <div key={index} className="text-[#FCEB14] ml-1 first:ml-0">
+                  <div key={index} className="text-amber-400 ml-1 first:ml-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
@@ -785,21 +932,52 @@ export default function Home() {
                 <span className="relative">Smiletex offre un excellent rapport qualité-prix. Les vêtements sont confortables et les designs sont superbes !</span>
               </p>
               <div className="font-bold text-gray-900 flex items-center">
-                <span className="inline-block w-8 h-0.5 bg-[#FCEB14] mr-2"></span>
+                <span className="inline-block w-8 h-0.5 bg-indigo-400 mr-2"></span>
                 Julie Lefèvre
               </div>
               
               {/* Indicateur de sourire subtil */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#FCEB14] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Section des 5 étapes du projet */}
+      <section className="py-16 md:py-24 bg-white text-gray-800 relative overflow-hidden">
+        {/* Éléments graphiques abstraits */}
+        <div className="absolute left-0 top-1/3 w-64 h-64 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
+        <div className="absolute right-0 bottom-1/4 w-72 h-72 rounded-full bg-indigo-200 opacity-10 blur-3xl"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="text-center mb-12">
+            <div className="inline-block mb-3 bg-indigo-100 text-indigo-800 px-4 py-1 rounded-full text-sm font-semibold tracking-wide shadow-sm">
+              NOTRE PROCESSUS
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+              <span className="relative inline-block">
+                Les 5 étapes de
+                <span className="ml-2 relative inline-block text-indigo-600">
+                  votre projet
+                  <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
+                    <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+                  </svg>
+                </span>
+              </span>
+            </h2>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+              De la commande à la livraison, nous vous accompagnons à chaque étape de votre projet de personnalisation textile.
+            </p>
+          </div>
+          
+          <ProjectSteps />
         </div>
       </section>
 
       {/* Formulaire de devis urgent */}
       <section className="py-16 md:py-24 bg-gradient-to-b from-indigo-50 to-white text-gray-800 relative overflow-hidden">
         {/* Éléments graphiques abstraits améliorés */}
-        <div className="absolute left-0 top-1/4 w-72 h-72 rounded-full bg-[#FCEB14] opacity-5 blur-3xl animate-pulse-slow"></div>
+        <div className="absolute left-0 top-1/4 w-72 h-72 rounded-full bg-indigo-200 opacity-5 blur-3xl animate-pulse-slow"></div>
         <div className="absolute right-0 bottom-1/4 w-64 h-64 rounded-full bg-indigo-200 opacity-10 blur-3xl animate-pulse-slow"></div>
         <div className="absolute left-1/3 bottom-1/2 w-48 h-48 rounded-full bg-indigo-300 opacity-5 blur-3xl animate-pulse-slow"></div>
         
@@ -831,12 +1009,12 @@ export default function Home() {
           
           <div className="max-w-3xl mx-auto bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-gray-100 text-black relative backdrop-blur-sm bg-white/90">
             {/* Éléments décoratifs */}
-            <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full border-4 border-[#FCEB14] opacity-20"></div>
+            <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full border-4 border-indigo-200 opacity-20"></div>
             <div className="absolute -left-3 -bottom-3 w-24 h-24 rounded-full border-4 border-indigo-200 opacity-20"></div>
-            <div className="absolute right-1/4 -bottom-6 w-12 h-12 rounded-full bg-[#FCEB14] opacity-10"></div>
+            <div className="absolute right-1/4 -bottom-6 w-12 h-12 rounded-full bg-indigo-200 opacity-10"></div>
             
             {/* Badge de priorité */}
-            <div className="absolute -top-5 left-10 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-md transform -rotate-2">
+            <div className="absolute -top-5 left-10 bg-gradient-to-r from-[#FCEB14] to-yellow-500 text-indigo-900 text-xs font-bold px-4 py-1 rounded-full shadow-md transform -rotate-2">
               Prioritaire
             </div>
             
