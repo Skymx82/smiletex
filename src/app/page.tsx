@@ -519,7 +519,7 @@ export default function Home() {
                 <h3 className="text-lg font-bold text-gray-900">
                   <span className="text-indigo-600">{category.name} personnalisés</span>
                 </h3>
-                <Link href={`/products?category=${category.id}`} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center">
+                <Link href="/products" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center">
                   Voir tout
                   <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
