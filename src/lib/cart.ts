@@ -151,6 +151,9 @@ export const getCart = async (userId?: string): Promise<CartItem[]> => {
 export const saveCart = (cart: CartItem[]) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('cart', JSON.stringify(cart));
+    // Déclencher un événement personnalisé pour notifier les autres composants
+    const event = new CustomEvent('cartUpdated', { detail: cart });
+    window.dispatchEvent(event);
   }
 };
 
@@ -159,7 +162,18 @@ export const removeFromCart = async (itemId: string, userId?: string) => {
   // Mettre à jour le localStorage
   const localCart = await getLocalCart();
   const updatedCart = localCart.filter((item: CartItem) => item.id !== itemId);
-  saveCart(updatedCart);
+  
+  // Enregistrer le panier mis à jour et déclencher l'événement
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    
+    // Déclencher explicitement l'événement pour notifier les composants
+    const event = new CustomEvent('cartUpdated', { detail: updatedCart });
+    window.dispatchEvent(event);
+    
+    // Log pour débogage
+    console.log('Cart updated after removal:', updatedCart);
+  }
 
   // Si l'utilisateur est connecté, supprimer de Supabase
   if (userId) {
@@ -186,7 +200,18 @@ export const updateCartItemQuantity = async (itemId: string, quantity: number, u
     }
     return item;
   });
-  saveCart(updatedCart);
+  
+  // Enregistrer le panier mis à jour et déclencher l'événement
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    
+    // Déclencher explicitement l'événement pour notifier les composants
+    const event = new CustomEvent('cartUpdated', { detail: updatedCart });
+    window.dispatchEvent(event);
+    
+    // Log pour débogage
+    console.log('Cart updated after quantity change:', updatedCart);
+  }
 
   // Si l'utilisateur est connecté, mettre à jour dans Supabase
   if (userId) {
@@ -213,6 +238,14 @@ export const clearCart = async (userId?: string) => {
   // Vider le localStorage
   if (typeof window !== 'undefined') {
     localStorage.removeItem('cart');
+    
+    // Déclencher explicitement l'événement pour notifier les composants
+    // avec un tableau vide pour indiquer que le panier est vide
+    const event = new CustomEvent('cartUpdated', { detail: [] });
+    window.dispatchEvent(event);
+    
+    // Log pour débogage
+    console.log('Cart cleared');
   }
 
   // Si l'utilisateur est connecté, vider le panier dans Supabase

@@ -226,7 +226,12 @@ export default function CartPage() {
                     <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
                   </h2>
                   <button 
-                    onClick={clearCart}
+                    onClick={() => {
+                      clearCart();
+                      // Forcer une actualisation du compteur du panier
+                      const event = new CustomEvent('cartUpdated', { detail: [] });
+                      window.dispatchEvent(event);
+                    }}
                     className="text-sm text-red-600 hover:text-red-800 flex items-center transition-colors font-bold"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -387,7 +392,17 @@ export default function CartPage() {
                       <div className="mt-3 sm:mt-5 flex flex-col sm:flex-row justify-center sm:justify-between items-center space-y-4 sm:space-y-0">
                         <div className="flex items-center border-2 border-indigo-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow transition-all duration-300">
                           <button
-                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                            onClick={() => {
+                              updateQuantity(item.id, Math.max(1, item.quantity - 1));
+                              // Forcer une actualisation du compteur du panier
+                              const updatedCart = [...cart];
+                              const itemIndex = updatedCart.findIndex(cartItem => cartItem.id === item.id);
+                              if (itemIndex !== -1) {
+                                updatedCart[itemIndex].quantity = Math.max(1, item.quantity - 1);
+                              }
+                              const event = new CustomEvent('cartUpdated', { detail: updatedCart });
+                              window.dispatchEvent(event);
+                            }}
                             className="px-4 py-2 text-indigo-700 hover:bg-indigo-100 transition-colors relative overflow-hidden group"
                             aria-label="Diminuer la quantité"
                           >
@@ -395,7 +410,17 @@ export default function CartPage() {
                           </button>
                           <span className="px-4 py-2 text-gray-900 font-bold text-lg border-l border-r border-indigo-200">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => {
+                              updateQuantity(item.id, item.quantity + 1);
+                              // Forcer une actualisation du compteur du panier
+                              const updatedCart = [...cart];
+                              const itemIndex = updatedCart.findIndex(cartItem => cartItem.id === item.id);
+                              if (itemIndex !== -1) {
+                                updatedCart[itemIndex].quantity = item.quantity + 1;
+                              }
+                              const event = new CustomEvent('cartUpdated', { detail: updatedCart });
+                              window.dispatchEvent(event);
+                            }}
                             className="px-4 py-2 text-indigo-700 hover:bg-indigo-100 transition-colors relative overflow-hidden group"
                             aria-label="Augmenter la quantité"
                           >
@@ -405,7 +430,13 @@ export default function CartPage() {
                         
                         <div>
                           <button
-                            onClick={() => removeFromCart(item.id)}
+                            onClick={() => {
+                              removeFromCart(item.id);
+                              // Forcer une actualisation du compteur du panier en déclenchant un événement personnalisé
+                              const updatedCart = cart.filter(cartItem => cartItem.id !== item.id);
+                              const event = new CustomEvent('cartUpdated', { detail: updatedCart });
+                              window.dispatchEvent(event);
+                            }}
                             className="text-base font-bold text-indigo-700 hover:text-indigo-900 transition-colors flex items-center"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

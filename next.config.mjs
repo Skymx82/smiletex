@@ -11,7 +11,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['flivdthkxkcxyeaescrk.supabase.co'],
+    domains: ['smbfyruzxrozzhrrdast.supabase.co'],
   },
   webpack: (config) => {
     config.externals = [...(config.externals || []), { canvas: 'canvas' }];

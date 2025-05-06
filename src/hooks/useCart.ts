@@ -36,15 +36,29 @@ export function useCart() {
 
     initCart();
     
-    // Écouter les changements du localStorage
+    // Écouter les changements du localStorage et l'événement personnalisé
     const handleStorageChange = () => {
       const cartItems = getLocalCart();
       setCart(cartItems);
       setTotal(calculateCartTotal(cartItems));
     };
     
+    // Gestionnaire pour l'événement personnalisé cartUpdated
+    const handleCartUpdate = (event: CustomEvent<any>) => {
+      const updatedCart = event.detail;
+      if (updatedCart) {
+        setCart(updatedCart);
+        setTotal(calculateCartTotal(updatedCart));
+      }
+    };
+    
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
+    };
   }, []);
 
   // Ajouter un article au panier

@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCategories, CategoryWithChildren } from '@/hooks/useProducts';
 import { FaLeaf } from 'react-icons/fa';
+import CartCounter from '@/components/CartCounter';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,12 +27,50 @@ export default function Header() {
   const { categories, hierarchicalCategories, loading: categoriesLoading } = useCategories(false);
   
   // État local pour le nombre d'articles dans le panier
-  const [localItemCount, setLocalItemCount] = useState(0);
-
-  // Mettre à jour le compteur local quand le panier change
+  const [cartCount, setCartCount] = useState(0);
+  
+  // Fonction pour obtenir le nombre d'articles dans le panier depuis le localStorage
+  const getCartCount = () => {
+    if (typeof window === 'undefined') return 0;
+    
+    try {
+      const cartString = localStorage.getItem('cart');
+      if (!cartString) return 0;
+      
+      const cart = JSON.parse(cartString);
+      return Array.isArray(cart) ? cart.length : 0;
+    } catch (error) {
+      console.error('Erreur lors de la lecture du panier:', error);
+      return 0;
+    }
+  };
+  
+  // Mettre à jour le compteur du panier régulièrement
   useEffect(() => {
-    setLocalItemCount(itemCount);
-  }, [itemCount, cartItems]);
+    // Mettre à jour le compteur au chargement
+    setCartCount(getCartCount());
+    
+    // Créer un intervalle pour vérifier régulièrement le panier
+    const interval = setInterval(() => {
+      const newCount = getCartCount();
+      if (newCount !== cartCount) {
+        setCartCount(newCount);
+      }
+    }, 500); // Vérifier toutes les 500ms
+    
+    // Écouter les changements du localStorage
+    const handleStorageChange = () => {
+      setCartCount(getCartCount());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Nettoyer l'intervalle et l'écouteur lors du démontage du composant
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [cartCount]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -339,11 +378,7 @@ export default function Header() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              {localItemCount > 0 && (
-                <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-indigo-500 text-black text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium">
-                  {localItemCount}
-                </span>
-              )}
+              <CartCounter />
               <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-indigo-500 opacity-0 group-hover:opacity-100 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
             </Link>
             <button

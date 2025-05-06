@@ -75,6 +75,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const [itemCount, setItemCount] = useState(0);
+  // Ajout d'un état pour forcer les mises à jour
+  const [updateCounter, setUpdateCounter] = useState(0);
 
   // Charger le panier depuis le localStorage au chargement
   useEffect(() => {
@@ -89,26 +91,64 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Fonction pour forcer la mise à jour du panier
+  const forceUpdate = () => {
+    // Incrémenter le compteur pour forcer une mise à jour
+    setUpdateCounter(prev => prev + 1);
+    
+    // Récupérer le panier depuis le localStorage
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      try {
+        const parsedCart = JSON.parse(savedCart) as CartItem[];
+        setCartItems(parsedCart);
+        
+        // Mettre à jour les compteurs directement
+        const count = parsedCart.reduce((total: number, item: CartItem) => total + item.quantity, 0);
+        setCartCount(count);
+        
+        const total = parsedCart.reduce((sum: number, item: CartItem) => sum + (item.price * item.quantity), 0);
+        setCartTotal(total);
+        
+        const items = parsedCart.length;
+        setItemCount(items);
+        
+        console.log('Panier mis à jour avec force:', { items, count, total });
+      } catch (error) {
+        console.error('Erreur lors du chargement forcé du panier:', error);
+      }
+    } else {
+      // Si le panier est vide
+      setCartItems([]);
+      setCartCount(0);
+      setCartTotal(0);
+      setItemCount(0);
+      console.log('Panier vidé avec force');
+    }
+  };
+
   // Mettre à jour le localStorage lorsque le panier change
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
     
     // Calculer le nombre total d'articles
-    const count = cartItems.reduce((total, item) => total + item.quantity, 0);
+    const count = cartItems.reduce((total: number, item: CartItem) => total + item.quantity, 0);
     setCartCount(count);
     
     // Calculer le prix total
     // Note: Le prix de la personnalisation est déjà inclus dans item.price
     // lors de l'ajout au panier, donc nous n'avons pas besoin de le recalculer ici
-    const total = cartItems.reduce((sum, item) => {
+    const total = cartItems.reduce((sum: number, item: CartItem) => {
       return sum + (item.price * item.quantity);
     }, 0);
     setCartTotal(total);
     
     // Calculer le nombre d'articles
-    const items = cartItems.reduce((total, item) => total + 1, 0);
+    const items = cartItems.length;
     setItemCount(items);
-  }, [cartItems]);
+    
+    console.log('Mise à jour du panier:', { items, count, total });
+  }, [cartItems, updateCounter]);
 
   // Ajouter un article au panier
   const addToCart = (item: CartItem) => {
@@ -118,24 +158,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         prevItem => areItemsEqual(prevItem, item)
       );
 
+      let updatedItems;
       if (existingItemIndex >= 0) {
         // Si l'article existe, mettre à jour la quantité
-        const updatedItems = [...prevItems];
+        updatedItems = [...prevItems];
         updatedItems[existingItemIndex].quantity += item.quantity;
-        return updatedItems;
       } else {
         // Sinon, ajouter le nouvel article
-        return [...prevItems, { ...item }];
+        updatedItems = [...prevItems, { ...item }];
       }
+      
+      // Mettre à jour le localStorage directement
+      localStorage.setItem('cart', JSON.stringify(updatedItems));
+      
+      // Forcer la mise à jour du compteur
+      setTimeout(() => forceUpdate(), 0);
+      
+      return updatedItems;
     });
   };
 
   // Supprimer un article du panier
   const removeFromCart = (itemId: string, size?: string, color?: string, customization?: ProductCustomization) => {
     setCartItems(prevItems => {
+      let updatedItems;
       if (customization) {
         // Pour les articles personnalisés, supprimer l'article exact
-        return prevItems.filter(item => 
+        updatedItems = prevItems.filter(item => 
           !(item.id === itemId && 
             item.size === size && 
             item.color === color && 
@@ -143,20 +192,28 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
       } else {
         // Pour les articles standard, supprimer en fonction de l'ID, de la taille et de la couleur
-        return prevItems.filter(item => 
+        updatedItems = prevItems.filter(item => 
           !(item.id === itemId && 
             item.size === size && 
             item.color === color && 
             !item.customization)
         );
       }
+      
+      // Mettre à jour le localStorage directement
+      localStorage.setItem('cart', JSON.stringify(updatedItems));
+      
+      // Forcer la mise à jour du compteur
+      setTimeout(() => forceUpdate(), 0);
+      
+      return updatedItems;
     });
   };
 
   // Mettre à jour la quantité d'un article
   const updateQuantity = (itemId: string, quantity: number, size?: string, color?: string, customization?: ProductCustomization) => {
     setCartItems(prevItems => {
-      return prevItems.map(item => {
+      const updatedItems = prevItems.map(item => {
         if (customization) {
           // Pour les articles personnalisés, mettre à jour l'article exact
           if (item.id === itemId && 
@@ -176,12 +233,26 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return item;
       });
+      
+      // Mettre à jour le localStorage directement
+      localStorage.setItem('cart', JSON.stringify(updatedItems));
+      
+      // Forcer la mise à jour du compteur
+      setTimeout(() => forceUpdate(), 0);
+      
+      return updatedItems;
     });
   };
 
   // Vider le panier
   const clearCart = () => {
     setCartItems([]);
+    
+    // Vider le localStorage directement
+    localStorage.removeItem('cart');
+    
+    // Forcer la mise à jour du compteur
+    setTimeout(() => forceUpdate(), 0);
   };
 
   return (
