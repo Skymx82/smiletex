@@ -48,8 +48,8 @@ const ProjectSteps = () => {
               2
             </div>
           </div>
-          <h3 className="text-md font-bold text-indigo-700 text-center mb-1">Confirmation</h3>
-          <p className="text-xs text-gray-600 text-center">Un expert vous proposera un devis personnalisé</p>
+          <h3 className="text-md font-bold text-indigo-700 text-center mb-1">Paiement en ligne</h3>
+          <p className="text-xs text-gray-600 text-center">Réglez votre commande de manière sécurisée</p>
           
           {/* Flèche vers la droite */}
           <div className="absolute right-0 top-12 transform translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
@@ -165,8 +165,8 @@ const ProjectSteps = () => {
                   2
                 </div>
               </div>
-              <h3 className="text-xs sm:text-sm font-bold text-indigo-700 text-center mb-1">Confirmation</h3>
-              <p className="text-[10px] sm:text-xs text-gray-600 text-center">Devis personnalisé</p>
+              <h3 className="text-xs sm:text-sm font-bold text-indigo-700 text-center mb-1">Paiement en ligne</h3>
+              <p className="text-[10px] sm:text-xs text-gray-600 text-center">Paiement sécurisé</p>
               
               {/* Flèche vers la droite */}
               <div className="absolute right-0 top-10 transform translate-x-1/2 -translate-y-1/2 z-10">

@@ -41,9 +41,7 @@ export default function TechniqueModal({ isOpen, onClose, technique }: Technique
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                 <h3 className="text-2xl leading-6 font-bold mb-4 relative inline-block" id="modal-title">
                   <span className="text-indigo-700">{technique.title}</span>
-                  <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                    <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                  </svg>
+                  <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
                 </h3>
                 
                 <div className="relative h-56 mb-4 rounded-lg overflow-hidden">

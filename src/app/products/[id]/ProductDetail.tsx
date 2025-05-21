@@ -655,67 +655,42 @@ export default function ProductDetail({ id }: { id: string }) {
                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                       <p className="text-sm font-medium text-blue-800 mb-3">Choisissez votre option de livraison :</p>
                       
-                      {/* Option de livraison classique */}
-                      <div className="mb-2">
-                        <label className="flex items-start cursor-pointer p-2 rounded-lg hover:bg-yellow-100 transition-colors">
-                          <input 
-                            type="radio" 
-                            name="shipping-type" 
-                            value="normal" 
-                            checked={selectedShippingType === 'normal'}
-                            onChange={() => setSelectedShippingType('normal')}
-                            className="mt-1 mr-3 h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                          />
-                          <div>
-                            <p className="text-sm font-bold text-gray-800">Livraison classique</p>
-                            <div className="flex items-center">
-                              <span className="text-sm text-indigo-700 font-medium">3 semaines</span>
-                              <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">4,99 €</span>
-                            </div>
+                      <div className="grid grid-cols-3 gap-2 mb-4">
+                        {/* Option de livraison normale */}
+                        <div 
+                          onClick={() => setSelectedShippingType('normal')}
+                          className={`border ${selectedShippingType === 'normal' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'} rounded-lg p-3 hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm cursor-pointer text-center`}
+                        >
+                          <div className="mb-1">
+                            <h3 className="text-sm font-bold text-gray-800">Classique</h3>
                           </div>
-                        </label>
-                      </div>
-                      
-                      {/* Option de livraison prioritaire */}
-                      <div className="mb-2">
-                        <label className="flex items-start cursor-pointer p-2 rounded-lg hover:bg-yellow-100 transition-colors">
-                          <input 
-                            type="radio" 
-                            name="shipping-type" 
-                            value="fast" 
-                            checked={selectedShippingType === 'fast'}
-                            onChange={() => setSelectedShippingType('fast')}
-                            className="mt-1 mr-3 h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                          />
-                          <div>
-                            <p className="text-sm font-bold text-gray-800">Livraison prioritaire</p>
-                            <div className="flex items-center">
-                              <span className="text-sm text-indigo-700 font-medium">2 semaines</span>
-                              <span className="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-600 text-xs rounded-full">+9,99 €</span>
-                            </div>
+                          <div className="text-xs text-indigo-700 font-medium">3 semaines</div>
+                          <div className="mt-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full inline-block">4,99 €</div>
+                        </div>
+                        
+                        {/* Option de livraison prioritaire */}
+                        <div 
+                          onClick={() => setSelectedShippingType('fast')}
+                          className={`border ${selectedShippingType === 'fast' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'} rounded-lg p-3 hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm cursor-pointer text-center`}
+                        >
+                          <div className="mb-1">
+                            <h3 className="text-sm font-bold text-gray-800">Prioritaire</h3>
                           </div>
-                        </label>
-                      </div>
-                      
-                      {/* Option de livraison express */}
-                      <div className="mb-2">
-                        <label className="flex items-start cursor-pointer p-2 rounded-lg hover:bg-yellow-100 transition-colors">
-                          <input 
-                            type="radio" 
-                            name="shipping-type" 
-                            value="urgent" 
-                            checked={selectedShippingType === 'urgent'}
-                            onChange={() => setSelectedShippingType('urgent')}
-                            className="mt-1 mr-3 h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                          />
-                          <div>
-                            <p className="text-sm font-bold text-gray-800">Livraison express</p>
-                            <div className="flex items-center">
-                              <span className="text-sm text-indigo-700 font-medium">1 semaine (ou moins)</span>
-                              <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">+14,99 €</span>
-                            </div>
+                          <div className="text-xs text-indigo-700 font-medium">2 semaines</div>
+                          <div className="mt-1 px-2 py-0.5 bg-indigo-100 text-indigo-600 text-xs rounded-full inline-block">+9,99 €</div>
+                        </div>
+                        
+                        {/* Option de livraison express */}
+                        <div 
+                          onClick={() => setSelectedShippingType('urgent')}
+                          className={`border ${selectedShippingType === 'urgent' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'} rounded-lg p-3 hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm cursor-pointer text-center`}
+                        >
+                          <div className="mb-1">
+                            <h3 className="text-sm font-bold text-gray-800">Express</h3>
                           </div>
-                        </label>
+                          <div className="text-xs text-indigo-700 font-medium">1 semaine</div>
+                          <div className="mt-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full inline-block">+14,99 €</div>
+                        </div>
                       </div>
                       
                       <p className="text-xs text-blue-600 mt-3 italic">

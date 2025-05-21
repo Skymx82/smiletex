@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { ProductCustomization, SingleCustomization, Face } from '@/types/customization';
+import { ProductCustomization, SingleCustomization, Face, ContentType } from '@/types/customization';
 import { isSingleCustomizationComplete, isCustomizationComplete } from '@/lib/customization';
 
 // Définition des prix pour chaque type de personnalisation et position
@@ -29,10 +29,8 @@ interface ProductCustomizerProps {
   basePrice?: number;
 }
 
-
-
-// Composant de prévisualisation du t-shirt avec zone d'impression mise en évidence
-const TShirtZonePreview = ({ 
+// Composant pour afficher les informations sur la position sélectionnée
+const PositionInfo = ({ 
   face, 
   position
 }: { 
@@ -45,72 +43,43 @@ const TShirtZonePreview = ({
   const isCurrentFacePosition = position.startsWith(face === 'derriere' ? 'dos' : 'devant');
   if (!isCurrentFacePosition) return null;
   
-  // Image de base du t-shirt selon la face
-  const tshirtImage = face === 'devant' 
-    ? '/images/tshirt-front.png' 
-    : '/images/tshirt-back.png';
-  
-  // Définir les zones avec leurs positions et dimensions
-  const zones: Record<string, { name: string, style: React.CSSProperties }> = {
+  // Définir les zones avec leurs noms
+  const zones: Record<string, { name: string, description: string }> = {
     'devant-pec': { 
       name: 'Pec Gauche', 
-      style: { top: '22%', left: '30%', width: '60px', height: '60px', border: '2px dashed #3b82f6' }
+      description: 'Petite zone sur le côté gauche de la poitrine'
     },
     'devant-pecs': { 
       name: 'Deux Pecs', 
-      style: { top: '22%', left: '50%', transform: 'translateX(-50%)', width: '140px', height: '60px', border: '2px dashed #10b981' }
+      description: 'Zone horizontale couvrant les deux côtés de la poitrine'
     },
     'devant-complet': { 
       name: 'Devant Complet', 
-      style: { top: '30%', left: '50%', transform: 'translateX(-50%)', width: '180px', height: '180px', border: '2px dashed #8b5cf6' }
+      description: 'Grande zone couvrant l\'ensemble du devant du t-shirt'
     },
     'devant-centre': { 
       name: 'Centre', 
-      style: { top: '35%', left: '50%', transform: 'translateX(-50%)', width: '120px', height: '80px', border: '2px dashed #f59e0b' }
+      description: 'Zone centrale sur le devant du t-shirt'
     },
     'dos-haut': { 
       name: 'Haut du Dos', 
-      style: { top: '20%', left: '50%', transform: 'translateX(-50%)', width: '160px', height: '60px', border: '2px dashed #ef4444' }
+      description: 'Zone horizontale en haut du dos'
     },
     'dos-complet': { 
       name: 'Dos Complet', 
-      style: { top: '33%', left: '50%', transform: 'translateX(-50%)', width: '180px', height: '180px', border: '2px dashed #6366f1' }
+      description: 'Grande zone couvrant l\'ensemble du dos du t-shirt'
     }
   };
   
   const zoneInfo = zones[position] || { 
     name: 'Zone personnalisée', 
-    style: { top: '30%', left: '50%', transform: 'translateX(-50%)', width: '100px', height: '100px', border: '2px dashed #9ca3af' }
+    description: 'Position personnalisée sur le t-shirt'
   };
   
   return (
-    <div className="flex flex-col items-center justify-center p-4">
-      <div className="relative w-64 h-80">
-        {/* Image de base du t-shirt */}
-        <div className={`${face === 'devant' ? 'mt-4' : ''}`}>
-          <Image
-            src={tshirtImage}
-            alt={`T-shirt ${face === 'devant' ? 'face avant' : 'face arrière'}`}
-            width={250}
-            height={300}
-            className="object-contain"
-          />
-        </div>
-        
-        {/* Zone d'impression mise en évidence */}
-        <div 
-          className="absolute rounded-md flex items-center justify-center bg-white bg-opacity-20"
-          style={zoneInfo.style}
-        >
-          <div className="text-xs font-bold text-center p-1 bg-white bg-opacity-70 rounded shadow-sm">
-            {zoneInfo.name}
-          </div>
-        </div>
-      </div>
-      
-      <div className="text-sm text-gray-600 mt-2 font-medium">
-        Zone d'impression sélectionnée
-      </div>
+    <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+      <h4 className="font-semibold text-indigo-800 mb-1">{zoneInfo.name}</h4>
+      <p className="text-sm text-indigo-600">{zoneInfo.description}</p>
     </div>
   );
 };
@@ -132,13 +101,15 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
   const [frontCustomization, setFrontCustomization] = useState<SingleCustomization>({
     type: 'text',
     type_impression: 'impression', // Impression par défaut au lieu de broderie
-    face: 'devant' // Pour rétro-compatibilité
+    face: 'devant', // Pour rétro-compatibilité
+    image_url: undefined // Initialiser explicitement image_url
   });
   
   const [backCustomization, setBackCustomization] = useState<SingleCustomization>({
     type: 'text',
     type_impression: 'impression', // Impression par défaut au lieu de broderie
-    face: 'derriere' // Pour rétro-compatibilité
+    face: 'derriere', // Pour rétro-compatibilité
+    image_url: undefined // Initialiser explicitement image_url
   });
   
   // Helper pour obtenir la personnalisation actuelle en fonction de la face
@@ -176,11 +147,32 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
       });
     }
     
-    // Déclencher la mise à jour du prix après un court délai
-    setTimeout(() => handleSaveOnly(), 50);
+    // Ne pas déclencher handleSaveOnly() automatiquement ici pour éviter les boucles infinies
+    // La sauvegarde sera déclenchée explicitement après les changements importants
   };
 
-  const [selectedType, setSelectedType] = useState<'texte' | 'image'>('image');
+  // Types de contenu pour l'avant et l'arrière
+  const [frontContentType, setFrontContentType] = useState<'texte' | 'image'>('image');
+  const [backContentType, setBackContentType] = useState<'texte' | 'image'>('image');
+  
+  // Helper pour obtenir le type de contenu en fonction de la face actuelle
+  const getContentType = (): 'texte' | 'image' => {
+    return currentFace === 'devant' ? frontContentType : backContentType;
+  };
+  
+  // Helper pour définir le type de contenu en fonction de la face actuelle
+  const setContentType = (type: 'texte' | 'image') => {
+    if (currentFace === 'devant') {
+      setFrontContentType(type);
+    } else {
+      setBackContentType(type);
+    }
+  };
+  
+  // Helper pour obtenir le type de contenu actuel en fonction de la face
+  const getCurrentContentType = (): 'texte' | 'image' => {
+    return currentFace === 'devant' ? frontContentType : backContentType;
+  };
   
   // État pour stocker le prix total des personnalisations
   const [customizationPrice, setCustomizationPrice] = useState<number>(0);
@@ -200,9 +192,9 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
         setFrontCustomization(frontCustom);
         // Définir le type sélectionné en fonction de la personnalisation existante
         if (frontCustom.type === 'text') {
-          setSelectedType('texte');
+          setFrontContentType('texte');
         } else {
-          setSelectedType('image');
+          setFrontContentType('image');
         }
         // Définir la face actuelle comme étant devant
         setCurrentFace('devant');
@@ -214,9 +206,9 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
         // Si pas de personnalisation avant, utiliser le type de la personnalisation arrière
         if (!frontCustom) {
           if (backCustom.type === 'text') {
-            setSelectedType('texte');
+            setBackContentType('texte');
           } else {
-            setSelectedType('image');
+            setBackContentType('image');
           }
           // Définir la face actuelle comme étant derrière
           setCurrentFace('derriere');
@@ -280,39 +272,87 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
   // Fonction pour sauvegarder les personnalisations (définie avec useCallback pour éviter les références circulaires)
   const handleSaveOnly = useCallback(() => {
     console.log('Début de la sauvegarde des personnalisations');
-    console.log('État actuel - Front:', frontCustomization, 'Back:', backCustomization);
+    console.log('État actuel - Front:', {
+      position: frontCustomization.position,
+      type: frontCustomization.type,
+      type_impression: frontCustomization.type_impression,
+      image_url: frontCustomization.image_url ? 'Présent (longueur: ' + frontCustomization.image_url.length + ')' : 'Absent'
+    });
+    console.log('État actuel - Back:', {
+      position: backCustomization.position,
+      type: backCustomization.type,
+      type_impression: backCustomization.type_impression,
+      image_url: backCustomization.image_url ? 'Présent (longueur: ' + backCustomization.image_url.length + ')' : 'Absent'
+    });
+    console.log('Types de contenu - Front:', frontContentType, 'Back:', backContentType);
     
-    // Créer un seul objet de personnalisation avec toutes les informations
-    // Utiliser le type et le type d'impression communs aux deux faces
-    const type = selectedType === 'texte' ? 'text' : 'image';
-    const type_impression = frontCustomization.type_impression || backCustomization.type_impression || 'impression';
-    
-    // Créer l'objet de personnalisation unique
-    const singleCustomization: SingleCustomization = {
-      // Informations communes
-      type,
-      type_impression,
-      
-      // Positions avant et arrière
-      position_avant: frontCustomization.position || undefined,
-      position_arriere: backCustomization.position || undefined,
-      
-      // Informations spécifiques au type
-      texte: type === 'text' ? (frontCustomization.texte || backCustomization.texte || '') : undefined,
-      couleur_texte: type === 'text' ? (frontCustomization.couleur_texte || backCustomization.couleur_texte || '#000000') : undefined,
-      police: type === 'text' ? (frontCustomization.police || backCustomization.police || 'Arial') : undefined,
-      image_url: type === 'image' ? (frontCustomization.image_url || backCustomization.image_url) : undefined,
-    };
-    
-    // Vérifier si au moins une position est sélectionnée
-    const hasPosition = singleCustomization.position_avant || singleCustomization.position_arriere;
-    
-    // Créer la liste des personnalisations (dans ce cas, une seule)
+    // Créer deux objets de personnalisation distincts (un pour l'avant et un pour l'arrière)
     const updatedCustomizations = [];
     
-    // Ajouter la personnalisation si au moins une position est sélectionnée
-    if (hasPosition) {
-      updatedCustomizations.push(singleCustomization);
+    // Personnalisation pour l'avant
+    if (frontCustomization.position) {
+      const frontType = frontContentType === 'texte' ? 'text' : 'image';
+      const frontCustomizationObj: SingleCustomization = {
+        face: 'devant',
+        type: frontType,
+        type_impression: frontCustomization.type_impression || 'impression',
+        position: frontCustomization.position,
+        
+        // Informations spécifiques au type
+        texte: frontType === 'text' ? (frontCustomization.texte || '') : undefined,
+        couleur_texte: frontType === 'text' ? (frontCustomization.couleur_texte || '#000000') : undefined,
+        police: frontType === 'text' ? (frontCustomization.police || 'Arial') : undefined,
+        image_url: frontType === 'image' ? frontCustomization.image_url : undefined,
+      };
+      
+      // Vérification supplémentaire pour s'assurer que l'URL de l'image est bien définie
+      if (frontType === 'image' && frontCustomization.image_url) {
+        console.log('Image avant détectée et sauvegardée, longueur:', frontCustomization.image_url.length);
+        console.log('Début de l\'image avant:', frontCustomization.image_url.substring(0, 50) + '...');
+      } else if (frontType === 'image') {
+        console.warn('Type image sélectionné pour l\'avant mais aucune image_url trouvée');
+      }
+      
+      updatedCustomizations.push(frontCustomizationObj);
+      console.log('Personnalisation avant ajoutée:', {
+        face: frontCustomizationObj.face,
+        type: frontCustomizationObj.type,
+        position: frontCustomizationObj.position,
+        image_url: frontCustomizationObj.image_url ? 'Présent' : 'Absent'
+      });
+    }
+    
+    // Personnalisation pour l'arrière
+    if (backCustomization.position) {
+      const backType = backContentType === 'texte' ? 'text' : 'image';
+      const backCustomizationObj: SingleCustomization = {
+        face: 'derriere',
+        type: backType,
+        type_impression: backCustomization.type_impression || 'impression',
+        position: backCustomization.position,
+        
+        // Informations spécifiques au type
+        texte: backType === 'text' ? (backCustomization.texte || '') : undefined,
+        couleur_texte: backType === 'text' ? (backCustomization.couleur_texte || '#000000') : undefined,
+        police: backType === 'text' ? (backCustomization.police || 'Arial') : undefined,
+        image_url: backType === 'image' ? backCustomization.image_url : undefined,
+      };
+      
+      // Vérification supplémentaire pour s'assurer que l'URL de l'image est bien définie
+      if (backType === 'image' && backCustomization.image_url) {
+        console.log('Image arrière détectée et sauvegardée, longueur:', backCustomization.image_url.length);
+        console.log('Début de l\'image arrière:', backCustomization.image_url.substring(0, 50) + '...');
+      } else if (backType === 'image') {
+        console.warn('Type image sélectionné pour l\'arrière mais aucune image_url trouvée');
+      }
+      
+      updatedCustomizations.push(backCustomizationObj);
+      console.log('Personnalisation arrière ajoutée:', {
+        face: backCustomizationObj.face,
+        type: backCustomizationObj.type,
+        position: backCustomizationObj.position,
+        image_url: backCustomizationObj.image_url ? 'Présent' : 'Absent'
+      });
     }
     
     // Créer l'objet final de personnalisation
@@ -324,28 +364,31 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
     // Utiliser un prix de base unique pour le type d'impression, quel que soit le nombre de positions
     let totalPrice = 0;
     
+    // Déterminer le type d'impression commun (utiliser le premier disponible)
+    const type_impression = frontCustomization.type_impression || backCustomization.type_impression || 'impression';
+    
     // Prix de base pour le type d'impression (appliqué une seule fois)
-    const baseTypePrice = type_impression ? CUSTOMIZATION_PRICES.types[type_impression as keyof typeof CUSTOMIZATION_PRICES.types] || 0 : 0;
+    const baseTypePrice = CUSTOMIZATION_PRICES.types[type_impression as keyof typeof CUSTOMIZATION_PRICES.types] || 0;
     
     // Calculer le multiplicateur total pour toutes les positions
     let totalMultiplier = 0;
     
     // Multiplicateur pour la position avant
-    if (singleCustomization.position_avant) {
-      const positionMultiplier = CUSTOMIZATION_PRICES.positions[singleCustomization.position_avant as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
+    if (frontCustomization.position) {
+      const positionMultiplier = CUSTOMIZATION_PRICES.positions[frontCustomization.position as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
       totalMultiplier += positionMultiplier;
-      console.log(`Multiplicateur pour position avant ${singleCustomization.position_avant}: ${positionMultiplier}`);
+      console.log(`Multiplicateur pour position avant ${frontCustomization.position}: ${positionMultiplier}`);
     }
     
     // Multiplicateur pour la position arrière
-    if (singleCustomization.position_arriere) {
-      const positionMultiplier = CUSTOMIZATION_PRICES.positions[singleCustomization.position_arriere as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
+    if (backCustomization.position) {
+      const positionMultiplier = CUSTOMIZATION_PRICES.positions[backCustomization.position as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
       totalMultiplier += positionMultiplier;
-      console.log(`Multiplicateur pour position arrière ${singleCustomization.position_arriere}: ${positionMultiplier}`);
+      console.log(`Multiplicateur pour position arrière ${backCustomization.position}: ${positionMultiplier}`);
     }
     
     // Appliquer une réduction de 30% sur le multiplicateur total si les deux faces sont personnalisées
-    if (singleCustomization.position_avant && singleCustomization.position_arriere) {
+    if (frontCustomization.position && backCustomization.position) {
       totalMultiplier = totalMultiplier * 0.7; // Réduction de 30%
       console.log(`Réduction appliquée pour personnalisation recto-verso: -30%`);
     }
@@ -361,9 +404,11 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
     // Envoyer la personnalisation avec le prix
     console.log('Sauvegarde des personnalisations terminée:', finalProductCustomization, 'Prix:', totalPrice);
     onSave(finalProductCustomization, totalPrice);
-  }, [frontCustomization, backCustomization, selectedType, onSave]);
+  }, [frontCustomization, backCustomization, frontContentType, backContentType, onSave]);
   
   // Effet pour déclencher la sauvegarde lorsque les personnalisations changent
+  // Désactivé temporairement pour éviter les boucles infinies
+  /*
   useEffect(() => {
     // Ne pas déclencher lors du premier rendu
     if (frontCustomization !== initialCustomization?.customizations?.find(c => c.face === 'devant') ||
@@ -378,6 +423,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
       return () => clearTimeout(saveTimer);
     }
   }, [frontCustomization, backCustomization, handleSaveOnly, initialCustomization]);
+  */
 
   // Fonction pour mettre à jour le texte sur les deux faces
   const updateTexte = (texte: string) => {
@@ -416,7 +462,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
     }
     
     // Mettre à jour le type sélectionné
-    setSelectedType('texte');
+    setContentType('texte');
     
     // Déclencher la mise à jour des personnalisations
     setTimeout(() => handleSaveOnly(), 50);
@@ -524,18 +570,19 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
           type
         };
         
-        // Si le type est 'image' et que la face arrière a une image, la copier
-        if (type === 'image' && backCustomization.image_url) {
-          updatedState.image_url = backCustomization.image_url;
+        // Conserver le type de contenu actuel (image ou texte) pour la position avant
+        if (frontContentType === 'image') {
+          // Si le type de contenu est image, s'assurer que le type est correctement défini
+          updatedState.type = 'image';
+          // Garder l'image existante si elle existe
           updatedState.texte = undefined;
           updatedState.couleur_texte = undefined;
           updatedState.police = undefined;
         } 
-        // Si le type est 'text' et que la face arrière a du texte, le copier
-        else if (type === 'text' && backCustomization.texte) {
-          updatedState.texte = backCustomization.texte;
-          updatedState.couleur_texte = backCustomization.couleur_texte;
-          updatedState.police = backCustomization.police;
+        else if (frontContentType === 'texte') {
+          // Si le type de contenu est texte, s'assurer que le type est correctement défini
+          updatedState.type = 'text';
+          // Garder le texte existant si il existe
           updatedState.image_url = undefined;
         }
         
@@ -581,18 +628,19 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
           type
         };
         
-        // Si le type est 'image' et que la face avant a une image, la copier
-        if (type === 'image' && frontCustomization.image_url) {
-          updatedState.image_url = frontCustomization.image_url;
+        // Conserver le type de contenu actuel (image ou texte) pour la position arrière
+        if (backContentType === 'image') {
+          // Si le type de contenu est image, s'assurer que le type est correctement défini
+          updatedState.type = 'image';
+          // Garder l'image existante si elle existe
           updatedState.texte = undefined;
           updatedState.couleur_texte = undefined;
           updatedState.police = undefined;
         } 
-        // Si le type est 'text' et que la face avant a du texte, le copier
-        else if (type === 'text' && frontCustomization.texte) {
-          updatedState.texte = frontCustomization.texte;
-          updatedState.couleur_texte = frontCustomization.couleur_texte;
-          updatedState.police = frontCustomization.police;
+        else if (backContentType === 'texte') {
+          // Si le type de contenu est texte, s'assurer que le type est correctement défini
+          updatedState.type = 'text';
+          // Garder le texte existant si il existe
           updatedState.image_url = undefined;
         }
         
@@ -622,12 +670,12 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
   const isFormValid = () => {
     const frontValid = isSingleCustomizationComplete({
       ...frontCustomization,
-      type: selectedType === 'texte' ? 'text' : 'image'
+      type: frontContentType === 'texte' ? 'text' : 'image'
     });
     
     const backValid = isSingleCustomizationComplete({
       ...backCustomization,
-      type: selectedType === 'texte' ? 'text' : 'image'
+      type: backContentType === 'texte' ? 'text' : 'image'
     });
     
     // Le formulaire est valide si au moins une des personnalisations est complète
@@ -639,143 +687,30 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
 
 
   return (
-    <div className="bg-white w-full rounded-md border border-gray-200 shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-center p-4 border-b bg-gray-50">
-        <h2 className="text-lg font-medium text-gray-900">Personnalisez votre produit</h2>
-      </div>
-
-      {/* Contenu principal */}
-      <div className="p-4 md:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Colonne de gauche: Prévisualisation */}
-              <div className="bg-gray-50 rounded-lg p-4 flex flex-col items-center">
-                <h3 className="font-bold text-gray-800 text-sm mb-4">Prévisualisation</h3>
-                
-                {/* Boutons pour changer la face de prévisualisation */}
-                <div className="mb-4 flex items-center justify-center w-full max-w-xs">
-                  <div className="flex border rounded-lg overflow-hidden w-full">
-                    <button
-                      className={`flex-1 py-2 px-3 text-center font-medium ${currentFace === 'devant' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'} ${!hasFrontCustomization() ? 'opacity-50' : ''}`}
-                      onClick={() => switchPreviewFace('devant')}
-                      disabled={!hasFrontCustomization()}
-                    >
-                      <span className="flex items-center justify-center text-sm">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-                        </svg>
-                        Voir Devant {!hasFrontCustomization() && '(non sélectionné)'}
-                      </span>
-                    </button>
-                    <button
-                      className={`flex-1 py-2 px-3 text-center font-medium ${currentFace === 'derriere' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'} ${!hasBackCustomization() ? 'opacity-50' : ''}`}
-                      onClick={() => switchPreviewFace('derriere')}
-                      disabled={!hasBackCustomization()}
-                    >
-                      <span className="flex items-center justify-center text-sm">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                        </svg>
-                        Voir Arrière {!hasBackCustomization() && '(non sélectionné)'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Prévisualisation du t-shirt avec zone d'impression */}
-                {(currentFace === 'devant' && hasFrontCustomization()) || (currentFace === 'derriere' && hasBackCustomization()) ? (
-                  <TShirtZonePreview 
-                    face={currentFace} 
-                    position={currentFace === 'devant' 
-                      ? (frontCustomization.position_avant || frontCustomization.position || '') 
-                      : (backCustomization.position_arriere || backCustomization.position || '')
-                    } 
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg h-80 w-64">
-                    <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <div className="bg-white w-full">
+        {/* Options de personnalisation */}
+        <div className="col-span-1 lg:col-span-9 space-y-6 w-full">
+          {/* Section 1: Type d'impression */}
+          <div className="mb-8 pb-6 bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm w-full flex flex-col items-center">
+                  <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                     </svg>
-                    <p className="text-gray-500 text-center">
-                      {currentFace === 'devant' ? 'Aucune position avant sélectionnée' : 'Aucune position arrière sélectionnée'}
-                    </p>
-                    <p className="text-gray-400 text-sm text-center mt-2">
-                      Cliquez sur une position pour la sélectionner
-                    </p>
-                  </div>
-                )}
-                
-                {/* Informations sur la personnalisation actuelle */}
-                <div className="mt-4 text-sm text-gray-600 w-full max-w-xs">
-                  <div className="flex flex-col space-y-2 items-center justify-center">
-                    <div className="flex items-center justify-center px-3 py-2 bg-gray-100 rounded-lg w-full">
-                      <span className="font-medium mr-2">Type:</span> 
-                      <span className="font-bold">
-                        {getCurrentCustomization().type_impression === 'broderie' ? 'Broderie' : 
-                         getCurrentCustomization().type_impression === 'impression' ? 'Impression' : 'Non sélectionné'}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-center px-3 py-2 bg-gray-100 rounded-lg w-full">
-                      <span className="font-medium mr-2">Face:</span>
-                      <span className="font-bold">
-                        {currentFace === 'devant' ? 'Devant' : 'Derrière'}
-                      </span>
-                    </div>
-                    
-                    {(currentFace === 'devant' ? (frontCustomization?.position_avant || frontCustomization?.position) : (backCustomization?.position_arriere || backCustomization?.position)) && (
-                      <div className="flex items-center justify-center px-3 py-2 bg-gray-100 rounded-lg w-full">
-                        <span className="font-medium mr-2">Position:</span>
-                        <span className="font-bold">
-                          {currentFace === 'devant' 
-                            ? ((frontCustomization?.position_avant || frontCustomization?.position) ? (frontCustomization?.position_avant || frontCustomization?.position || '').split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Non sélectionnée')
-                            : ((backCustomization?.position_arriere || backCustomization?.position) ? (backCustomization?.position_arriere || backCustomization?.position || '').split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Non sélectionnée')
-                          }
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Affichage du prix de personnalisation */}
-                    <div className="flex items-center justify-center px-3 py-2 bg-indigo-100 rounded-lg w-full">
-                      <span className="font-medium mr-2">Prix supplémentaire:</span>
-                      <span className="font-bold text-indigo-700">
-                        {customizationPrice.toFixed(2)} €
-                      </span>
-                      {!isFormValid() && customizationPrice > 0 && (
-                        <span className="ml-2 text-xs text-gray-500">(appliqué seulement si complet)</span>
-                      )}
-                    </div>
-                    
-                    {basePrice > 0 && (
-                      <div className="flex items-center justify-center px-3 py-2 bg-green-100 rounded-lg w-full">
-                        <span className="font-medium mr-2">Prix total:</span>
-                        <span className="font-bold text-green-700">
-                          {(basePrice + customizationPrice).toFixed(2)} €
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Colonne de droite: Options de personnalisation */}
-              <div className="space-y-6">
-                {/* Section 1: Type d'impression */}
-                <div>
-                  <h3 className="font-bold text-gray-800 text-sm mb-3">Type d'impression</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                    Type d'impression
+                  </h3>
+                  <div className="flex justify-center gap-24 mt-2">
                     <button
-                      className={`relative overflow-hidden rounded-lg transition-all duration-200 ${getCurrentCustomization().type_impression === 'impression' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
-                      onClick={() => updateImpression('impression')}
+                      className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.type_impression === 'impression' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                      onClick={() => setBackCustomization(prev => ({ ...prev, type_impression: 'impression' }))}
                     >
-                      <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
+                      <div className="h-32 bg-gray-50 overflow-hidden relative">
                         <Image
                           src="/images/flocage.jpg"
                           alt="Impression"
                           fill
                           className="object-cover"
                         />
-                        {getCurrentCustomization().type_impression === 'impression' && (
+                        {backCustomization.type_impression === 'impression' && (
                           <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -794,17 +729,17 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                     </button>
                     
                     <button
-                      className={`relative overflow-hidden rounded-lg transition-all duration-200 ${getCurrentCustomization().type_impression === 'broderie' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
-                      onClick={() => updateImpression('broderie')}
+                      className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.type_impression === 'broderie' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                      onClick={() => setBackCustomization(prev => ({ ...prev, type_impression: 'broderie' }))}
                     >
-                      <div className="aspect-square w-full bg-gray-50 overflow-hidden relative">
+                      <div className="h-32 bg-gray-50 overflow-hidden relative">
                         <Image
                           src="/images/broderie.png"
                           alt="Broderie"
                           fill
                           className="object-cover"
                         />
-                        {getCurrentCustomization().type_impression === 'broderie' && (
+                        {backCustomization.type_impression === 'broderie' && (
                           <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full p-1 shadow-md z-10">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -825,24 +760,27 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                 </div>
 
                 {/* Section 2: Position */}
-                <div>
-                  <h3 className="font-bold text-gray-800 text-sm mb-3">Position</h3>
+                <div className="mb-8 pb-6 bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm">
+                  <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Position
+                  </h3>
                   
-                  <div className="mb-3 pb-2 border-b border-gray-200">
-                    <h4 className="text-xs font-semibold text-gray-600 mb-2">Position Avant</h4>
-                  
-                    <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
-                      <div className="col-span-2 mb-1">
-                        <div className="flex items-center">
-                          <div className={`h-3 w-3 rounded-full mr-2 ${backCustomization.position ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                          <span className="text-xs text-gray-600">{backCustomization.position ? 'Cliquez pour désélectionner' : 'Cliquez pour sélectionner'}</span>
-                        </div>
-                      </div>
+                    <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center justify-center">
+                      <svg className="w-4 h-4 mr-1.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                      </svg>
+                      Position Avant
+                    </h3>
+                    <div className="flex justify-center gap-4 mt-2">
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${frontCustomization.position === 'devant-pec' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${frontCustomization.position === 'devant-pec' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateFrontPosition('devant-pec')}
                       >
-                        <div className="aspect-square w-full max-w-[100px] mx-auto bg-gray-50 overflow-hidden relative">
+                        <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
                           <Image
                             src="/images/positions/devant-pec.png"
                             alt="Pec Gauche"
@@ -868,10 +806,10 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </button>
                       
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${frontCustomization.position === 'devant-pecs' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${frontCustomization.position === 'devant-pecs' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateFrontPosition('devant-pecs')}
                       >
-                        <div className="aspect-square w-full max-w-[80px] mx-auto bg-gray-50 overflow-hidden relative">
+                        <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
                           <Image
                             src="/images/positions/devant-pecs.png"
                             alt="Deux Pecs"
@@ -897,10 +835,10 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </button>
                       
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${frontCustomization.position === 'devant-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${frontCustomization.position === 'devant-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateFrontPosition('devant-complet')}
                       >
-                        <div className="aspect-square w-full max-w-[80px] mx-auto bg-gray-50 overflow-hidden relative">
+                        <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
                           <Image
                             src="/images/positions/devant-complet.png"
                             alt="Devant Complet"
@@ -926,10 +864,10 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </button>
                       
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${frontCustomization.position === 'devant-centre' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${frontCustomization.position === 'devant-centre' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateFrontPosition('devant-centre')}
                       >
-                        <div className="aspect-square w-full max-w-[80px] mx-auto bg-gray-50 overflow-hidden relative">
+                        <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
                           <Image
                             src="/images/positions/devant-centre.png"
                             alt="Centre"
@@ -954,22 +892,182 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                         </div>
                       </button>
                     </div>
+
+                  {/* Section: Contenu pour l'avant */}
+                  <h3 className="font-bold text-gray-800 text-lg mb-4 mt-6 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Contenu de la personnalisation Avant
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                    <button
+                      className={`p-4 border rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${frontContentType === 'image' ? 'border-indigo-600 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                      onClick={() => setFrontContentType('image')}
+                    >
+                      <svg className="w-6 h-6 mb-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-sm font-medium">Image</span>
+                    </button>
+                    
+                    <button
+                      className={`p-4 border rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${frontContentType === 'texte' ? 'border-indigo-600 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                      onClick={() => setFrontContentType('texte')}
+                    >
+                      <svg className="w-6 h-6 mb-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                      </svg>
+                      <span className="text-sm font-medium">Texte</span>
+                    </button>
                   </div>
                   
-                  <div className="mt-4">
-                    <h4 className="text-xs font-semibold text-gray-600 mb-2">Position Arrière</h4>
-                    <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
-                      <div className="col-span-2 mb-1">
-                        <div className="flex items-center">
-                          <div className={`h-3 w-3 rounded-full mr-2 ${backCustomization.position ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                          <span className="text-xs text-gray-600">{backCustomization.position ? 'Cliquez pour désélectionner' : 'Cliquez pour sélectionner'}</span>
-                        </div>
+                  {/* Contenu spécifique pour l'avant selon le type sélectionné */}
+                  {frontContentType === 'texte' ? (
+                    <div className="space-y-4 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Votre texte (Avant)
+                        </label>
+                        <input
+                          type="text"
+                          value={frontCustomization.texte || ''}
+                          onChange={(e) => setFrontCustomization(prev => ({ ...prev, texte: e.target.value, type: 'text' }))}
+                          className="w-full p-2 border rounded-md"
+                          placeholder="Entrez votre texte pour l'avant"
+                          style={{ fontFamily: frontCustomization.police || 'Arial' }}
+                        />
+                        {frontCustomization.texte && (
+                          <div className="mt-2 p-3 border border-gray-200 rounded-md bg-white">
+                            <p 
+                              className="text-center" 
+                              style={{ 
+                                fontFamily: frontCustomization.police || 'Arial',
+                                color: frontCustomization.couleur_texte || '#000000',
+                                fontSize: '18px'
+                              }}
+                            >
+                              {frontCustomization.texte}
+                            </p>
+                          </div>
+                        )}
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Couleur
+                        </label>
+                        <input
+                          type="color"
+                          value={frontCustomization.couleur_texte || '#000000'}
+                          onChange={(e) => setFrontCustomization(prev => ({ ...prev, couleur_texte: e.target.value }))}
+                          className="w-full h-10 p-1 border rounded-md"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Choisir l'image pour l'avant
+                      </label>
+                      <div className="space-y-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              console.log('Fichier sélectionné pour l\'avant:', file.name, file.size);
+                              try {
+                                // Vérifier la taille du fichier (max 5 Mo)
+                                const maxSize = 5 * 1024 * 1024; // 5 Mo en octets
+                                if (file.size > maxSize) {
+                                  throw new Error(`L'image est trop volumineuse. Taille maximale: 5 Mo`);
+                                }
+                                
+                                // Convertir le fichier en base64 pour stockage permanent
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  if (event.target?.result) {
+                                    // Stocker directement le base64 comme valeur de image_url
+                                    const base64String = event.target.result as string;
+                                    console.log('Image avant convertie en base64, longueur:', base64String.length);
+                                    
+                                    // Mettre à jour le type de contenu
+                                    setFrontContentType('image');
+                                    
+                                    // Mettre à jour la personnalisation avant avec l'image en base64
+                                    // Utiliser le type ContentType correct pour éviter les erreurs TypeScript
+                                    const imageType: ContentType = 'image';
+                                    
+                                    const updatedCustomization: SingleCustomization = {
+                                      ...frontCustomization,
+                                      image_url: base64String,
+                                      type: imageType
+                                    };
+                                    
+                                    // Mettre à jour l'état
+                                    setFrontCustomization(updatedCustomization);
+                                    
+                                    // Afficher les données pour débogage
+                                    console.log('Base64 avant sauvegardé:', base64String.substring(0, 50) + '...');
+                                    console.log('Mise à jour de frontCustomization avec image_url:', updatedCustomization.image_url ? 'Présent' : 'Absent');
+                                    
+                                    // Pas besoin de forcer la sauvegarde ici pour éviter les boucles infinies
+                                    // L'image est déjà sauvegardée dans l'état local
+                                  }
+                                };
+                                reader.onerror = (error) => {
+                                  console.error('Erreur FileReader:', error);
+                                  alert('Erreur lors de la lecture du fichier. Veuillez réessayer.');
+                                };
+                                reader.readAsDataURL(file);
+                              } catch (error) {
+                                // Récupérer le message d'erreur
+                                const errorMessage = error instanceof Error 
+                                  ? error.message 
+                                  : 'Erreur inconnue lors du chargement';
+                                
+                                console.error('Erreur lors du chargement de l\'image avant:', error);
+                                alert(`Erreur: ${errorMessage}`);
+                              }
+                            }
+                          }}
+                          className="w-full p-2 border rounded-md"
+                          title="Choisir l'image pour l'avant"
+                        />
+                        
+                        {frontCustomization.image_url && (
+                          <div className="flex flex-col items-center mt-3">
+                            <div className="relative h-32 w-32 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img 
+                                src={frontCustomization.image_url} 
+                                alt="Aperçu de l'image avant" 
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <p className="text-xs text-green-600 mt-1">Image avant prête à être utilisée</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="mt-4">
+                    <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center justify-center">
+                      <svg className="w-4 h-4 mr-1.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                      Position Arrière
+                    </h3>
+                    <div className="flex justify-center gap-4 mt-2">
+
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${backCustomization.position === 'dos-haut' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.position === 'dos-haut' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateBackPosition('dos-haut')}
                       >
-                        <div className="aspect-square w-full max-w-[80px] mx-auto bg-gray-50 overflow-hidden relative">
+                        <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
                           <Image
                             src="/images/positions/dos-haut.png"
                             alt="Haut du Dos"
@@ -995,10 +1093,10 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </button>
                       
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 ${backCustomization.position === 'dos-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.position === 'dos-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateBackPosition('dos-complet')}
                       >
-                        <div className="aspect-square w-full max-w-[80px] mx-auto bg-gray-50 overflow-hidden relative">
+                        <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
                           <Image
                             src="/images/positions/dos-complet.png"
                             alt="Dos Complet"
@@ -1025,25 +1123,35 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                     </div>
                 
                 {/* Section 3: Contenu */}
-                <div className="space-y-3">
-                  <h3 className="font-bold text-gray-800 text-sm">Contenu</h3>
+                  <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Contenu de la personnalisation Arrière
+                  </h3>
                   
-                  <div className="flex gap-4 mb-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
                     <button
-                      className={`flex-1 p-2 border rounded ${selectedType === 'image' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                      onClick={() => setSelectedType('image')}
+                      className={`p-4 border rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${backContentType === 'image' ? 'border-indigo-600 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                      onClick={() => setBackContentType('image')}
                     >
-                      Image
+                      <svg className="w-8 h-8 mb-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="font-medium">Image</span>
                     </button>
                     <button
-                      className={`flex-1 p-2 border rounded ${selectedType === 'texte' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'}`}
-                      onClick={() => setSelectedType('texte')}
+                      className={`p-4 border rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${backContentType === 'texte' ? 'border-indigo-600 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                      onClick={() => setBackContentType('texte')}
                     >
-                      Texte
+                      <svg className="w-8 h-8 mb-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span className="font-medium">Texte</span>
                     </button>
                   </div>
 
-                  {selectedType === 'texte' ? (
+                  {backContentType === 'texte' ? (
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1051,23 +1159,23 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                         </label>
                         <input
                           type="text"
-                          value={getCurrentCustomization().texte || ''}
-                          onChange={(e) => updateCurrentCustomization({ texte: e.target.value })}
+                          value={backCustomization.texte || ''}
+                          onChange={(e) => setBackCustomization(prev => ({ ...prev, texte: e.target.value, type: 'text' }))}
                           className="w-full p-2 border rounded-md"
-                          placeholder="Entrez votre texte"
-                          style={{ fontFamily: getCurrentCustomization().police || 'Arial' }}
+                          placeholder="Entrez votre texte pour l'arrière"
+                          style={{ fontFamily: backCustomization.police || 'Arial' }}
                         />
-                        {getCurrentCustomization().texte && (
+                        {backCustomization.texte && (
                           <div className="mt-2 p-3 border border-gray-200 rounded-md bg-white">
                             <p 
                               className="text-center" 
                               style={{ 
-                                fontFamily: getCurrentCustomization().police || 'Arial',
-                                color: getCurrentCustomization().couleur_texte || '#000000',
+                                fontFamily: backCustomization.police || 'Arial',
+                                color: backCustomization.couleur_texte || '#000000',
                                 fontSize: '18px'
                               }}
                             >
-                              {getCurrentCustomization().texte}
+                              {backCustomization.texte}
                             </p>
                           </div>
                         )}
@@ -1078,8 +1186,8 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                         </label>
                         <input
                           type="color"
-                          value={getCurrentCustomization().couleur_texte || '#000000'}
-                          onChange={(e) => updateCurrentCustomization({ couleur_texte: e.target.value })}
+                          value={backCustomization.couleur_texte || '#000000'}
+                          onChange={(e) => setBackCustomization(prev => ({ ...prev, couleur_texte: e.target.value }))}
                           className="w-full h-10 p-1 border rounded-md"
                         />
                       </div>
@@ -1087,11 +1195,11 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Police
                         </label>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
                           <button
                             type="button"
-                            onClick={() => updateCurrentCustomization({ police: 'Arial' })}
-                            className={`p-3 border ${getCurrentCustomization().police === 'Arial' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
+                            onClick={() => setBackCustomization(prev => ({ ...prev, police: 'Arial' }))}
+                            className={`p-3 border ${backCustomization.police === 'Arial' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
                           >
                             <p style={{ fontFamily: 'Arial' }} className="text-center font-medium">
                               Arial
@@ -1103,8 +1211,8 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                           
                           <button
                             type="button"
-                            onClick={() => updateCurrentCustomization({ police: 'Helvetica' })}
-                            className={`p-3 border ${getCurrentCustomization().police === 'Helvetica' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
+                            onClick={() => setBackCustomization(prev => ({ ...prev, police: 'Helvetica' }))}
+                            className={`p-3 border ${backCustomization.police === 'Helvetica' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
                           >
                             <p style={{ fontFamily: 'Helvetica' }} className="text-center font-medium">
                               Helvetica
@@ -1116,8 +1224,8 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                           
                           <button
                             type="button"
-                            onClick={() => updateCurrentCustomization({ police: 'Times New Roman' })}
-                            className={`p-3 border ${getCurrentCustomization().police === 'Times New Roman' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
+                            onClick={() => setBackCustomization(prev => ({ ...prev, police: 'Times New Roman' }))}
+                            className={`p-3 border ${backCustomization.police === 'Times New Roman' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-gray-300'} rounded-lg transition-all hover:border-indigo-400`}
                           >
                             <p style={{ fontFamily: '"Times New Roman"' }} className="text-center font-medium">
                               Times New Roman
@@ -1130,9 +1238,9 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </div>
                     </div>
                   ) : (
-                    <div>
+                    <div className="mb-6">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {currentFace === 'devant' ? 'Choisir l\'image devant' : 'Choisir l\'image derrière'}
+                        Choisir l'image pour l'arrière
                       </label>
                       <div className="space-y-3">
                         <input
@@ -1141,7 +1249,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              console.log('Fichier sélectionné:', file.name, file.size);
+                              console.log('Fichier sélectionné pour l\'arrière:', file.name, file.size);
                               try {
                                 // Vérifier la taille du fichier (max 5 Mo)
                                 const maxSize = 5 * 1024 * 1024; // 5 Mo en octets
@@ -1155,16 +1263,30 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                                   if (event.target?.result) {
                                     // Stocker directement le base64 comme valeur de image_url
                                     const base64String = event.target.result as string;
-                                    console.log('Image convertie en base64, longueur:', base64String.length);
-                                    updateCurrentCustomization({ 
+                                    console.log('Image arrière convertie en base64, longueur:', base64String.length);
+                                    
+                                    // Mettre à jour le type de contenu
+                                    setBackContentType('image');
+                                    
+                                    // Mettre à jour la personnalisation arrière avec l'image en base64
+                                    // Utiliser le type ContentType correct pour éviter les erreurs TypeScript
+                                    const imageType: ContentType = 'image';
+                                    
+                                    const updatedCustomization: SingleCustomization = {
+                                      ...backCustomization,
                                       image_url: base64String,
-                                      type: 'image' // S'assurer que le type est correctement défini
-                                    });
-                                    // Forcer la sauvegarde après le chargement de l'image
-                                    setTimeout(() => {
-                                      console.log('Forcer la sauvegarde après chargement d\'image');
-                                      handleSaveOnly();
-                                    }, 300);
+                                      type: imageType
+                                    };
+                                    
+                                    // Mettre à jour l'état
+                                    setBackCustomization(updatedCustomization);
+                                    
+                                    // Afficher les données pour débogage
+                                    console.log('Base64 arrière sauvegardé:', base64String.substring(0, 50) + '...');
+                                    console.log('Mise à jour de backCustomization avec image_url:', updatedCustomization.image_url ? 'Présent' : 'Absent');
+                                    
+                                    // Pas besoin de forcer la sauvegarde ici pour éviter les boucles infinies
+                                    // L'image est déjà sauvegardée dans l'état local
                                   }
                                 };
                                 reader.onerror = (error) => {
@@ -1178,26 +1300,26 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                                   ? error.message 
                                   : 'Erreur inconnue lors du chargement';
                                 
-                                console.error('Erreur lors du chargement de l\'image:', error);
+                                console.error('Erreur lors du chargement de l\'image arrière:', error);
                                 alert(`Erreur: ${errorMessage}`);
                               }
                             }
                           }}
                           className="w-full p-2 border rounded-md"
-                          title={currentFace === 'devant' ? 'Choisir l\'image devant' : 'Choisir l\'image derrière'}
+                          title="Choisir l'image pour l'arrière"
                         />
                         
-                        {getCurrentCustomization().image_url && (
+                        {backCustomization.image_url && (
                           <div className="flex flex-col items-center mt-3">
                             <div className="relative h-32 w-32 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img 
-                                src={getCurrentCustomization().image_url} 
-                                alt="Aperçu de l'image" 
+                                src={backCustomization.image_url} 
+                                alt="Aperçu de l'image arrière" 
                                 className="w-full h-full object-contain"
                               />
                             </div>
-                            <p className="text-xs text-green-600 mt-1">Image prête à être utilisée</p>
+                            <p className="text-xs text-green-600 mt-1">Image arrière prête à être utilisée</p>
                           </div>
                         )}
                       </div>
@@ -1207,8 +1329,5 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
   );
 }

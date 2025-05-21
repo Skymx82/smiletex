@@ -67,9 +67,7 @@ export default function AboutPage() {
             </span>
             <span className="ml-2 relative inline-block text-indigo-600">
               Histoire
-              <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-              </svg>
+              <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
             </span>
           </h2>
         </div>
@@ -119,9 +117,7 @@ export default function AboutPage() {
               </span>
               <span className="relative inline-block text-indigo-600 ml-2">
                 Valeurs
-                <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                </svg>
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
               </span>
             </h2>
           </div>
@@ -193,9 +189,7 @@ export default function AboutPage() {
             </span>
             <span className="relative inline-block text-indigo-600 ml-2">
               Mission
-              <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-              </svg>
+              <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
             </span>
           </h2>
         </div>
@@ -236,9 +230,7 @@ export default function AboutPage() {
               </span>
               <span className="relative inline-block text-indigo-600 ml-2">
                 marquage
-                <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                </svg>
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
               </span>
             </h2>
             <p className="text-lg text-gray-700 max-w-3xl mx-auto">
@@ -343,9 +335,7 @@ export default function AboutPage() {
             </span>
             <span className="relative inline-block text-indigo-600 ml-2">
               Expertise
-              <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-              </svg>
+              <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
             </span>
           </h2>
         </div>
@@ -399,9 +389,7 @@ export default function AboutPage() {
             </span>
             <span className="relative inline-block text-indigo-600 ml-2">
               smiletex
-              <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-              </svg>
+              <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
             </span>
           </h2>
           

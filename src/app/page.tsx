@@ -363,6 +363,24 @@ export default function Home() {
     { id: 'accessoire', name: 'Accessoires' },
     { id: 'bas', name: 'Bas' }
   ];
+  
+  // Fonction pour obtenir l'image correspondante à chaque catégorie
+  const getCategoryImage = (categoryId: string): string => {
+    // Correspondance entre les IDs de catégories et les images existantes
+    const imageMapping: {[key: string]: string} = {
+      't-shirt': '/images/t-shirt.jpg',
+      'polo': '/images/polo.jpg',
+      'sweat': '/images/sweat.jpg',
+      'pull': '/images/sweatshirt.jpg', // Utiliser sweatshirt comme fallback pour pull
+      'veste': '/images/veste.jpg',
+      'workwear': '/images/workwear.jpg',
+      'accessoire': '/images/casquette.png', // Utiliser casquette comme exemple d'accessoire
+      'bas': '/images/pantalon.png' // Utiliser pantalon comme exemple de bas
+    };
+    
+    // Retourner l'image correspondante ou une image par défaut
+    return imageMapping[categoryId] || '/images/placeholder.jpg';
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -503,114 +521,62 @@ export default function Home() {
                 Catégories de
               </span>
               <span className="ml-2 relative inline-block text-indigo-600">
-                produits personnalisés
-                <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                </svg>
+                vêtements personnalisés
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
               </span>
             </h2>
             <p className="text-lg text-gray-700 max-w-3xl mx-auto">
               Découvrez notre sélection de vêtements personnalisables par catégorie.
             </p>
           </div>
-          {categories.map((category, index) => (
-            <div key={category.id} className={index < categories.length - 1 ? "mb-6" : ""}>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold text-gray-900">
-                  <span className="text-indigo-600">{category.name} personnalisés</span>
-                </h3>
-                <Link href="/products" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center">
-                  Voir tout
-                  <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </Link>
-              </div>
-              
-              {loading ? (
-                <div className="flex items-center justify-center py-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 mr-2"></div>
-                  <p className="text-sm text-gray-700">Chargement...</p>
-                </div>
-              ) : !categoryProducts[category.id] || categoryProducts[category.id].length === 0 ? (
-                <p className="text-xs text-gray-700 py-2">Aucun produit disponible</p>
-              ) : (
-                <div className="relative group">
-                  {/* Conteneur du carousel avec défilement horizontal */}
-                  <div className="relative overflow-hidden">
-                    <div className="flex space-x-5 overflow-x-auto pb-4 px-1 scrollbar-hide scroll-smooth snap-x snap-mandatory" id={`carousel-${category.id}`}>
-                      {categoryProducts[category.id].slice(0, 6).map((product) => (
-                        <Link href={`/products/${product.id}`} key={product.id} className="flex-shrink-0 relative group snap-start">
-                          {/* Image du produit plus grande */}
-                          <div className="relative w-52 h-52 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
-                            <Image
-                              src={product.image_url || '/images/placeholder.jpg'}
-                              alt={product.name}
-                              fill
-                              sizes="(max-width: 640px) 45vw, (max-width: 768px) 208px, 208px"
-                              className="object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                            
-                            {/* Léger dégradé en bas pour assurer la lisibilité du texte */}
-                            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            
-                            {/* Nom du produit en bas de l'image */}
-                            <div className="absolute bottom-0 left-0 right-0 p-3">
-                              <p className="text-white font-medium truncate text-center">{product.name}</p>
-                            </div>
-                            
-                            {/* Bouton esthétique avec icône (indicateur visuel uniquement) */}
-                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-indigo-600 rounded-full p-2 shadow-md group-hover:bg-white transition-colors duration-200 transform group-hover:scale-105">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
+          
+          {/* Grille de catégories - 4 par ligne sur desktop, 2 sur mobile */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            {categories.map((category) => (
+              <Link 
+                href="/products" 
+                key={category.id} 
+                className="group relative overflow-hidden rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+              >
+                {/* Image de fond représentant la catégorie */}
+                <div className="relative aspect-square overflow-hidden">
+                  <Image
+                    src={getCategoryImage(category.id)}
+                    alt={category.name}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    priority={category.id === 't-shirt' || category.id === 'polo'}
+                  />
+                  
+                  {/* Dégradé pour assurer la lisibilité du texte */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
+                  
+                  {/* Nom de la catégorie en bas */}
+                  <div className="absolute inset-x-0 bottom-0 p-2 sm:p-3 md:p-4">
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-white group-hover:text-[#FCEB14] transition-colors duration-300">
+                      {category.name}
+                    </h3>
+                    <div className="flex items-center mt-0.5 sm:mt-1">
+                      <span className="text-xs sm:text-sm text-white/90 group-hover:text-white transition-colors duration-300">
+                        Découvrir
+                      </span>
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 ml-1 text-white/90 group-hover:text-[#FCEB14] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                      </svg>
                     </div>
                   </div>
                   
-                  {/* Boutons de navigation - visibles seulement au survol sur desktop, toujours visibles sur mobile */}
-                  {categoryProducts[category.id].length > 3 && (
-                    <>
-                      <button 
-                        onClick={() => {
-                          const carousel = document.getElementById(`carousel-${category.id}`);
-                          if (carousel) carousel.scrollBy({ left: -208, behavior: 'smooth' });
-                        }}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 text-indigo-600 rounded-full p-2 shadow-md z-10 opacity-0 group-hover:opacity-100 md:block hidden focus:opacity-100 transition-opacity"
-                        aria-label="Précédent"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                      <button 
-                        onClick={() => {
-                          const carousel = document.getElementById(`carousel-${category.id}`);
-                          if (carousel) carousel.scrollBy({ left: 208, behavior: 'smooth' });
-                        }}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 text-indigo-600 rounded-full p-2 shadow-md z-10 opacity-0 group-hover:opacity-100 md:block hidden focus:opacity-100 transition-opacity"
-                        aria-label="Suivant"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                      
-                      {/* Indicateurs de défilement pour mobile */}
-                      <div className="flex justify-center mt-2 space-x-1 md:hidden">
-                        {Array.from({ length: Math.min(Math.ceil(categoryProducts[category.id].length / 2), 3) }).map((_, i) => (
-                          <div key={i} className="w-2 h-2 rounded-full bg-gray-300"></div>
-                        ))}
-                      </div>
-                    </>
-                  )}
+                  {/* Indicateur visuel au survol - masqué sur mobile, visible sur desktop */}
+                  <div className="hidden sm:block absolute top-3 right-3 md:top-4 md:right-4 bg-white/0 text-white/0 rounded-full p-1.5 md:p-2 transform scale-90 opacity-0 group-hover:bg-white/90 group-hover:text-indigo-600 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
       
@@ -653,9 +619,7 @@ export default function Home() {
               </span>
               <span className="relative inline-block text-indigo-600 ml-2">
                 Smiletex
-                <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                </svg>
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
               </span>
               <span className="ml-1">?</span>
             </h2>
@@ -736,9 +700,7 @@ export default function Home() {
               </span>
               <span className="relative inline-block text-indigo-600">
                 -vous
-                <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                </svg>
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
               </span>
             </h2>
             <p className="text-lg text-gray-700 max-w-3xl mx-auto">
@@ -850,9 +812,7 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               <span className="relative inline-block">
                 Ce que disent
-                <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                </svg>
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
               </span>
               <span className="ml-2">nos clients</span>
             </h2>
@@ -959,9 +919,7 @@ export default function Home() {
                 Les 5 étapes de
                 <span className="ml-2 relative inline-block text-indigo-600">
                   votre projet
-                  <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                    <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                  </svg>
+                  <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
                 </span>
               </span>
             </h2>
@@ -996,9 +954,7 @@ export default function Home() {
                 Besoin de nous contacter
                 <span className="relative inline-block text-indigo-700 ml-2">
                   rapidement
-                  <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                    <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-                  </svg>
+                  <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
                 </span> ?
               </span>
             </h2>

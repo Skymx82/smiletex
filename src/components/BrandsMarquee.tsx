@@ -5,14 +5,13 @@ import Image from 'next/image';
 
 // Données des marques/fournisseurs
 const brandsData = [
-  { id: 1, name: 'Stanley/Stella', logo: '/images/brands/stanley-stella.png', alt: 'Stanley/Stella - T-shirts éco-responsables' },
-  { id: 2, name: 'Gildan', logo: '/images/brands/gildan.png', alt: 'Gildan - T-shirts de qualité' },
-  { id: 3, name: 'B&C Collection', logo: '/images/brands/bc-collection.png', alt: 'B&C Collection - Vêtements promotionnels' },
-  { id: 4, name: 'Fruit of the Loom', logo: '/images/brands/fruit-of-the-loom.png', alt: 'Fruit of the Loom - T-shirts classiques' },
-  { id: 5, name: 'Russell', logo: '/images/brands/russell.png', alt: 'Russell - Vêtements de sport' },
-  { id: 6, name: 'SOL\'S', logo: '/images/brands/sols.png', alt: 'SOL\'S - Textiles promotionnels' },
-  { id: 7, name: 'Kariban', logo: '/images/brands/kariban.png', alt: 'Kariban - Vêtements personnalisables' },
-  { id: 8, name: 'Bella+Canvas', logo: '/images/brands/bella-canvas.png', alt: 'Bella+Canvas - T-shirts premium' },
+  { id: 1, name: 'Gildan', logo: '/images/brands/gildan.png', alt: 'Gildan - T-shirts de qualité' },
+  { id: 2, name: 'B&C Collection', logo: '/images/brands/bc-collection.png', alt: 'B&C Collection - Vêtements promotionnels' },
+  { id: 3, name: 'Fruit of the Loom', logo: '/images/brands/fruit-of-the-loom.png', alt: 'Fruit of the Loom - T-shirts classiques' },
+  { id: 4, name: 'Russell', logo: '/images/brands/russell.png', alt: 'Russell - Vêtements de sport' },
+  { id: 5, name: 'SOL\'S', logo: '/images/brands/sols.png', alt: 'SOL\'S - Textiles promotionnels' },
+  { id: 6, name: 'Kariban', logo: '/images/brands/kariban.png', alt: 'Kariban - Vêtements personnalisables' },
+  { id: 7, name: 'Bella+Canvas', logo: '/images/brands/bella-canvas.png', alt: 'Bella+Canvas - T-shirts premium' },
 ];
 
 export default function BrandsMarquee() {
@@ -28,9 +27,7 @@ export default function BrandsMarquee() {
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             <span className="relative inline-block">
               Nos marques
-              <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-              </svg>
+              <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
             </span>
             <span className="ml-2">partenaires</span>
           </h2>
