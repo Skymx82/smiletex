@@ -467,7 +467,17 @@ export default function CartPage() {
               
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <p className="text-gray-800 font-medium">Sous-total</p>
+                  <p className="text-gray-800 font-medium">Prix HT</p>
+                  <p className="text-gray-900 font-bold">{(subtotal / 1.2).toFixed(2)} €</p>
+                </div>
+
+                <div className="flex justify-between">
+                  <p className="text-gray-800 font-medium">TVA (20%)</p>
+                  <p className="text-gray-900 font-bold">{(subtotal - subtotal / 1.2).toFixed(2)} €</p>
+                </div>
+                
+                <div className="flex justify-between">
+                  <p className="text-gray-800 font-medium">Sous-total TTC</p>
                   <p className="text-gray-900 font-bold">{subtotal.toFixed(2)} €</p>
                 </div>
                 

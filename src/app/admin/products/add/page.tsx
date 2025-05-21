@@ -17,6 +17,7 @@ type ProductFormData = {
   image_file: File | null;
   weight_gsm: number | null;
   supplier_reference: string;
+  material: string;
 };
 
 type VariantFormData = {
@@ -52,6 +53,7 @@ export default function AddProductPage() {
     image_file: null,
     weight_gsm: null,
     supplier_reference: '',
+    material: '',
   });
   
   // État pour les variantes
@@ -223,6 +225,7 @@ export default function AddProductPage() {
         is_new: productData.is_new,
         weight_gsm: productData.weight_gsm,
         supplier_reference: productData.supplier_reference,
+        material: productData.material,
       };
       
       const newProduct = await addProduct(productToAdd);
@@ -480,6 +483,21 @@ export default function AddProductPage() {
                 onChange={handleProductChange}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 placeholder="Ex: REF-12345"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="material">
+                Matière
+              </label>
+              <input
+                type="text"
+                id="material"
+                name="material"
+                value={productData.material}
+                onChange={handleProductChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="Ex: 100% coton bio"
               />
             </div>
           </div>

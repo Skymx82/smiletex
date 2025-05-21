@@ -424,8 +424,8 @@ export default function ProductDetail({ id }: { id: string }) {
                     Informations produit
                     <span className="ml-1 relative inline-block text-indigo-600">
                       smiletex
-                      <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                        <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+                      <svg className="absolute -bottom-1 left-0 w-full" height="3" viewBox="0 0 100 3" preserveAspectRatio="none">
+                        <path d="M0,0 L100,0 L100,3 L0,3 Z" fill="#FCEB14" />
                       </svg>
                     </span>
                   </h2>
@@ -450,12 +450,14 @@ export default function ProductDetail({ id }: { id: string }) {
                     </div>
 
                     <div>
-                      <h3 className="text-md font-semibold mb-1">Livraison</h3>
-                      <ul className="text-sm text-gray-600 space-y-1">
-                        <li>Livraison classique : 3 semaines</li>
-                        <li>Livraison prioritaire : 2 semaines</li>
-                        <li>Livraison express : 1 semaine (ou moins)</li>
-                      </ul>
+                      <h3 className="text-md font-semibold mb-1">Matière</h3>
+                      <p className="text-sm text-gray-600">
+                        {product.material ? (
+                          product.material
+                        ) : (
+                          <span className="italic text-gray-500">Non spécifiée</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>

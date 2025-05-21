@@ -13,6 +13,7 @@ export type Product = {
   is_new?: boolean;
   weight_gsm?: number | null; // Grammage du produit en g/m²
   supplier_reference?: string; // Référence du produit chez le fournisseur
+  material?: string; // Matière principale du produit
   created_at?: string;
   updated_at?: string;
   variants?: ProductVariant[]; // Ajout du champ variants optionnel
