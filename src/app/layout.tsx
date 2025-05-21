@@ -5,6 +5,14 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import JsonLd from "@/components/SEO/JsonLd";
+import { Fredoka } from 'next/font/google';
+
+const fredoka = Fredoka({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-fredoka',
+});
 
 export const metadata: Metadata = {
   title: "Smiletex - Personnalisation de vêtements à Lyon | Impression textile",
@@ -76,7 +84,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" className={fredoka.variable}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/images/logo_comp.png" type="image/png" />
