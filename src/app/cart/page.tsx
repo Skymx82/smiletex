@@ -181,8 +181,8 @@ export default function CartPage() {
         
         <h1 className="text-3xl font-bold text-gray-900 mb-8 relative inline-block">
           Votre Panier smiletex
-          <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-            <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+          <svg className="absolute -bottom-1 left-0 w-full" height="3" viewBox="0 0 100 3" preserveAspectRatio="none">
+            <path d="M0,0 L100,0 L100,3 L0,3 Z" fill="#FCEB14" />
           </svg>
         </h1>
         <div className="bg-white p-8 rounded-xl shadow-md border border-gray-200 text-center relative overflow-hidden">
@@ -207,8 +207,8 @@ export default function CartPage() {
       <div className="max-w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-8 relative">
         <h1 className="text-3xl font-bold text-gray-900 mb-6 relative inline-block">
           Votre Panier
-          <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-            <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
+          <svg className="absolute -bottom-1 left-0 w-full" height="3" viewBox="0 0 100 3" preserveAspectRatio="none">
+            <path d="M0,0 L100,0 L100,3 L0,3 Z" fill="#FCEB14" />
           </svg>
         </h1>
         
