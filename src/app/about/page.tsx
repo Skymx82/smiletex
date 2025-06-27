@@ -1,7 +1,11 @@
 'use client';
 
-import Link from 'next/link';
+import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
 
 // Composant pour les courbes souriantes
 const SmileCurve = ({ className, color = "text-white", rotate = false }: { className: string; color?: string; rotate?: boolean }) => (
@@ -75,13 +79,13 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-6">
             <p className="text-lg text-gray-700">
-              Fondée en 2020, smiletex est née d'une passion pour la personnalisation textile et d'une vision entrepreneuriale axée sur la qualité et l'innovation.
+              Fondée en 2020, Smiletex est née d'une passion pour la personnalisation textile et d'une vision entrepreneuriale axée sur la qualité et l'innovation.
             </p>
             <p className="text-lg text-gray-700">
               Ce qui a débuté comme une petite entreprise s'est rapidement développé grâce à un engagement constant envers l'excellence et la satisfaction client. En 2021, l'entreprise a connu un tournant décisif avec l'expansion de ses services et techniques de personnalisation.
             </p>
             <p className="text-lg text-gray-700">
-              En 2024, smiletex a franchi une nouvelle étape en se consacrant entièrement à l'art de la personnalisation textile, consolidant sa position sur le marché comme un acteur innovant alliant expertise technique et créativité sans limites.
+              En 2024, Smiletex a franchi une nouvelle étape en se consacrant entièrement à l'art de la personnalisation textile, consolidant sa position sur le marché comme un acteur innovant alliant expertise technique et créativité sans limites.
             </p>
             <div className="mt-8 h-1 w-24 bg-[#FCEB14] rounded-full"></div>
           </div>
@@ -199,8 +203,8 @@ export default function AboutPage() {
           <div className="absolute -right-12 -top-12 w-24 h-24 rounded-full border-8 border-[#FCEB14]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
           <p className="text-lg text-gray-700 relative">
-            <span className="absolute -left-2 top-0 text-4xl text-indigo-200 opacity-50">"</span>
-            <span className="relative ml-6">smiletex est bien plus qu'une entreprise de personnalisation textile. Notre mission est de transformer vos idées en créations uniques qui reflètent votre identité, tout en respectant des valeurs d'excellence, d'innovation et de durabilité.</span>
+            <span className="absolute left-1 top-0 text-4xl text-indigo-200 opacity-50">"</span>
+            <span className="relative ml-6">Smiletex est bien plus qu'une entreprise de personnalisation textile. Notre mission est de transformer vos idées en créations uniques qui reflètent votre identité, tout en respectant des valeurs d'excellence, d'innovation et de durabilité.</span>
           </p>
           <p className="text-lg text-gray-700 mt-4 ml-6">
             Nous nous engageons à fournir des produits de haute qualité, réalisés avec des matériaux soigneusement sélectionnés et des techniques de pointe, pour garantir des résultats qui dépassent vos attentes.
@@ -387,9 +391,17 @@ export default function AboutPage() {
             <span className="relative inline-block">
               Découvrez l'Excellence
             </span>
-            <span className="relative inline-block text-indigo-600 ml-2">
-              smiletex
-              <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
+            <span className="relative inline-block ml-2">
+              <div className="relative inline-flex items-center">
+                <Image 
+                  src="/images/logo.png" 
+                  alt="Logo Smiletex" 
+                  width={140} 
+                  height={40} 
+                  className="object-contain"
+                />
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
+              </div>
             </span>
           </h2>
           

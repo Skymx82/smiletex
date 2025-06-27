@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -573,6 +573,23 @@ export default function ProductDetail({ id }: { id: string }) {
                           <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
                         </span>
                       </h3>
+                      {/* Messages d'incitation pour les remises */}
+                      {totalItemsSelected > 0 && totalItemsSelected < 10 && (
+                        <div className="mb-3 text-sm text-indigo-600 font-medium p-2 bg-indigo-50 rounded-md">
+                          Ajoutez {10 - totalItemsSelected} article(s) de plus pour obtenir une remise de 5% !
+                        </div>
+                      )}
+                      {totalItemsSelected >= 10 && totalItemsSelected < 25 && (
+                        <div className="mb-3 text-sm text-indigo-600 font-medium p-2 bg-indigo-50 rounded-md">
+                          Ajoutez {25 - totalItemsSelected} article(s) de plus pour obtenir une remise de 10% !
+                        </div>
+                      )}
+                      {totalItemsSelected >= 25 && totalItemsSelected < 50 && (
+                        <div className="mb-3 text-sm text-indigo-600 font-medium p-2 bg-indigo-50 rounded-md">
+                          Ajoutez {50 - totalItemsSelected} article(s) de plus pour obtenir une remise de 15% !
+                        </div>
+                      )}
+                      
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {uniqueSizes.map((size) => {
                           // Trouver la variante pour cette taille et la couleur sélectionnée
@@ -823,21 +840,7 @@ export default function ProductDetail({ id }: { id: string }) {
                             <div>-15% sur le prix unitaire</div>
                           </div>
                         </div>
-                        {totalItemsSelected > 0 && totalItemsSelected < 10 && (
-                          <div className="mt-2 text-sm text-indigo-600 font-medium text-center">
-                            Ajoutez {10 - totalItemsSelected} article(s) de plus pour obtenir une remise de 5% !
-                          </div>
-                        )}
-                        {totalItemsSelected >= 10 && totalItemsSelected < 25 && (
-                          <div className="mt-2 text-sm text-indigo-600 font-medium text-center">
-                            Ajoutez {25 - totalItemsSelected} article(s) de plus pour obtenir une remise de 10% !
-                          </div>
-                        )}
-                        {totalItemsSelected >= 25 && totalItemsSelected < 50 && (
-                          <div className="mt-2 text-sm text-indigo-600 font-medium text-center">
-                            Ajoutez {50 - totalItemsSelected} article(s) de plus pour obtenir une remise de 15% !
-                          </div>
-                        )}
+                        {/* Messages d'incitation déplacés vers la section Taille et Quantité */}
                       </div>
                     )}
                   </div>

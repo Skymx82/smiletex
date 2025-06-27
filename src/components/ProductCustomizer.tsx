@@ -698,9 +698,9 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                     </svg>
                     Type d'impression
                   </h3>
-                  <div className="flex justify-center gap-24 mt-2">
+                  <div className="flex justify-center gap-4 sm:gap-8 md:gap-16 lg:gap-24 mt-2">
                     <button
-                      className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.type_impression === 'impression' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                      className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 sm:w-36 md:w-40 ${backCustomization.type_impression === 'impression' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                       onClick={() => setBackCustomization(prev => ({ ...prev, type_impression: 'impression' }))}
                     >
                       <div className="h-32 bg-gray-50 overflow-hidden relative">
@@ -729,7 +729,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                     </button>
                     
                     <button
-                      className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.type_impression === 'broderie' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                      className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 sm:w-36 md:w-40 ${backCustomization.type_impression === 'broderie' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                       onClick={() => setBackCustomization(prev => ({ ...prev, type_impression: 'broderie' }))}
                     >
                       <div className="h-32 bg-gray-50 overflow-hidden relative">
@@ -775,9 +775,9 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </svg>
                       Position Avant
                     </h3>
-                    <div className="flex justify-center gap-4 mt-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2 max-w-3xl mx-auto">
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${frontCustomization.position === 'devant-pec' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-full ${frontCustomization.position === 'devant-pec' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateFrontPosition('devant-pec')}
                       >
                         <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
@@ -806,7 +806,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </button>
                       
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${frontCustomization.position === 'devant-pecs' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-full ${frontCustomization.position === 'devant-pecs' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateFrontPosition('devant-pecs')}
                       >
                         <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
@@ -835,7 +835,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </button>
                       
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${frontCustomization.position === 'devant-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-full ${frontCustomization.position === 'devant-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateFrontPosition('devant-complet')}
                       >
                         <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
@@ -864,7 +864,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </button>
                       
                       <button
-                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${frontCustomization.position === 'devant-centre' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                        className={`relative overflow-hidden rounded-lg transition-all duration-200 w-full ${frontCustomization.position === 'devant-centre' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         onClick={() => updateFrontPosition('devant-centre')}
                       >
                         <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
@@ -1061,7 +1061,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       </svg>
                       Position Arrière
                     </h3>
-                    <div className="flex justify-center gap-4 mt-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2 max-w-3xl mx-auto">
 
                       <button
                         className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.position === 'dos-haut' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}

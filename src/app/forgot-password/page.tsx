@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
+
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);

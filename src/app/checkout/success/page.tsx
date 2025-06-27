@@ -9,6 +9,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/hooks/useCart';
 
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
+
 export default function CheckoutSuccessPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -233,7 +236,10 @@ function CheckoutSuccess() {
                       </p>
                       {item.customization && (
                         <p className="mt-1 text-sm text-gray-500">
-                          Personnalisation : {item.customization.text}
+                          Personnalisation : {item.customization && typeof item.customization === 'object' ? 
+                            // Accéder de façon sécurisée à la propriété text ou utiliser une autre propriété disponible
+                            (item.customization as any).text || JSON.stringify(item.customization)
+                            : String(item.customization)}
                         </p>
                       )}
                       <div className="mt-2 flex justify-between">
@@ -255,12 +261,12 @@ function CheckoutSuccess() {
                   </div>
                   <div className="flex justify-between text-base mt-2">
                     <p className="text-gray-600">Frais de livraison</p>
-                    <p className="font-medium text-gray-900">{orderDetails?.shippingCost.toFixed(2)} €</p>
+                    <p className="font-medium text-gray-900">{orderDetails?.shippingCost?.toFixed(2) || '0.00'} €</p>
                   </div>
                   <div className="flex justify-between text-lg font-bold mt-4 pt-4 border-t border-gray-200">
                     <p className="text-gray-900">Total</p>
                     <p className="text-indigo-600">
-                      {orderDetails?.total.toFixed(2)} €
+                      {orderDetails?.total?.toFixed(2) || '0.00'} €
                     </p>
                   </div>
                   {orderDetails?.shippingAddress && (

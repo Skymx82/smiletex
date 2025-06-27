@@ -9,6 +9,9 @@ import TechniquesMarquage from "@/components/TechniquesMarquage";
 import ProjectSteps from "@/components/ProjectSteps";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
+
 type Product = {
   id: string;
   name: string;
@@ -46,7 +49,7 @@ function UrgentQuoteForm() {
     phone: '',
     projectType: '',
     message: '',
-    urgentDelivery: true // Option de livraison express par défaut
+    urgentDelivery: false // Option de livraison express décochée par défaut
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -205,43 +208,7 @@ function UrgentQuoteForm() {
         </div>
       </div>
 
-      <div className="relative group">
-        <label 
-          htmlFor="projectType" 
-          className={`block text-sm font-medium transition-all duration-200 ${focusedField === 'projectType' || formData.projectType ? 'text-indigo-600' : 'text-gray-700'}`}
-        >
-          Type de projet<span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-          <select
-            id="projectType"
-            name="projectType"
-            required
-            value={formData.projectType}
-            onChange={(e) => setFormData(prev => ({ ...prev, projectType: e.target.value }))}
-            onFocus={() => setFocusedField('projectType')}
-            onBlur={() => setFocusedField(null)}
-            className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 pl-10 border transition-all duration-300 bg-gray-50 focus:bg-white appearance-none"
-          >
-            <option value="">Sélectionnez un type de projet</option>
-            <option value="t-shirt">T-shirt personnalisé</option>
-            <option value="hoodie">Sweat à capuche personnalisé</option>
-            <option value="accessory">Accessoire personnalisé</option>
-            <option value="other">Autre</option>
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-          <div className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 rounded-full w-full"></div>
-        </div>
-      </div>
+      {/* Le champ Type de projet a été supprimé */}
 
       <div className="relative group">
         <label 
@@ -256,7 +223,7 @@ function UrgentQuoteForm() {
             name="message"
             rows={4}
             required
-            placeholder="Décrivez votre projet en détail..."
+            placeholder="Décrivez votre projet en détail (ex: 5 t-shirts et 2 pulls avec logo d'entreprise, délai souhaité...)"
             value={formData.message}
             onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
             onFocus={() => setFocusedField('message')}
@@ -836,7 +803,7 @@ export default function Home() {
                 ))}
               </div>
               <p className="text-gray-700 mb-4 relative">
-                <span className="absolute -left-2 top-0 text-4xl text-indigo-200 opacity-50">"</span>
+                <span className="absolute -left-4 top-0 text-4xl text-indigo-200 opacity-50">"</span>
                 <span className="relative">J'adore mes nouveaux t-shirts personnalisés de Smiletex ! La qualité est exceptionnelle et le service client est impeccable.</span>
               </p>
               <div className="font-bold text-gray-900 flex items-center">
@@ -862,7 +829,7 @@ export default function Home() {
                 ))}
               </div>
               <p className="text-gray-700 mb-4 relative">
-                <span className="absolute -left-2 top-0 text-4xl text-indigo-200 opacity-50">"</span>
+                <span className="absolute -left-4 top-0 text-4xl text-indigo-200 opacity-50">"</span>
                 <span className="relative">La personnalisation est incroyable ! J'ai pu créer exactement ce que je voulais et la livraison a été plus rapide que prévu.</span>
               </p>
               <div className="font-bold text-gray-900 flex items-center">
@@ -888,7 +855,7 @@ export default function Home() {
                 ))}
               </div>
               <p className="text-gray-700 mb-4 relative">
-                <span className="absolute -left-2 top-0 text-4xl text-indigo-200 opacity-50">"</span>
+                <span className="absolute -left-4 top-0 text-4xl text-indigo-200 opacity-50">"</span>
                 <span className="relative">Smiletex offre un excellent rapport qualité-prix. Les vêtements sont confortables et les designs sont superbes !</span>
               </p>
               <div className="font-bold text-gray-900 flex items-center">

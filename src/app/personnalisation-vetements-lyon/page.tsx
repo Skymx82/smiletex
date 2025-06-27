@@ -3,6 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Metadata } from 'next';
 
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Personnalisation de vêtements à Lyon | Smiletex - Expert en textile personnalisé',
   description: 'Smiletex, votre spécialiste de la personnalisation de vêtements à Lyon. Impression textile, flocage, broderie pour entreprises et particuliers. Devis gratuit et livraison rapide.',

@@ -99,9 +99,6 @@ function ProductsContent() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6 relative inline-block">
               <span className="relative block sm:inline-block">
                 Nos Produits
-                <svg className="absolute -bottom-1 sm:-bottom-2 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                  <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#6366F1" />
-                </svg>
               </span>
               <span className="block sm:inline-block sm:ml-3 text-indigo-600 mt-1 sm:mt-0">Smiletex</span>
             </h1>

@@ -8,7 +8,9 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
 import AddressModal from '@/components/AddressModal';
+
 import { fetchCustomerProfile } from '@/lib/supabase/services/userService';
+
 
 export default function CartPage() {
   const { cart, isLoading, total, removeFromCart, updateQuantity, clearCart, createCheckoutSession } = useCart();
@@ -265,8 +267,13 @@ export default function CartPage() {
                           {/* Informations sur la couleur et la taille */}
                           <p className="mt-1 text-sm text-gray-800">
                             {item.color && item.size && (
-                              <span className="font-semibold">
-                                {item.color}, {item.size}
+                              <span className="font-semibold flex items-center">
+                                <span 
+                                  className="inline-block w-5 h-5 mr-2 rounded-full border border-gray-300" 
+                                  style={{ backgroundColor: item.color }}
+                                  title={item.color}
+                                ></span>
+                                {item.size}
                               </span>
                             )}
                           </p>

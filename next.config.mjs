@@ -13,6 +13,9 @@ const nextConfig = {
   images: {
     domains: ['flivdthkxkcxyeaescrk.supabase.co','smbfyruzxrozzhrrdast.supabase.co'],
   },
+  // Configuration pour résoudre les problèmes de build
+  reactStrictMode: false,
+  swcMinify: true,
   webpack: (config) => {
     config.externals = [...(config.externals || []), { canvas: 'canvas' }];
     

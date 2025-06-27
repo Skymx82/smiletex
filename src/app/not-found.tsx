@@ -1,4 +1,9 @@
+'use client';
+
 import Link from 'next/link';
+
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
   return (

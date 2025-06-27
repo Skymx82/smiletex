@@ -7,6 +7,9 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
+
 export default function Register() {
   const router = useRouter();
   const { signUp } = useAuth();
