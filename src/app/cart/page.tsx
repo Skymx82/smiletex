@@ -227,10 +227,8 @@ export default function CartPage() {
                   </h2>
                   <button 
                     onClick={() => {
+                      // Appeler clearCart est suffisant car cette fonction déclenche déjà l'événement cartUpdated
                       clearCart();
-                      // Forcer une actualisation du compteur du panier
-                      const event = new CustomEvent('cartUpdated', { detail: [] });
-                      window.dispatchEvent(event);
                     }}
                     className="text-sm text-red-600 hover:text-red-800 flex items-center transition-colors font-bold"
                   >

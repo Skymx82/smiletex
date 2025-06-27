@@ -235,9 +235,9 @@ export const calculateCartTotal = (cart: CartItem[]) => {
 
 // Fonction pour vider le panier
 export const clearCart = async (userId?: string) => {
-  // Vider le localStorage
+  // Vider le localStorage en définissant un tableau vide au lieu de supprimer la clé
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('cart');
+    localStorage.setItem('cart', JSON.stringify([]));
     
     // Déclencher explicitement l'événement pour notifier les composants
     // avec un tableau vide pour indiquer que le panier est vide

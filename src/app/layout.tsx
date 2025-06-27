@@ -80,6 +80,7 @@ export default function RootLayout({
     <html lang="fr">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <meta name="google-site-verification" content="_M_Oh-m-2Nt3STjF8S6dITKn1q6zkS30V37opRpEAe8" />
         <link rel="icon" href="/images/logo_comp.png" type="image/png" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/images/logo_comp.png" />
