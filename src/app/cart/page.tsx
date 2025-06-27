@@ -8,9 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
 import AddressModal from '@/components/AddressModal';
-
 import { fetchCustomerProfile } from '@/lib/supabase/services/userService';
-
 
 export default function CartPage() {
   const { cart, isLoading, total, removeFromCart, updateQuantity, clearCart, createCheckoutSession } = useCart();

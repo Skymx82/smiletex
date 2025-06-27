@@ -9,9 +9,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/hooks/useCart';
 
-// Désactiver la génération statique pour cette page
-export const dynamic = 'force-dynamic';
-
 export default function CheckoutSuccessPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">

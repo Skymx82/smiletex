@@ -4,9 +4,6 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-// Désactiver la génération statique pour cette page
-export const dynamic = 'force-dynamic';
-
 // Composant pour les courbes souriantes
 const SmileCurve = ({ className, color = "text-white", rotate = false }: { className: string; color?: string; rotate?: boolean }) => (
   <svg 

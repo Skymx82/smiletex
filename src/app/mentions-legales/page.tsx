@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-// Désactiver la génération statique pour cette page
-export const dynamic = 'force-dynamic';
 
 export default function MentionsLegales() {
   const [activeTab, setActiveTab] = useState('mentions');
