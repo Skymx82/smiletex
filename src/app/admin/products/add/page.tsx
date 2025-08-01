@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Category } from '@/lib/products';
 import { fetchCategories } from '@/lib/supabase/services/productService';
-import { addProduct, addProductVariant, uploadProductImage } from '@/lib/supabase/services/adminService';
+import { 
+  addProduct, 
+  addProductVariant, 
+  uploadProductImage, 
+  addProductImage 
+} from '@/lib/supabase/services/adminService';
 
 type ProductFormData = {
   name: string;
@@ -14,10 +19,17 @@ type ProductFormData = {
   category_id: string;
   is_featured: boolean;
   is_new: boolean;
-  image_file: File | null;
+  image_file: File | null; // Image principale (pour compatibilité)
+  image_files: File[]; // Images multiples
   weight_gsm: number | null;
   supplier_reference: string;
   material: string;
+};
+
+type ProductImageData = {
+  file: File;
+  preview: string;
+  isPrimary: boolean;
 };
 
 type VariantFormData = {
@@ -26,6 +38,7 @@ type VariantFormData = {
   stock_quantity: number;
   price_adjustment: number;
   sku: string;
+  images: ProductImageData[];
 };
 
 // Tailles et couleurs prédéfinies pour faciliter la génération de variantes
@@ -51,14 +64,18 @@ export default function AddProductPage() {
     is_featured: false,
     is_new: false,
     image_file: null,
+    image_files: [],
     weight_gsm: null,
     supplier_reference: '',
     material: '',
   });
   
+  // État pour gérer les images multiples avec prévisualisation
+  const [productImages, setProductImages] = useState<ProductImageData[]>([]);
+  
   // État pour les variantes
   const [variants, setVariants] = useState<VariantFormData[]>([
-    { size: '', color: '', stock_quantity: 0, price_adjustment: 0, sku: '' }
+    { size: '', color: '', stock_quantity: 0, price_adjustment: 0, sku: '', images: [] }
   ]);
   
   // États pour les catégories
@@ -75,6 +92,7 @@ export default function AddProductPage() {
   const [colorsInput, setColorsInput] = useState<string>('');
   const [defaultStock, setDefaultStock] = useState<number>(10);
   const [defaultPriceAdjustment, setDefaultPriceAdjustment] = useState<number>(0);
+  const [variantGeneratorImages, setVariantGeneratorImages] = useState<ProductImageData[]>([]);
   
   // Charger les catégories au chargement de la page
   useEffect(() => {
@@ -102,19 +120,104 @@ export default function AddProductPage() {
     }
   };
   
-  // Gérer le téléchargement d'image
+  // Gérer le téléchargement d'images multiples
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setProductData({ ...productData, image_file: file });
-      
-      // Créer une prévisualisation de l'image
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    // Pour la compatibilité, conserver également l'image principale
+    if (files.length > 0 && !productData.image_file) {
+      setProductData(prev => ({ ...prev, image_file: files[0] }));
     }
+    
+    // Ajouter les nouvelles images à la liste existante
+    const newImages: ProductImageData[] = [];
+    
+    Array.from(files).forEach(file => {
+      // Vérifier si l'image existe déjà dans la liste
+      const fileExists = productImages.some(img => 
+        img.file.name === file.name && 
+        img.file.size === file.size && 
+        img.file.type === file.type
+      );
+      
+      if (!fileExists) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const isPrimary = productImages.length === 0 && newImages.length === 0;
+          
+          newImages.push({
+            file,
+            preview: reader.result as string,
+            isPrimary
+          });
+          
+          // Si c'est la dernière image à traiter, mettre à jour l'état
+          if (newImages.length === Array.from(files).filter(f => 
+            !productImages.some(img => 
+              img.file.name === f.name && 
+              img.file.size === f.size && 
+              img.file.type === f.type
+            )
+          ).length) {
+            setProductImages(prev => [...prev, ...newImages]);
+            setProductData(prev => ({ 
+              ...prev, 
+              image_files: [...prev.image_files, ...newImages.map(img => img.file)] 
+            }));
+            
+            // Mettre à jour l'aperçu de l'image principale pour la compatibilité
+            if (!imagePreview && newImages.length > 0) {
+              setImagePreview(newImages[0].preview);
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+  
+  // Supprimer une image de la liste
+  const removeImage = (index: number) => {
+    const newImages = [...productImages];
+    const removedImage = newImages.splice(index, 1)[0];
+    
+    // Si l'image supprimée était l'image principale, définir la première image restante comme principale
+    if (removedImage.isPrimary && newImages.length > 0) {
+      newImages[0].isPrimary = true;
+    }
+    
+    setProductImages(newImages);
+    setProductData(prev => ({
+      ...prev,
+      image_files: newImages.map(img => img.file),
+      image_file: newImages.length > 0 ? newImages[0].file : null
+    }));
+    
+    // Mettre à jour l'aperçu de l'image principale
+    if (newImages.length > 0) {
+      const primaryImage = newImages.find(img => img.isPrimary) || newImages[0];
+      setImagePreview(primaryImage.preview);
+    } else {
+      setImagePreview(null);
+    }
+  };
+  
+  // Définir une image comme principale
+  const setAsPrimary = (index: number) => {
+    const newImages = productImages.map((img, i) => ({
+      ...img,
+      isPrimary: i === index
+    }));
+    
+    setProductImages(newImages);
+    setProductData(prev => ({
+      ...prev,
+      image_file: newImages[index].file
+    }));
+    
+    // Mettre à jour l'aperçu de l'image principale
+    setImagePreview(newImages[index].preview);
   };
   
   // Gérer les changements dans les variantes
@@ -125,9 +228,158 @@ export default function AddProductPage() {
     setVariants(newVariants);
   };
   
+  // Gérer le téléchargement d'images pour le générateur de variantes
+  const handleVariantGeneratorImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    // Ajouter les nouvelles images à la liste existante
+    const newImages: ProductImageData[] = [];
+    
+    Array.from(files).forEach(file => {
+      // Vérifier si l'image existe déjà dans la liste
+      const fileExists = variantGeneratorImages.some(img => 
+        img.file.name === file.name && 
+        img.file.size === file.size && 
+        img.file.type === file.type
+      );
+      
+      if (!fileExists) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const isPrimary = variantGeneratorImages.length === 0 && newImages.length === 0;
+          
+          newImages.push({
+            file,
+            preview: reader.result as string,
+            isPrimary
+          });
+          
+          // Si c'est la dernière image à traiter, mettre à jour l'état
+          if (newImages.length === Array.from(files).filter(f => 
+            !variantGeneratorImages.some(img => 
+              img.file.name === f.name && 
+              img.file.size === f.size && 
+              img.file.type === f.type
+            )
+          ).length) {
+            setVariantGeneratorImages([...variantGeneratorImages, ...newImages]);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+  
+  // Supprimer une image du générateur de variantes
+  const removeVariantGeneratorImage = (imageIndex: number) => {
+    const updatedImages = [...variantGeneratorImages];
+    const removedImage = updatedImages.splice(imageIndex, 1)[0];
+    
+    // Si l'image supprimée était l'image principale, définir la première image restante comme principale
+    if (removedImage.isPrimary && updatedImages.length > 0) {
+      updatedImages[0].isPrimary = true;
+    }
+    
+    setVariantGeneratorImages(updatedImages);
+  };
+  
+  // Définir une image comme principale pour le générateur de variantes
+  const setVariantGeneratorImageAsPrimary = (imageIndex: number) => {
+    const updatedImages = variantGeneratorImages.map((img, i) => ({
+      ...img,
+      isPrimary: i === imageIndex
+    }));
+    
+    setVariantGeneratorImages(updatedImages);
+  };
+  
+  // Gérer le téléchargement d'images pour une variante spécifique
+  const handleVariantImageChange = (variantIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    // Ajouter les nouvelles images à la liste existante pour cette variante
+    const newImages: ProductImageData[] = [];
+    
+    Array.from(files).forEach(file => {
+      // Vérifier si l'image existe déjà dans la liste
+      const fileExists = variants[variantIndex].images.some(img => 
+        img.file.name === file.name && 
+        img.file.size === file.size && 
+        img.file.type === file.type
+      );
+      
+      if (!fileExists) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const isPrimary = variants[variantIndex].images.length === 0 && newImages.length === 0;
+          
+          newImages.push({
+            file,
+            preview: reader.result as string,
+            isPrimary
+          });
+          
+          // Si c'est la dernière image à traiter, mettre à jour l'état
+          if (newImages.length === Array.from(files).filter(f => 
+            !variants[variantIndex].images.some(img => 
+              img.file.name === f.name && 
+              img.file.size === f.size && 
+              img.file.type === f.type
+            )
+          ).length) {
+            const updatedVariants = [...variants];
+            updatedVariants[variantIndex] = {
+              ...updatedVariants[variantIndex],
+              images: [...updatedVariants[variantIndex].images, ...newImages]
+            };
+            setVariants(updatedVariants);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+  
+  // Supprimer une image d'une variante
+  const removeVariantImage = (variantIndex: number, imageIndex: number) => {
+    const updatedVariants = [...variants];
+    const variantImages = [...updatedVariants[variantIndex].images];
+    const removedImage = variantImages.splice(imageIndex, 1)[0];
+    
+    // Si l'image supprimée était l'image principale, définir la première image restante comme principale
+    if (removedImage.isPrimary && variantImages.length > 0) {
+      variantImages[0].isPrimary = true;
+    }
+    
+    updatedVariants[variantIndex] = {
+      ...updatedVariants[variantIndex],
+      images: variantImages
+    };
+    
+    setVariants(updatedVariants);
+  };
+  
+  // Définir une image comme principale pour une variante
+  const setVariantImageAsPrimary = (variantIndex: number, imageIndex: number) => {
+    const updatedVariants = [...variants];
+    const variantImages = updatedVariants[variantIndex].images.map((img, i) => ({
+      ...img,
+      isPrimary: i === imageIndex
+    }));
+    
+    updatedVariants[variantIndex] = {
+      ...updatedVariants[variantIndex],
+      images: variantImages
+    };
+    
+    setVariants(updatedVariants);
+  };
+  
   // Ajouter une nouvelle variante
   const addVariant = () => {
-    setVariants([...variants, { size: '', color: '', stock_quantity: 0, price_adjustment: 0, sku: '' }]);
+    setVariants([...variants, { size: '', color: '', stock_quantity: 0, price_adjustment: 0, sku: '', images: [] }]);
   };
   
   // Supprimer une variante
@@ -161,17 +413,43 @@ export default function AddProductPage() {
         // Générer un SKU basique
         const sku = `${productData.name.substring(0, 3).toUpperCase() || 'PRD'}-${size}-${colorHex}`;
         
+        // Copier les images du générateur pour cette variante
+        const variantImages = variantGeneratorImages.map(img => ({
+          ...img,
+          // Créer une copie du fichier pour éviter les références partagées
+          file: new File([img.file], img.file.name, { type: img.file.type })
+        }));
+        
         newVariants.push({
           size,
           color, // Le code hexa complet est stocké comme couleur
           stock_quantity: defaultStock,
           price_adjustment: defaultPriceAdjustment,
-          sku
+          sku,
+          images: variantImages
         });
       });
     });
     
-    setVariants(newVariants);
+    // Vérifier si des variantes avec les mêmes tailles et couleurs existent déjà
+    const existingVariants = [...variants];
+    const updatedVariants = [...existingVariants];
+    
+    // Ajouter uniquement les nouvelles combinaisons qui n'existent pas déjà
+    newVariants.forEach(newVariant => {
+      // Vérifier si cette combinaison taille/couleur existe déjà
+      const existingVariantIndex = existingVariants.findIndex(
+        v => v.size === newVariant.size && v.color === newVariant.color
+      );
+      
+      if (existingVariantIndex === -1) {
+        // Cette combinaison n'existe pas encore, l'ajouter
+        updatedVariants.push(newVariant);
+      }
+      // Si la combinaison existe déjà, on la conserve telle quelle
+    });
+    
+    setVariants(updatedVariants);
   };
   
   // Soumettre le formulaire
@@ -197,15 +475,45 @@ export default function AddProductPage() {
         }
       }
       
-      // Télécharger l'image si elle existe
+      // Télécharger les images
       let imageUrl = '';
-      if (productData.image_file) {
+      const uploadedImages = [];
+      
+      // Télécharger toutes les images
+      if (productImages.length > 0) {
+        for (const imageData of productImages) {
+          try {
+            // Télécharger directement vers Supabase Storage
+            const fileName = `${Date.now()}-${imageData.file.name.replace(/\s+/g, '-')}`;
+            const supabaseUrl = await uploadProductImage(imageData.file, fileName);
+            
+            if (supabaseUrl) {
+              uploadedImages.push({
+                url: supabaseUrl,
+                isPrimary: imageData.isPrimary
+              });
+              
+              // Conserver l'URL de l'image principale pour la compatibilité
+              if (imageData.isPrimary) {
+                imageUrl = supabaseUrl;
+              }
+            }
+          } catch (uploadError) {
+            console.warn(`Erreur lors du téléchargement de l'image ${imageData.file.name}:`, uploadError);
+          }
+        }
+      } 
+      // Pour la compatibilité, télécharger l'image principale si aucune image multiple n'a été ajoutée
+      else if (productData.image_file) {
         try {
-          // Télécharger directement vers Supabase Storage
           const fileName = `${Date.now()}-${productData.image_file.name.replace(/\s+/g, '-')}`;
           const supabaseUrl = await uploadProductImage(productData.image_file, fileName);
           if (supabaseUrl) {
             imageUrl = supabaseUrl;
+            uploadedImages.push({
+              url: supabaseUrl,
+              isPrimary: true
+            });
           } else {
             console.warn('Impossible de télécharger l\'image, continuation sans image');
           }
@@ -231,6 +539,37 @@ export default function AddProductPage() {
       const newProduct = await addProduct(productToAdd);
       if (!newProduct) {
         throw new Error('Erreur lors de la création du produit');
+      }
+      
+      // Ajouter les images à la base de données
+      // S'assurer qu'une seule image est marquée comme primaire
+      let primaryImageAdded = false;
+      
+      for (const image of uploadedImages) {
+        try {
+          // Si une image primaire a déjà été ajoutée, marquer les suivantes comme non-primaires
+          const isPrimary = image.isPrimary && !primaryImageAdded;
+          
+          // Si cette image est primaire, mettre à jour le flag
+          if (isPrimary) {
+            primaryImageAdded = true;
+          }
+          
+          const productImageData = {
+            product_id: newProduct.id,
+            variant_id: null, // Images associées au produit principal
+            image_url: image.url,
+            is_primary: isPrimary
+            // position omis car non nécessaire pour l'instant
+          };
+          
+          const result = await addProductImage(productImageData);
+          if (!result) {
+            console.error('Erreur lors de l\'ajout de l\'image');
+          }
+        } catch (error) {
+          console.error('Erreur lors de l\'ajout de l\'image:', error);
+        }
       }
       
       // Ajouter les variantes
@@ -274,6 +613,41 @@ export default function AddProductPage() {
             // Continuer avec les autres variantes au lieu d'arrêter complètement
           } else {
             console.log(`Variante ${variant.size} ${variant.color} ajoutée avec succès, ID: ${result.id}`);
+            
+            // Ajouter les images spécifiques à cette variante
+            if (variant.images && variant.images.length > 0) {
+              // S'assurer qu'une seule image est marquée comme primaire pour cette variante
+              let variantPrimaryImageAdded = false;
+              
+              for (const imageData of variant.images) {
+                try {
+                  // Télécharger l'image vers Supabase Storage
+                  const fileName = `${Date.now()}-${imageData.file.name.replace(/\s+/g, '-')}`;
+                  const supabaseUrl = await uploadProductImage(imageData.file, fileName);
+                  
+                  if (supabaseUrl) {
+                    // Pour les variantes, ne jamais marquer les images comme primaires
+                    // car cela viole la contrainte d'unicité idx_product_primary_image
+                    
+                    // Ajouter l'image à la base de données, associée à cette variante
+                    const variantImageData = {
+                      product_id: newProduct.id,
+                      variant_id: result.id, // Associer l'image à cette variante spécifique
+                      image_url: supabaseUrl,
+                      is_primary: false // Toujours false pour les images de variantes
+                      // position omis car non nécessaire pour l'instant
+                    };
+                    
+                    const imageResult = await addProductImage(variantImageData);
+                    if (!imageResult) {
+                      console.error(`Échec de l'ajout de l'image pour la variante ${variant.size} ${variant.color}`);
+                    }
+                  }
+                } catch (imageError) {
+                  console.error(`Erreur lors de l'ajout d'une image pour la variante ${variant.size} ${variant.color}:`, imageError);
+                }
+              }
+            }
           }
         } catch (variantError) {
           console.error('Erreur lors de l\'ajout d\'une variante:', variantError);
@@ -391,23 +765,68 @@ export default function AddProductPage() {
             
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="image">
-                Image du Produit
+                Images du Produit
               </label>
               <input
                 type="file"
                 id="image"
                 name="image"
-                onChange={handleImageChange}
                 accept="image/*"
+                onChange={handleImageChange}
+                multiple
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
-              {imagePreview && (
-                <div className="mt-2">
-                  <img
-                    src={imagePreview}
-                    alt="Prévisualisation"
-                    className="h-32 w-auto object-contain"
-                  />
+              
+              {/* Affichage des images téléchargées */}
+              {productImages.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-semibold mb-2">Images téléchargées:</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {productImages.map((image, index) => (
+                      <div 
+                        key={`${image.file.name}-${index}`} 
+                        className={`relative rounded-md overflow-hidden border-2 ${image.isPrimary ? 'border-indigo-600' : 'border-gray-200'}`}
+                      >
+                        <img 
+                          src={image.preview} 
+                          alt={`Image ${index + 1}`} 
+                          className="h-24 w-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 hover:opacity-100">
+                          <div className="flex space-x-1">
+                            {!image.isPrimary && (
+                              <button 
+                                type="button"
+                                onClick={() => setAsPrimary(index)}
+                                className="bg-indigo-600 text-white p-1 rounded-full hover:bg-indigo-700 transition-colors"
+                                title="Définir comme image principale"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </button>
+                            )}
+                            <button 
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="bg-red-600 text-white p-1 rounded-full hover:bg-red-700 transition-colors"
+                              title="Supprimer l'image"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        {image.isPrimary && (
+                          <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs px-1 py-0.5 rounded-bl-md">
+                            Principale
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">L'image marquée comme "Principale" sera utilisée comme image par défaut du produit.</p>
                 </div>
               )}
             </div>
@@ -626,6 +1045,72 @@ export default function AddProductPage() {
               </div>
             </div>
             
+            {/* Section d'images pour le générateur de variantes */}
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Images communes à toutes les variantes générées
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleVariantGeneratorImageChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                multiple
+              />
+              <p className="text-xs text-gray-500 mt-1">Ces images seront ajoutées à toutes les variantes générées automatiquement.</p>
+              
+              {/* Affichage des images téléchargées pour le générateur */}
+              {variantGeneratorImages.length > 0 && (
+                <div className="mt-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {variantGeneratorImages.map((image, imgIndex) => (
+                      <div 
+                        key={`generator-image-${imgIndex}`} 
+                        className={`relative rounded-md overflow-hidden border-2 ${image.isPrimary ? 'border-indigo-600' : 'border-gray-200'}`}
+                      >
+                        <img 
+                          src={image.preview} 
+                          alt={`Image générateur ${imgIndex + 1}`} 
+                          className="h-20 w-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 hover:opacity-100">
+                          <div className="flex space-x-1">
+                            {!image.isPrimary && (
+                              <button 
+                                type="button"
+                                onClick={() => setVariantGeneratorImageAsPrimary(imgIndex)}
+                                className="bg-indigo-600 text-white p-1 rounded-full hover:bg-indigo-700 transition-colors"
+                                title="Définir comme image principale"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </button>
+                            )}
+                            <button 
+                              type="button"
+                              onClick={() => removeVariantGeneratorImage(imgIndex)}
+                              className="bg-red-600 text-white p-1 rounded-full hover:bg-red-700 transition-colors"
+                              title="Supprimer l'image"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        {image.isPrimary && (
+                          <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs px-1 py-0.5 rounded-bl-md">
+                            Principale
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <div className="flex justify-center">
               <button
                 type="button"
@@ -684,6 +1169,72 @@ export default function AddProductPage() {
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     required
                   />
+                </div>
+                
+                {/* Images spécifiques à la variante */}
+                <div className="md:col-span-3 mt-2">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Images spécifiques à cette variante
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleVariantImageChange(index, e)}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    multiple
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Ces images seront associées uniquement à cette variante de couleur/taille.</p>
+                  
+                  {/* Affichage des images téléchargées pour cette variante */}
+                  {variant.images.length > 0 && (
+                    <div className="mt-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {variant.images.map((image, imgIndex) => (
+                          <div 
+                            key={`variant-${index}-image-${imgIndex}`} 
+                            className={`relative rounded-md overflow-hidden border-2 ${image.isPrimary ? 'border-indigo-600' : 'border-gray-200'}`}
+                          >
+                            <img 
+                              src={image.preview} 
+                              alt={`Variante ${variant.color} ${variant.size} - Image ${imgIndex + 1}`} 
+                              className="h-20 w-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 hover:opacity-100">
+                              <div className="flex space-x-1">
+                                {!image.isPrimary && (
+                                  <button 
+                                    type="button"
+                                    onClick={() => setVariantImageAsPrimary(index, imgIndex)}
+                                    className="bg-indigo-600 text-white p-1 rounded-full hover:bg-indigo-700 transition-colors"
+                                    title="Définir comme image principale"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  </button>
+                                )}
+                                <button 
+                                  type="button"
+                                  onClick={() => removeVariantImage(index, imgIndex)}
+                                  className="bg-red-600 text-white p-1 rounded-full hover:bg-red-700 transition-colors"
+                                  title="Supprimer l'image"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                            {image.isPrimary && (
+                              <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs px-1 py-0.5 rounded-bl-md">
+                                Principale
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div>

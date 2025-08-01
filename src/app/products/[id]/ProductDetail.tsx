@@ -7,8 +7,9 @@ import { useRouter } from 'next/navigation';
 import { useProduct, useStockCheck, useCategories, useAllProducts } from '@/hooks/useProducts';
 import { useCartContext } from '@/components/CartProvider';
 import ProductCustomizer from '@/components/ProductCustomizer';
+import ProductGallery from '@/components/ProductGallery';
 import { ProductCustomization } from '@/types/customization';
-import { Product } from '@/lib/products';
+import { Product, ProductImage } from '@/lib/products';
 import { isCustomizationComplete } from '@/lib/customization';
 
 // Fonction pour obtenir une description du grammage
@@ -52,6 +53,8 @@ export default function ProductDetail({ id }: { id: string }) {
   // État pour suivre si la personnalisation a été modifiée mais pas enregistrée
   const [isCustomizationModified, setIsCustomizationModified] = useState(false);
   const [selectedShippingType, setSelectedShippingType] = useState<'normal' | 'fast' | 'urgent'>('normal');
+  // État pour stocker les images de la variante sélectionnée
+  const [variantImages, setVariantImages] = useState<ProductImage[]>([]);
 
   // Récupérer les produits similaires (même catégorie, mais pas le même produit)
   useEffect(() => {
@@ -65,7 +68,7 @@ export default function ProductDetail({ id }: { id: string }) {
     }
   }, [product, products]);
 
-  // Sélectionner automatiquement la première couleur disponible
+  // Sélectionner automatiquement la première couleur disponible et mettre à jour les images de la variante
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
       // Obtenir les couleurs uniques
@@ -84,6 +87,30 @@ export default function ProductDetail({ id }: { id: string }) {
           initialSizeQuantities[size] = 0;
         });
         setSizeQuantities(initialSizeQuantities);
+      }
+    }
+  }, [product, selectedColor]);
+  
+  // Mettre à jour les images de la variante lorsque la couleur sélectionnée change
+  useEffect(() => {
+    if (product && product.variants && selectedColor) {
+      // Trouver toutes les variantes avec la couleur sélectionnée
+      const variantsWithSelectedColor = product.variants.filter(v => v.color === selectedColor);
+      
+      // Récupérer les images de ces variantes
+      if (variantsWithSelectedColor.length > 0) {
+        // Récupérer les images de toutes les variantes de cette couleur et les fusionner
+        const allVariantImages: ProductImage[] = [];
+        variantsWithSelectedColor.forEach(variant => {
+          if (variant.images && variant.images.length > 0) {
+            allVariantImages.push(...variant.images);
+          }
+        });
+        
+        // Mettre à jour l'état avec les images de la variante
+        setVariantImages(allVariantImages);
+      } else {
+        setVariantImages([]);
       }
     }
   }, [product, selectedColor]);
@@ -339,40 +366,36 @@ export default function ProductDetail({ id }: { id: string }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg overflow-hidden">
           <div className="relative md:flex md:gap-8">
-            {/* Colonne de gauche fixe avec l'image */}
+            {/* Colonne de gauche fixe avec la galerie d'images */}
             <div className="md:w-2/5 lg:w-2/5 relative md:h-screen">
               <div className="sticky top-0 md:top-8 left-0 pt-4 md:pt-0">
-                <div className="relative h-96 md:h-[70vh] max-h-[600px] rounded-lg overflow-hidden">
-                  {/* Affichage de la catégorie en petit rectangle */}
-                  {product.category_id && (
-                    <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-md group hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300">
-                      <span className="relative">
-                        {(() => {
-                          // Obtenir le nom de la catégorie à partir de l'ID
-                          const category = categories.find(cat => cat.id === product.category_id);
-                          return category ? category.name : 'Autre';
-                        })()}
-                      </span>
+                <ProductGallery 
+                  images={product.images || []} 
+                  variantImages={variantImages}
+                  fallbackImageUrl={product.image_url || '/images/placeholder.jpg'}
+                  productName={product.name}
+                  categoryBadge={
+                    product.category_id && (
+                      <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-md group hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300">
+                        <span className="relative">
+                          {(() => {
+                            // Obtenir le nom de la catégorie à partir de l'ID
+                            const category = categories.find(cat => cat.id === product.category_id);
+                            return category ? category.name : 'Autre';
+                          })()}
+                        </span>
+                      </div>
+                    )
+                  }
+                  customizableBadge={
+                    <div className="absolute top-4 right-4 z-10 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md flex items-center group hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 cursor-pointer">
+                      <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                      </svg>
+                      <span className="relative">Personnalisable</span>
                     </div>
-                  )}
-                  <Image
-                    src={product.image_url || '/images/placeholder.jpg'}
-                    alt={product.name}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    className="rounded-lg"
-                    priority
-                  />
-                  
-                  {/* Badge de personnalisation */}
-                  <div className="absolute top-4 right-4 z-10 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md flex items-center group hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 cursor-pointer">
-                    <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                    </svg>
-                    <span className="relative">Personnalisable
-                    </span>
-                  </div>
-                </div>
+                  }
+                />
                 
                 {/* Prix et description - Au-dessus des informations supplémentaires */}
                 <div className="mt-4 pt-2">

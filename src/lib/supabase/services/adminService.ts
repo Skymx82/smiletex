@@ -1,5 +1,5 @@
 import { supabase } from '../client';
-import { Product, ProductVariant, Category } from '@/lib/products';
+import { Product, ProductVariant, Category, ProductImage } from '@/lib/products';
 
 /**
  * Ajoute un nouveau produit dans la base de données
@@ -370,6 +370,167 @@ export async function uploadProductImage(file: File, fileName: string): Promise<
     console.error('Unexpected error in uploadProductImage:', error);
     // Retourner une URL d'image placeholder
     return '/images/placeholder.jpg';
+  }
+}
+
+/**
+ * Ajoute une image à un produit
+ */
+export async function addProductImage(image: Omit<ProductImage, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string } | null> {
+  try {
+    const { data, error } = await supabase
+      .from('product_images')
+      .insert([image])
+      .select('id')
+      .single();
+    
+    if (error) {
+      console.error('Error adding product image:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (err) {
+    console.error('Unexpected error in addProductImage:', err);
+    return null;
+  }
+}
+
+/**
+ * Met à jour une image de produit existante
+ */
+export async function updateProductImage(id: string, updates: Partial<ProductImage>): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('product_images')
+      .update(updates)
+      .eq('id', id);
+    
+    if (error) {
+      console.error(`Error updating product image ${id}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Unexpected error in updateProductImage:', err);
+    return false;
+  }
+}
+
+/**
+ * Supprime une image de produit
+ */
+export async function deleteProductImage(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('product_images')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error(`Error deleting product image ${id}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Unexpected error in deleteProductImage:', err);
+    return false;
+  }
+}
+
+/**
+ * Définit une image comme image principale pour un produit
+ */
+export async function setProductPrimaryImage(productId: string, imageId: string): Promise<boolean> {
+  try {
+    // D'abord, réinitialiser toutes les images du produit à non-primaires
+    const { error: resetError } = await supabase
+      .from('product_images')
+      .update({ is_primary: false })
+      .eq('product_id', productId)
+      .is('variant_id', null);
+    
+    if (resetError) {
+      console.error(`Error resetting primary images for product ${productId}:`, resetError);
+      return false;
+    }
+    
+    // Ensuite, définir l'image spécifiée comme primaire
+    const { error } = await supabase
+      .from('product_images')
+      .update({ is_primary: true })
+      .eq('id', imageId);
+    
+    if (error) {
+      console.error(`Error setting primary image ${imageId} for product ${productId}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Unexpected error in setProductPrimaryImage:', err);
+    return false;
+  }
+}
+
+/**
+ * Définit une image comme image principale pour une variante
+ */
+export async function setVariantPrimaryImage(variantId: string, imageId: string): Promise<boolean> {
+  try {
+    // D'abord, réinitialiser toutes les images de la variante à non-primaires
+    const { error: resetError } = await supabase
+      .from('product_images')
+      .update({ is_primary: false })
+      .eq('variant_id', variantId);
+    
+    if (resetError) {
+      console.error(`Error resetting primary images for variant ${variantId}:`, resetError);
+      return false;
+    }
+    
+    // Ensuite, définir l'image spécifiée comme primaire
+    const { error } = await supabase
+      .from('product_images')
+      .update({ is_primary: true })
+      .eq('id', imageId);
+    
+    if (error) {
+      console.error(`Error setting primary image ${imageId} for variant ${variantId}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Unexpected error in setVariantPrimaryImage:', err);
+    return false;
+  }
+}
+
+/**
+ * Met à jour l'ordre des images d'un produit
+ */
+export async function updateProductImagesOrder(images: { id: string, position: number }[]): Promise<boolean> {
+  try {
+    // Mettre à jour chaque image avec sa nouvelle position
+    for (const image of images) {
+      const { error } = await supabase
+        .from('product_images')
+        .update({ position: image.position })
+        .eq('id', image.id);
+      
+      if (error) {
+        console.error(`Error updating position for image ${image.id}:`, error);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Unexpected error in updateProductImagesOrder:', err);
+    return false;
   }
 }
 

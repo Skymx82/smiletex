@@ -1,7 +1,8 @@
 import { supabase } from '../client';
-import { Product, ProductVariant, Category } from '@/lib/products';
+import { Product, ProductVariant, Category, ProductImage } from '@/lib/products';
 
 export async function fetchAllProducts(): Promise<Product[]> {
+  // Récupérer tous les produits
   const { data, error } = await supabase
     .from('products')
     .select('*');
@@ -11,10 +12,24 @@ export async function fetchAllProducts(): Promise<Product[]> {
     return [];
   }
   
-  return data || [];
+  if (!data || data.length === 0) return [];
+  
+  // Récupérer les images principales pour chaque produit
+  const productsWithImages = await Promise.all(data.map(async (product) => {
+    // Récupérer l'image principale du produit
+    const primaryImage = await fetchPrimaryProductImage(product.id);
+    
+    return {
+      ...product,
+      primaryImage: primaryImage
+    };
+  }));
+  
+  return productsWithImages;
 }
 
 export async function fetchProductById(id: string): Promise<Product | null> {
+  // Récupérer le produit de base
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -26,7 +41,29 @@ export async function fetchProductById(id: string): Promise<Product | null> {
     return null;
   }
   
-  return data;
+  if (!data) return null;
+  
+  // Récupérer les images du produit
+  const productImages = await fetchProductImages(id);
+  
+  // Récupérer les variantes
+  const variants = await fetchProductVariants(id);
+  
+  // Pour chaque variante, récupérer ses images spécifiques
+  const variantsWithImages = await Promise.all(variants.map(async (variant) => {
+    const variantImages = await fetchVariantImages(variant.id);
+    return {
+      ...variant,
+      images: variantImages
+    };
+  }));
+  
+  // Retourner le produit avec ses images et ses variantes
+  return {
+    ...data,
+    images: productImages,
+    variants: variantsWithImages
+  };
 }
 
 export async function fetchProductVariants(productId: string): Promise<ProductVariant[]> {
@@ -115,6 +152,7 @@ export async function fetchCategoryPath(categoryId: string): Promise<Category[]>
 }
 
 export async function fetchProductsByCategory(categoryId: string): Promise<Product[]> {
+  // Récupérer les produits de la catégorie
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -125,10 +163,24 @@ export async function fetchProductsByCategory(categoryId: string): Promise<Produ
     return [];
   }
   
-  return data || [];
+  if (!data || data.length === 0) return [];
+  
+  // Récupérer les images principales pour chaque produit
+  const productsWithImages = await Promise.all(data.map(async (product) => {
+    // Récupérer l'image principale du produit
+    const primaryImage = await fetchPrimaryProductImage(product.id);
+    
+    return {
+      ...product,
+      primaryImage: primaryImage
+    };
+  }));
+  
+  return productsWithImages;
 }
 
 export async function fetchFeaturedProducts(): Promise<Product[]> {
+  // Récupérer les produits mis en avant
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -139,10 +191,24 @@ export async function fetchFeaturedProducts(): Promise<Product[]> {
     return [];
   }
   
-  return data || [];
+  if (!data || data.length === 0) return [];
+  
+  // Récupérer les images principales pour chaque produit
+  const productsWithImages = await Promise.all(data.map(async (product) => {
+    // Récupérer l'image principale du produit
+    const primaryImage = await fetchPrimaryProductImage(product.id);
+    
+    return {
+      ...product,
+      primaryImage: primaryImage
+    };
+  }));
+  
+  return productsWithImages;
 }
 
 export async function fetchNewProducts(): Promise<Product[]> {
+  // Récupérer les nouveaux produits
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -153,7 +219,20 @@ export async function fetchNewProducts(): Promise<Product[]> {
     return [];
   }
   
-  return data || [];
+  if (!data || data.length === 0) return [];
+  
+  // Récupérer les images principales pour chaque produit
+  const productsWithImages = await Promise.all(data.map(async (product) => {
+    // Récupérer l'image principale du produit
+    const primaryImage = await fetchPrimaryProductImage(product.id);
+    
+    return {
+      ...product,
+      primaryImage: primaryImage
+    };
+  }));
+  
+  return productsWithImages;
 }
 
 export async function updateProductStock(variantId: string, quantityChange: number): Promise<boolean> {
@@ -206,4 +285,70 @@ export async function checkProductStock(variantId: string, requestedQuantity: nu
   }
   
   return data.stock_quantity >= requestedQuantity;
+}
+
+// Récupérer toutes les images d'un produit
+export async function fetchProductImages(productId: string): Promise<ProductImage[]> {
+  const { data, error } = await supabase
+    .from('product_images')
+    .select('*')
+    .eq('product_id', productId)
+    .order('position', { ascending: true });
+  
+  if (error) {
+    console.error(`Error fetching images for product ${productId}:`, error);
+    return [];
+  }
+  
+  return data || [];
+}
+
+// Récupérer les images d'une variante spécifique
+export async function fetchVariantImages(variantId: string): Promise<ProductImage[]> {
+  const { data, error } = await supabase
+    .from('product_images')
+    .select('*')
+    .eq('variant_id', variantId)
+    .order('position', { ascending: true });
+  
+  if (error) {
+    console.error(`Error fetching images for variant ${variantId}:`, error);
+    return [];
+  }
+  
+  return data || [];
+}
+
+// Récupérer l'image principale d'un produit
+export async function fetchPrimaryProductImage(productId: string): Promise<ProductImage | null> {
+  const { data, error } = await supabase
+    .from('product_images')
+    .select('*')
+    .eq('product_id', productId)
+    .eq('is_primary', true)
+    .maybeSingle();
+  
+  if (error) {
+    console.error(`Error fetching primary image for product ${productId}:`, error);
+    return null;
+  }
+  
+  return data;
+}
+
+// Récupérer l'image principale d'une variante
+export async function fetchPrimaryVariantImage(variantId: string): Promise<ProductImage | null> {
+  const { data, error } = await supabase
+    .from('product_images')
+    .select('*')
+    .eq('variant_id', variantId)
+    .eq('is_primary', true)
+    .maybeSingle();
+  
+  if (error) {
+    console.error(`Error fetching primary image for variant ${variantId}:`, error);
+    return null;
+  }
+  
+  return data;
 }

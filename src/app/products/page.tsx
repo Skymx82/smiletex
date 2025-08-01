@@ -331,7 +331,7 @@ function ProductsContent() {
                         
                         <Link href={`/products/${product.id}`} className="block relative h-44 sm:h-52 md:h-64 overflow-hidden">
                           <Image
-                            src={product.image_url || '/images/placeholder.jpg'}
+                            src={product.primaryImage?.image_url || product.image_url || '/images/placeholder.jpg'}
                             alt={product.name}
                             fill
                             className="object-cover transition-transform duration-700 group-hover:scale-105"

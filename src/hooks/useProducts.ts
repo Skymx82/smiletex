@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Product, ProductVariant, Category } from '@/lib/products';
+import { Product, ProductVariant, Category, ProductImage } from '@/lib/products';
 import * as productService from '@/lib/supabase/services/productService';
 
+// Interface étendue pour les produits avec image principale
+interface ProductWithPrimaryImage extends Product {
+  primaryImage?: ProductImage | null;
+}
+
 export function useAllProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithPrimaryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -12,7 +17,8 @@ export function useAllProducts() {
       try {
         setLoading(true);
         const data = await productService.fetchAllProducts();
-        setProducts(data);
+        // Conversion explicite vers le type ProductWithPrimaryImage
+        setProducts(data as ProductWithPrimaryImage[]);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'));
       } finally {
@@ -26,8 +32,14 @@ export function useAllProducts() {
   return { products, loading, error };
 }
 
+// Interface étendue pour les produits avec images et variantes avec images
+interface ProductWithImagesAndVariants extends Product {
+  images?: ProductImage[];
+  variants?: (ProductVariant & { images?: ProductImage[] })[];
+}
+
 export function useProduct(id: string) {
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ProductWithImagesAndVariants | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -38,12 +50,8 @@ export function useProduct(id: string) {
         const productData = await productService.fetchProductById(id);
         
         if (productData) {
-          const variantsData = await productService.fetchProductVariants(id);
-          // Ajouter les variantes directement à l'objet produit
-          setProduct({
-            ...productData,
-            variants: variantsData
-          });
+          // La fonction fetchProductById récupère déjà les variantes et les images
+          setProduct(productData as ProductWithImagesAndVariants);
         } else {
           setProduct(null);
         }
@@ -126,7 +134,7 @@ export function useCategories(parentIdFilter: boolean = false) {
 }
 
 export function useFeaturedProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithPrimaryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -135,7 +143,7 @@ export function useFeaturedProducts() {
       try {
         setLoading(true);
         const data = await productService.fetchFeaturedProducts();
-        setProducts(data);
+        setProducts(data as ProductWithPrimaryImage[]);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'));
       } finally {
@@ -150,7 +158,7 @@ export function useFeaturedProducts() {
 }
 
 export function useProductsByCategory(categoryId: string) {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithPrimaryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -159,7 +167,7 @@ export function useProductsByCategory(categoryId: string) {
       try {
         setLoading(true);
         const data = await productService.fetchProductsByCategory(categoryId);
-        setProducts(data);
+        setProducts(data as ProductWithPrimaryImage[]);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'));
       } finally {
@@ -176,7 +184,7 @@ export function useProductsByCategory(categoryId: string) {
 }
 
 export function useNewProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithPrimaryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -185,7 +193,7 @@ export function useNewProducts() {
       try {
         setLoading(true);
         const data = await productService.fetchNewProducts();
-        setProducts(data);
+        setProducts(data as ProductWithPrimaryImage[]);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'));
       } finally {

@@ -7,7 +7,7 @@ export type Product = {
   name: string;
   description: string;
   base_price: number;
-  image_url: string;
+  image_url: string; // Image principale (conservée pour compatibilité)
   category_id: string;
   is_featured: boolean;
   is_new?: boolean;
@@ -17,6 +17,19 @@ export type Product = {
   created_at?: string;
   updated_at?: string;
   variants?: ProductVariant[]; // Ajout du champ variants optionnel
+  images?: ProductImage[]; // Nouvelles images multiples
+};
+
+// Nouveau type pour les images de produit
+export type ProductImage = {
+  id: string;
+  product_id: string;
+  variant_id?: string | null; // Optionnel, si l'image est liée à une variante spécifique
+  image_url: string;
+  is_primary: boolean;
+  position?: number | null; // Pour l'ordre d'affichage, optionnel
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type ProductVariant = {
