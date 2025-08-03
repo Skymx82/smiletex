@@ -2,7 +2,8 @@ import {
   addProduct, 
   addProductVariant, 
   uploadProductImage, 
-  addProductImage 
+  addProductImage,
+  setProductPrimaryImage
 } from '@/lib/supabase/services/adminService';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -44,11 +45,22 @@ export async function createProduct(productData: ProductData) {
   try {
     console.log('Tentative de création du produit:', productData);
     
-    // Ajouter une URL d'image vide si non fournie
+    // Ajouter une URL d'image vide si non fournie et s'assurer que les valeurs numériques sont correctes
     const productToAdd = {
       ...productData,
-      image_url: productData.image_url || ''
+      image_url: productData.image_url || '',
+      // S'assurer que weight_gsm est un entier ou null
+      weight_gsm: productData.weight_gsm !== null ? Math.round(Number(productData.weight_gsm)) : null,
+      // S'assurer que base_price est un nombre
+      base_price: Number(productData.base_price)
     };
+    
+    console.log('Données du produit après conversion des types:', {
+      weight_gsm: productToAdd.weight_gsm,
+      weight_gsm_type: typeof productToAdd.weight_gsm,
+      base_price: productToAdd.base_price,
+      base_price_type: typeof productToAdd.base_price
+    });
     
     console.log('Appel de addProduct avec:', productToAdd);
     const newProduct = await addProduct(productToAdd);
@@ -100,6 +112,9 @@ export async function createVariant(variantData: VariantData) {
   }
 }
 
+// Garder une trace des produits qui ont déjà une image principale
+const productsWithPrimaryImage = new Set<string>();
+
 /**
  * Ajoute une image depuis une URL externe directement dans la base de données
  */
@@ -123,6 +138,17 @@ export async function addImageFromUrl(
     } catch (fetchError) {
       console.warn(`Impossible de vérifier l'URL de l'image: ${fetchError}`);
       // On continue quand même, car l'erreur pourrait être temporaire
+    }
+    
+    // Si l'image est marquée comme principale, vérifier si ce produit a déjà une image principale
+    if (isPrimary) {
+      if (productsWithPrimaryImage.has(productId)) {
+        console.warn(`Le produit ${productId} a déjà une image principale. Cette image sera ajoutée comme non-principale.`);
+        isPrimary = false; // Forcer l'image à ne pas être principale
+      } else {
+        // Marquer ce produit comme ayant une image principale
+        productsWithPrimaryImage.add(productId);
+      }
     }
     
     // Ajouter directement l'entrée dans la table product_images avec l'URL externe
@@ -151,6 +177,14 @@ export async function addImageFromUrl(
     };
     
   } catch (error: any) {
+    // Si l'erreur est liée à la contrainte d'unicité sur l'image principale
+    if (error?.code === '23505' && error?.message?.includes('idx_product_primary_image')) {
+      console.warn(`Conflit d'image principale pour le produit ${productId}. Ajout de l'image comme non-principale.`);
+      
+      // Réessayer en ajoutant l'image comme non-principale
+      return addImageFromUrl(imageUrl, productId, variantId, false);
+    }
+    
     console.error('Erreur lors de l\'ajout de l\'image:', error);
     return { 
       success: false, 

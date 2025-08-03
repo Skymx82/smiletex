@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import RobustImage from '@/components/ui/RobustImage';
 import { useRouter } from 'next/navigation';
 import { useProduct, useStockCheck, useCategories, useAllProducts } from '@/hooks/useProducts';
 import { useCartContext } from '@/components/CartProvider';
@@ -587,7 +587,7 @@ export default function ProductDetail({ id }: { id: string }) {
                                 <div 
                                   className={`w-10 h-10 rounded-full border-2 overflow-hidden ${selectedColor === color ? 'border-indigo-600 ring-2 ring-indigo-300' : 'border-gray-300 hover:border-indigo-400'}`}
                                 >
-                                  <Image 
+                                  <RobustImage 
                                     src={color} 
                                     alt="Couleur" 
                                     width={40} 
@@ -1163,7 +1163,7 @@ export default function ProductDetail({ id }: { id: string }) {
               >
                 <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-indigo-200/50">
                   <div className="relative h-64 overflow-hidden">
-                    <Image
+                    <RobustImage
                       src={similarProduct.image_url || '/images/placeholder.jpg'}
                       alt={similarProduct.name}
                       fill

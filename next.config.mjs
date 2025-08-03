@@ -21,6 +21,10 @@ const nextConfig = {
         hostname: '**',
       }
     ],
+    // Augmenter les timeouts pour les images externes
+    minimumCacheTTL: 60,
+    // Désactiver le redimensionnement pour les images externes problématiques
+    domains: ['s7g3.scene7.com'],
   },
   // Configuration pour résoudre les problèmes de build
   reactStrictMode: false,

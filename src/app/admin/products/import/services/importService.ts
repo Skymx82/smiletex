@@ -199,7 +199,13 @@ export const importProducts = async (
           const rows = productGroups[parentProductId];
           const firstRow = rows[0]; // Utiliser la première ligne pour les informations du produit principal
         // Déterminer la catégorie du produit (mapping spécifique ou catégorie par défaut)
-        const categoryId = categoryMapping[parentProductId] || config.defaultCategory;
+        let categoryId = categoryMapping[parentProductId] || config.defaultCategory;
+        
+        // S'assurer que la catégorie n'est pas vide (ce qui causerait une erreur UUID)
+        if (!categoryId) {
+          console.warn(`Catégorie non définie pour le produit ${parentProductId}, importation impossible`);
+          throw new Error(`La catégorie n'est pas définie pour le produit ${parentProductId}`);
+        }
         
         // Utiliser les colonnes mappées pour extraire les données
         const productName = firstRow[columnMapping.productName] || '';
@@ -210,15 +216,22 @@ export const importProducts = async (
         let weightGsm = null;
         if (columnMapping.weightGsm && firstRow[columnMapping.weightGsm]) {
           const weightValue = firstRow[columnMapping.weightGsm];
+          console.log(`Valeur de grammage brute pour ${parentProductId}:`, weightValue, typeof weightValue);
+          
           if (typeof weightValue === 'number') {
-            weightGsm = weightValue;
+            // Convertir en entier car la base de données attend un INTEGER
+            weightGsm = Math.round(weightValue);
+            console.log(`Grammage converti de nombre à entier:`, weightValue, '->', weightGsm);
           } else if (typeof weightValue === 'string') {
-            // Essayer de convertir en nombre
+            // Essayer de convertir en nombre puis en entier
             const parsedWeight = parseFloat(weightValue.replace(/[^0-9.,]/g, '').replace(',', '.'));
             if (!isNaN(parsedWeight)) {
-              weightGsm = parsedWeight;
+              weightGsm = Math.round(parsedWeight);
+              console.log(`Grammage converti de string à entier:`, weightValue, '->', parsedWeight, '->', weightGsm);
             }
           }
+        } else {
+          console.log(`Aucun grammage défini pour ${parentProductId}`);
         }
         
         // Référence fournisseur et matière
@@ -234,13 +247,17 @@ export const importProducts = async (
         
         // Récupérer l'URL de l'image principale pour le produit
         const mainImageUrl = firstRow[columnMapping.mainImage] || '';
+        console.log(`Image principale pour ${parentProductId}:`, {
+          colonne: columnMapping.mainImage,
+          valeur: mainImageUrl
+        });
         
         // Créer le produit principal avec l'image_url
         const productData: ProductData = {
           name: productName,
           description: description,
           base_price: price,
-          weight_gsm: weightGsm,
+          weight_gsm: weightGsm !== null ? Math.round(Number(weightGsm)) : null, // S'assurer que c'est un entier
           supplier_reference: supplierReference,
           material: material,
           is_featured: isFeatured,
@@ -248,6 +265,13 @@ export const importProducts = async (
           category_id: categoryId,
           image_url: mainImageUrl // Ajouter l'URL de l'image principale
         };
+        
+        // Log des données du produit avant création
+        console.log(`Données du produit ${parentProductId} avant création:`, {
+          ...productData,
+          weight_gsm_type: typeof productData.weight_gsm,
+          category_id_type: typeof productData.category_id
+        });
 
         // Ajouter le produit à la base de données
         const productResult = await createProduct(productData);
@@ -366,22 +390,30 @@ export const importProducts = async (
                 // Préparer toutes les images à traiter
                 const imagesToProcess = [];
                 
-                // Image principale (is_primary = true seulement pour la première couleur du produit)
+                // Image principale (is_primary = true pour au moins une image par produit)
                 if (mainImage) {
-                  // Vérifier si une image principale existe déjà pour ce produit
+                  // IMPORTANT: Forcer au moins une image principale par produit
+                  // Si c'est la première variante du produit, ou si aucune image principale n'a encore été définie
                   const isPrimary = !productsWithPrimaryImage.has(newProduct.id);
+                  
+                  console.log(`Traitement de l'image principale pour ${newProduct.id}, variante ${variantId}:`, {
+                    url: mainImage,
+                    isPrimary,
+                    déjàPrincipale: productsWithPrimaryImage.has(newProduct.id)
+                  });
                   
                   imagesToProcess.push({
                     url: mainImage,
                     productId: newProduct.id,
                     variantId: variantId,
-                    isPrimary: isPrimary,
+                    isPrimary: isPrimary, // TRUE pour la première image du produit
                     type: 'main'
                   });
                   
                   if (isPrimary) {
                     // Marquer ce produit comme ayant déjà une image principale
                     productsWithPrimaryImage.add(newProduct.id);
+                    console.log(`Image principale définie pour le produit ${newProduct.id} (OBLIGATOIRE)`);
                   }
                 }
                 
@@ -397,7 +429,15 @@ export const importProducts = async (
                   });
                 });
                 
-                // Traiter toutes les images en parallèle avec une limite de concurrence
+                // Vérifier si au moins une image est marquée comme principale
+                // Si aucune image n'est marquée comme principale, définir la première comme principale
+                if (imagesToProcess.length > 0 && !imagesToProcess.some(img => img.isPrimary)) {
+                  console.warn(`ATTENTION: Aucune image principale définie pour le produit ${newProduct.id}. Définition de la première image comme principale.`);
+                  imagesToProcess[0].isPrimary = true;
+                }
+                
+                // Traiter toutes les images en parallèle - la gestion des images principales est déléguée à l'API
+                // qui s'assure qu'une seule image par produit est marquée comme principale
                 const imageResults = await processWithConcurrencyLimit(imagesToProcess, MAX_CONCURRENT_IMAGES, async (img) => {
                   try {
                     const result = await addImageFromUrl(

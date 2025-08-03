@@ -2,7 +2,7 @@ const xlsx = require('xlsx');
 const path = require('path');
 
 // Chemin vers le fichier Excel
-const filePath = path.join(__dirname, '../public/SOLOGROUP_SKU_products_new_FR-_4_-_5_.xlsx');
+const filePath = path.join(__dirname, '../public/SOLOGROUP_SKU_products_new_FR-_4_-_5_ copy.xlsx');
 
 // Lire le fichier Excel
 try {

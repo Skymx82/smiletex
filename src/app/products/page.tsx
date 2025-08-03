@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import RobustImage from '@/components/ui/RobustImage';
 import { useAllProducts, useCategories } from '@/hooks/useProducts';
 import { useSearchParams } from 'next/navigation';
 
@@ -330,7 +330,7 @@ function ProductsContent() {
                         <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-indigo-400 to-indigo-700 opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
                         
                         <Link href={`/products/${product.id}`} className="block relative h-44 sm:h-52 md:h-64 overflow-hidden">
-                          <Image
+                          <RobustImage
                             src={product.primaryImage?.image_url || product.image_url || '/images/placeholder.jpg'}
                             alt={product.name}
                             fill
