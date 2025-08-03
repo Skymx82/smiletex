@@ -11,7 +11,16 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['flivdthkxkcxyeaescrk.supabase.co','smbfyruzxrozzhrrdast.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      }
+    ],
   },
   // Configuration pour résoudre les problèmes de build
   reactStrictMode: false,

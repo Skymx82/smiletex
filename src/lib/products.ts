@@ -36,7 +36,8 @@ export type ProductVariant = {
   id: string;
   product_id: string;
   size: string;
-  color: string;
+  color: string | null;
+  color_url?: string | null; // Ajout du champ pour l'URL de l'image de couleur
   stock_quantity: number;
   price_adjustment: number;
   sku?: string;

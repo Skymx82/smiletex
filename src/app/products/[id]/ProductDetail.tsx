@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -28,6 +28,16 @@ function getGrammageDescription(gsm: number): string {
 // Type pour stocker les quantités par taille
 type SizeQuantities = {
   [size: string]: number;
+};
+
+// Fonction utilitaire pour vérifier si une variante correspond à la couleur sélectionnée
+const matchesSelectedColor = (variant: any, selectedColor: string): boolean => {
+  return variant.color === selectedColor || variant.color_url === selectedColor;
+};
+
+// Fonction utilitaire pour obtenir la couleur correcte d'une variante
+const getVariantColor = (variant: any): string => {
+  return variant.color || variant.color_url || '';
 };
 
 export default function ProductDetail({ id }: { id: string }) {
@@ -71,8 +81,11 @@ export default function ProductDetail({ id }: { id: string }) {
   // Sélectionner automatiquement la première couleur disponible et mettre à jour les images de la variante
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
-      // Obtenir les couleurs uniques
-      const uniqueColors = [...new Set(product.variants.map(v => v.color))];
+      // Obtenir les couleurs uniques (soit color soit color_url)
+      // Utiliser une approche alternative à Set pour éviter les erreurs TypeScript
+      const uniqueColors = product.variants
+        .map(v => v.color || v.color_url)
+        .filter((color, index, self) => color && self.indexOf(color) === index);
       
       // Sélectionner la première couleur
       if (uniqueColors.length > 0 && !selectedColor) {
@@ -81,7 +94,10 @@ export default function ProductDetail({ id }: { id: string }) {
       
       // Initialiser les quantités à 0 pour toutes les tailles
       if (product.variants.length > 0) {
-        const uniqueSizes = [...new Set(product.variants.map(v => v.size))];
+        // Utiliser une approche alternative à Set pour éviter les erreurs TypeScript
+        const uniqueSizes = product.variants
+          .map(v => v.size)
+          .filter((size, index, self) => size && self.indexOf(size) === index);
         const initialSizeQuantities: SizeQuantities = {};
         uniqueSizes.forEach(size => {
           initialSizeQuantities[size] = 0;
@@ -94,8 +110,8 @@ export default function ProductDetail({ id }: { id: string }) {
   // Mettre à jour les images de la variante lorsque la couleur sélectionnée change
   useEffect(() => {
     if (product && product.variants && selectedColor) {
-      // Trouver toutes les variantes avec la couleur sélectionnée
-      const variantsWithSelectedColor = product.variants.filter(v => v.color === selectedColor);
+      // Trouver toutes les variantes avec la couleur sélectionnée (soit color soit color_url)
+      const variantsWithSelectedColor = product.variants.filter(v => matchesSelectedColor(v, selectedColor));
       
       // Récupérer les images de ces variantes
       if (variantsWithSelectedColor.length > 0) {
@@ -118,8 +134,8 @@ export default function ProductDetail({ id }: { id: string }) {
   // Fonction pour augmenter la quantité d'une taille
   const increaseQuantity = (size: string) => {
     // Vérifier le stock disponible
-    const variant = product?.variants?.find(
-      v => v.size === size && v.color === selectedColor
+    const variant = product.variants.find(
+      v => v.size === size && matchesSelectedColor(v, selectedColor)
     );
     
     if (!variant) return;
@@ -161,7 +177,7 @@ export default function ProductDetail({ id }: { id: string }) {
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
         if (quantity > 0) {
           const variant = product?.variants?.find(
-            v => v.size === size && v.color === selectedColor
+            v => v.size === size && matchesSelectedColor(v, selectedColor)
           );
 
           if (variant) {
@@ -177,24 +193,38 @@ export default function ProductDetail({ id }: { id: string }) {
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
         if (quantity > 0) {
           const variant = product?.variants?.find(
-            v => v.size === size && v.color === selectedColor
+            v => v.size === size && matchesSelectedColor(v, selectedColor)
           );
 
           if (variant && product) {
             // Créer un ID unique pour cet élément du panier
             const cartItemId = `${product.id}-${variant.id}-${Date.now()}`;
             
+            // Calculer le prix unitaire avec remise par quantité
+            const { discountedPrice } = getQuantityDiscount(totalItemsSelected);
+            const basePrice = discountPercent > 0 ? discountedPrice : product.base_price;
+            const finalPrice = basePrice + (variant.price_adjustment || 0);
+            
             addToCart({
               id: cartItemId,
               productId: product.id,
               variantId: variant.id,
               name: product.name,
-              price: product.base_price + (variant.price_adjustment || 0),
+              price: finalPrice,
               quantity: quantity,
               size: size,
-              color: selectedColor,
+              color: getVariantColor(variant),
               imageUrl: product.image_url || '/images/placeholder.jpg',
               shippingType: selectedShippingType
+            });
+            
+            console.log('Ajout au panier:', {
+              product: product.name,
+              variant: variant.id,
+              size,
+              color: getVariantColor(variant),
+              price: finalPrice,
+              quantity
             });
           }
         }
@@ -237,7 +267,7 @@ export default function ProductDetail({ id }: { id: string }) {
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
         if (quantity > 0) {
           const variant = product?.variants?.find(
-            v => v.size === size && v.color === selectedColor
+            v => v.size === size && matchesSelectedColor(v, selectedColor)
           );
 
           if (variant) {
@@ -253,7 +283,7 @@ export default function ProductDetail({ id }: { id: string }) {
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
         if (quantity > 0) {
           const variant = product?.variants?.find(
-            v => v.size === size && v.color === selectedColor
+            v => v.size === size && matchesSelectedColor(v, selectedColor)
           );
 
           if (variant && product) {
@@ -279,7 +309,7 @@ export default function ProductDetail({ id }: { id: string }) {
               price: finalPrice,
               quantity: quantity,
               size: size,
-              color: selectedColor,
+              color: getVariantColor(variant),
               imageUrl: product.image_url || '/images/placeholder.jpg',
               customization: customizationData,
               shippingType: selectedShippingType
@@ -358,8 +388,18 @@ export default function ProductDetail({ id }: { id: string }) {
   }
 
   // Extraire les tailles et couleurs uniques des variantes
-  const uniqueSizes = [...new Set(product.variants?.map(v => v.size) || [])];
-  const uniqueColors = [...new Set(product.variants?.map(v => v.color) || [])];
+  // Utiliser une approche alternative à Set pour éviter les erreurs TypeScript
+  const uniqueSizes = product.variants
+    ? product.variants
+      .map(v => v.size)
+      .filter((size, index, self) => size && self.indexOf(size) === index)
+    : [];
+  // Utiliser une approche alternative à Set pour éviter les erreurs TypeScript
+  const uniqueColors = product.variants
+    ? product.variants
+      .map(v => v.color || v.color_url)
+      .filter((color, index, self) => color && self.indexOf(color) === index)
+    : [];
 
   return (
     <div className="w-full min-h-screen bg-white text-black">
@@ -523,6 +563,8 @@ export default function ProductDetail({ id }: { id: string }) {
                         {uniqueColors.map((color) => {
                           // Vérifier si la couleur est un code hexadécimal valide
                           const isHexColor = /^#[0-9A-F]{6}$/i.test(color);
+                          // Vérifier si c'est une URL d'image
+                          const isImageUrl = color && (color.startsWith('http://') || color.startsWith('https://'));
                           
                           return (
                             <button
@@ -533,7 +575,7 @@ export default function ProductDetail({ id }: { id: string }) {
                                   ? 'scale-110 transform'
                                   : ''
                               }`}
-                              onClick={() => setSelectedColor(color)}
+                              onClick={() => setSelectedColor(color || '')}
                               title={color}
                             >
                               {isHexColor ? (
@@ -541,6 +583,18 @@ export default function ProductDetail({ id }: { id: string }) {
                                   className={`w-10 h-10 rounded-full border-2 ${selectedColor === color ? 'border-indigo-600 ring-2 ring-indigo-300' : 'border-gray-300 hover:border-indigo-400'}`} 
                                   style={{ backgroundColor: color }}
                                 />
+                              ) : isImageUrl ? (
+                                <div 
+                                  className={`w-10 h-10 rounded-full border-2 overflow-hidden ${selectedColor === color ? 'border-indigo-600 ring-2 ring-indigo-300' : 'border-gray-300 hover:border-indigo-400'}`}
+                                >
+                                  <Image 
+                                    src={color} 
+                                    alt="Couleur" 
+                                    width={40} 
+                                    height={40} 
+                                    className="object-cover w-full h-full"
+                                  />
+                                </div>
                               ) : (
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 border-2 ${selectedColor === color ? 'border-indigo-600 ring-2 ring-indigo-300' : 'border-gray-300 hover:border-indigo-400'}`}>
                                   <span className={`text-xs ${selectedColor === color ? 'font-bold text-indigo-700' : 'text-gray-700'}`}>
@@ -616,8 +670,8 @@ export default function ProductDetail({ id }: { id: string }) {
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {uniqueSizes.map((size) => {
                           // Trouver la variante pour cette taille et la couleur sélectionnée
-                          const variant = product.variants?.find(
-                            v => v.size === size && v.color === selectedColor
+                          const variant = product?.variants?.find(
+                            v => v.size === size && matchesSelectedColor(v, selectedColor)
                           );
                           
                           // Si la variante n'existe pas ou est en rupture de stock, ne pas l'afficher
@@ -1113,6 +1167,7 @@ export default function ProductDetail({ id }: { id: string }) {
                       src={similarProduct.image_url || '/images/placeholder.jpg'}
                       alt={similarProduct.name}
                       fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute top-0 right-0 bg-[#FCEB14] text-indigo-800 font-bold py-1 px-3 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">

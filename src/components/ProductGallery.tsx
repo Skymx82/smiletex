@@ -54,6 +54,7 @@ export default function ProductGallery({
           src={currentImageUrl}
           alt={`${productName} - Image ${selectedImageIndex + 1}`}
           fill
+          sizes="(max-width: 768px) 100vw, 50vw"
           style={{ objectFit: 'cover' }}
           className="rounded-lg"
           priority
@@ -77,6 +78,7 @@ export default function ProductGallery({
                 src={image.image_url}
                 alt={`${productName} - Miniature ${index + 1}`}
                 fill
+                sizes="(max-width: 768px) 64px, 64px"
                 style={{ objectFit: 'cover' }}
               />
             </div>

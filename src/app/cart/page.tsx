@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/hooks/useCart';
@@ -9,6 +9,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
 import AddressModal from '@/components/AddressModal';
 import { fetchCustomerProfile } from '@/lib/supabase/services/userService';
+
+// Fonction utilitaire pour vérifier si une couleur est un code hexadécimal
+const isHexColor = (color: string): boolean => {
+  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+};
+
+// Fonction utilitaire pour vérifier si une couleur est une URL d'image
+const isImageUrl = (color: string): boolean => {
+  return color?.startsWith('http') || color?.startsWith('/') || false;
+};
 
 export default function CartPage() {
   const { cart, isLoading, total, removeFromCart, updateQuantity, clearCart, createCheckoutSession } = useCart();
@@ -264,11 +274,25 @@ export default function CartPage() {
                           <p className="mt-1 text-sm text-gray-800">
                             {item.color && item.size && (
                               <span className="font-semibold flex items-center">
-                                <span 
-                                  className="inline-block w-5 h-5 mr-2 rounded-full border border-gray-300" 
-                                  style={{ backgroundColor: item.color }}
-                                  title={item.color}
-                                ></span>
+                                {isHexColor(item.color) ? (
+                                  <span 
+                                    className="inline-block w-5 h-5 mr-2 rounded-full border border-gray-300" 
+                                    style={{ backgroundColor: item.color }}
+                                    title={item.color}
+                                  ></span>
+                                ) : isImageUrl(item.color) ? (
+                                  <span className="inline-block w-5 h-5 mr-2 rounded-full border border-gray-300 overflow-hidden">
+                                    <Image 
+                                      src={item.color} 
+                                      alt="Couleur" 
+                                      width={20} 
+                                      height={20} 
+                                      className="object-cover"
+                                    />
+                                  </span>
+                                ) : (
+                                  <span className="mr-2 text-xs bg-gray-100 px-2 py-1 rounded-full">{item.color}</span>
+                                )}
                                 {item.size}
                               </span>
                             )}
