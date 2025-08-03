@@ -120,6 +120,36 @@ export interface ColumnMapping {
   [key: string]: string; // Pour d'autres colonnes à ajouter plus tard
 }
 
+// Constantes pour l'optimisation
+const BATCH_SIZE = 10; // Nombre de produits à traiter par lot
+const MAX_CONCURRENT_OPERATIONS = 5; // Nombre maximum d'opérations parallèles
+const MAX_CONCURRENT_VARIANTS = 10; // Nombre maximum de variantes à traiter en parallèle
+const MAX_CONCURRENT_IMAGES = 3; // Nombre maximum d'images à traiter en parallèle
+
+// Interface pour les images à traiter
+interface ImageToProcess {
+  url: string;
+  productId: string;
+  variantId: string;
+  isPrimary: boolean;
+  type: string;
+}
+
+// Fonction utilitaire pour traiter les opérations par lots en parallèle avec limite de concurrence
+async function processWithConcurrencyLimit<T, R>(items: T[], maxConcurrent: number, processor: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = [];
+  
+  // Traiter par lots selon la limite de concurrence
+  for (let i = 0; i < items.length; i += maxConcurrent) {
+    const batch = items.slice(i, i + maxConcurrent);
+    const batchPromises = batch.map(processor);
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+  }
+  
+  return results;
+}
+
 // Fonction principale pour importer les produits
 export const importProducts = async (
   productGroups: { [key: string]: any[] },
@@ -128,7 +158,7 @@ export const importProducts = async (
   columnMapping: ColumnMapping,
   onProgress: (progress: ImportProgress) => void
 ): Promise<ImportProgress> => {
-  console.log('==== DÉBUT DE L\'IMPORTATION AVEC API MISE À JOUR ====');
+  console.log('==== DÉBUT DE L\'IMPORTATION AVEC API OPTIMISÉE ====');
   console.log('Nombre de groupes de produits:', Object.keys(productGroups).length);
   console.log('Mappage des colonnes:', columnMapping);
   console.log('Configuration d\'importation:', config);
@@ -149,16 +179,25 @@ export const importProducts = async (
   onProgress(progress);
 
   try {
-    // Traiter chaque groupe de produits (un produit parent avec ses variantes)
-    for (const parentProductId of Object.keys(productGroups)) {
-      progress.current += 1;
-      progress.status = `Importation du produit ${progress.current}/${progress.total}: ${parentProductId}`;
+    // Préparer les groupes de produits pour le traitement par lots
+    const parentProductIds = Object.keys(productGroups);
+    const totalProducts = parentProductIds.length;
+    
+    // Traiter les produits par lots avec une limite de concurrence
+    for (let batchIndex = 0; batchIndex < parentProductIds.length; batchIndex += BATCH_SIZE) {
+      const batchProductIds = parentProductIds.slice(batchIndex, batchIndex + BATCH_SIZE);
+      progress.status = `Préparation du lot ${Math.floor(batchIndex / BATCH_SIZE) + 1}/${Math.ceil(totalProducts / BATCH_SIZE)}`;
       onProgress(progress);
+      
+      // Traiter chaque produit du lot en parallèle avec une limite de concurrence
+      await processWithConcurrencyLimit(batchProductIds, MAX_CONCURRENT_OPERATIONS, async (parentProductId) => {
+        try {
+          progress.current += 1;
+          progress.status = `Importation du produit ${progress.current}/${progress.total}: ${parentProductId}`;
+          onProgress(progress);
 
-      const rows = productGroups[parentProductId];
-      const firstRow = rows[0]; // Utiliser la première ligne pour les informations du produit principal
-
-      try {
+          const rows = productGroups[parentProductId];
+          const firstRow = rows[0]; // Utiliser la première ligne pour les informations du produit principal
         // Déterminer la catégorie du produit (mapping spécifique ou catégorie par défaut)
         const categoryId = categoryMapping[parentProductId] || config.defaultCategory;
         
@@ -269,8 +308,8 @@ export const importProducts = async (
               sizes.add(size);
             }
             
-            // Créer une variante pour chaque taille de cette couleur
-            for (const size of sizes) {
+            // Préparer les données de variantes pour toutes les tailles
+            const variantsToCreate = Array.from(sizes).map(size => {
               // Utiliser le SKU du fichier Excel s'il existe, sinon en générer un
               let variantSku = sku;
               
@@ -284,7 +323,7 @@ export const importProducts = async (
               }
               
               // Créer une variante
-              const variantData: VariantData = {
+              return {
                 product_id: newProduct.id,
                 size: size,
                 color: colorUrl ? null : hexColorCode, // Si colorUrl est défini, on laisse color à null
@@ -292,8 +331,11 @@ export const importProducts = async (
                 stock_quantity: 10, // Valeur par défaut
                 price_adjustment: 0,
                 sku: variantSku
-              };
+              } as VariantData;
+            });
 
+            // Traiter les variantes en parallèle avec une limite de concurrence
+            const variantResults = await processWithConcurrencyLimit(variantsToCreate, MAX_CONCURRENT_VARIANTS, async (variantData) => {
               // Ajouter la variante à la base de données
               const variantResult = await createVariant(variantData);
               
@@ -301,10 +343,12 @@ export const importProducts = async (
                 throw new Error(variantResult.error || 'Erreur lors de la création de la variante');
               }
               
-              // Stocker l'ID de la première variante créée pour cette couleur (pour les images)
-              if (!productColorMap.has(colorKey)) {
-                productColorMap.set(colorKey, variantResult.variant.id);
-              }
+              return variantResult.variant;
+            });
+            
+            // Stocker l'ID de la première variante créée pour cette couleur (pour les images)
+            if (variantResults.length > 0 && !productColorMap.has(colorKey)) {
+              productColorMap.set(colorKey, variantResults[0].id);
             }
             
             // Récupérer l'ID de la première variante créée pour cette couleur (pour les images)
@@ -318,54 +362,67 @@ export const importProducts = async (
             
             // Traiter les images si elles existent (une seule fois par couleur)
             if (mainImage || modelImageA || modelImageB || modelImageC) {
-              // Image principale (is_primary = true seulement pour la première couleur du produit)
-              if (mainImage) {
-                try {
+              try {
+                // Préparer toutes les images à traiter
+                const imagesToProcess = [];
+                
+                // Image principale (is_primary = true seulement pour la première couleur du produit)
+                if (mainImage) {
                   // Vérifier si une image principale existe déjà pour ce produit
                   const isPrimary = !productsWithPrimaryImage.has(newProduct.id);
                   
-                  const mainImageResult = await addImageFromUrl(
-                    mainImage, 
-                    newProduct.id, 
-                    variantId, 
-                    isPrimary // is_primary = true seulement pour la première variante
-                  );
+                  imagesToProcess.push({
+                    url: mainImage,
+                    productId: newProduct.id,
+                    variantId: variantId,
+                    isPrimary: isPrimary,
+                    type: 'main'
+                  });
                   
-                  if (!mainImageResult.success) {
-                    console.warn(`Erreur lors de l'ajout de l'image: ${mainImageResult.error}`);
-                  } else {
-                    if (isPrimary) {
-                      // Marquer ce produit comme ayant déjà une image principale
-                      productsWithPrimaryImage.add(newProduct.id);
-                      console.log(`Image principale ajoutée pour le produit: ${mainImage}`);
+                  if (isPrimary) {
+                    // Marquer ce produit comme ayant déjà une image principale
+                    productsWithPrimaryImage.add(newProduct.id);
+                  }
+                }
+                
+                // Images portées (is_primary = false)
+                const modelImages = [modelImageA, modelImageB, modelImageC].filter(Boolean);
+                modelImages.forEach(modelImage => {
+                  imagesToProcess.push({
+                    url: modelImage,
+                    productId: newProduct.id,
+                    variantId: variantId,
+                    isPrimary: false,
+                    type: 'model'
+                  });
+                });
+                
+                // Traiter toutes les images en parallèle avec une limite de concurrence
+                const imageResults = await processWithConcurrencyLimit(imagesToProcess, MAX_CONCURRENT_IMAGES, async (img) => {
+                  try {
+                    const result = await addImageFromUrl(
+                      img.url,
+                      img.productId,
+                      img.variantId,
+                      img.isPrimary
+                    );
+                    
+                    if (!result.success) {
+                      console.warn(`Erreur lors de l'ajout de l'image ${img.type}: ${result.error}`);
                     } else {
-                      console.log(`Image standard ajoutée pour la couleur ${colorKey}: ${mainImage}`);
+                      console.log(`Image ${img.type} ajoutée pour la couleur ${colorKey}: ${img.url}`);
                     }
+                    
+                    return result;
+                  } catch (imgError: any) {
+                    console.error(`Erreur lors de l'ajout de l'image ${img.type}: ${imgError?.message || 'Erreur inconnue'}`);
+                    return { success: false, error: imgError?.message || 'Erreur inconnue' };
                   }
-                } catch (imgError: any) {
-                  console.error(`Erreur lors de l'ajout de l'image: ${imgError?.message || 'Erreur inconnue'}`);
-                }
-              }
-              
-              // Images portées (is_primary = false)
-              const modelImages = [modelImageA, modelImageB, modelImageC].filter(Boolean);
-              for (const modelImage of modelImages) {
-                try {
-                  const modelImageResult = await addImageFromUrl(
-                    modelImage, 
-                    newProduct.id, 
-                    variantId, 
-                    false // is_primary = false
-                  );
-                  
-                  if (!modelImageResult.success) {
-                    console.warn(`Erreur lors de l'ajout de l'image portée: ${modelImageResult.error}`);
-                  } else {
-                    console.log(`Image portée ajoutée pour la couleur ${colorKey}: ${modelImage}`);
-                  }
-                } catch (imgError: any) {
-                  console.error(`Erreur lors de l'ajout de l'image portée: ${imgError?.message || 'Erreur inconnue'}`);
-                }
+                });
+                
+                console.log(`${imageResults.filter(r => r.success).length}/${imagesToProcess.length} images ajoutées avec succès pour la couleur ${colorKey}`);
+              } catch (imgError: any) {
+                console.error(`Erreur lors du traitement des images: ${imgError?.message || 'Erreur inconnue'}`);
               }
             }
           } catch (error) {
@@ -381,6 +438,7 @@ export const importProducts = async (
         progress.errors.push(errorMessage);
         onProgress(progress);
       }
+      });
     }
 
     progress.status = progress.errors.length > 0

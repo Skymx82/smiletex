@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Category } from '@/lib/products';
 import { fetchCategories } from '@/lib/supabase/services/productService';
 import { parseExcelFile, importProducts, ImportConfig, ImportProgress } from './services/importService';
@@ -80,7 +81,7 @@ const ProductImportPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Charger les catégories au chargement de la page
-  React.useEffect(() => {
+  useEffect(() => {
     const loadCategories = async () => {
       try {
         const fetchedCategories = await fetchCategories();
@@ -286,17 +287,41 @@ const ProductImportPage = () => {
                   <table className="min-w-full">
                     <thead>
                       <tr>
+                        <th className="text-left py-2">Image</th>
                         <th className="text-left py-2">Produit parent</th>
                         <th className="text-left py-2">Nom du produit</th>
                         <th className="text-left py-2">Catégorie</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.entries(previewData.productGroups).map(([parentId, rows]) => (
-                        <tr key={parentId} className="border-t">
-                          <td className="py-2">{parentId}</td>
-                          <td className="py-2">{rows[0]["Nom produit"]}</td>
-                          <td className="py-2">
+                      {Object.entries(previewData.productGroups).map(([parentId, rows]) => {
+                        // Récupérer la première image disponible dans la ligne
+                        const firstRow = rows[0];
+                        const imageColumn = columnMapping.mainImage || "Visuel Principal";
+                        const imageUrl = firstRow[imageColumn] || firstRow["Visuel Principal"] || 
+                                       firstRow["Image"] || firstRow["URL Image"] || "/images/placeholder.jpg";
+                        
+                        return (
+                          <tr key={parentId} className="border-t">
+                            <td className="py-2">
+                              <div className="relative h-16 w-16 rounded overflow-hidden border border-gray-200">
+                                <Image 
+                                  src={imageUrl} 
+                                  alt={firstRow["Nom produit"] || "Produit"}
+                                  fill
+                                  sizes="64px"
+                                  className="object-cover"
+                                  onError={(e) => {
+                                    // Fallback en cas d'erreur de chargement de l'image
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = "/images/placeholder.jpg";
+                                  }}
+                                />
+                              </div>
+                            </td>
+                            <td className="py-2">{parentId}</td>
+                            <td className="py-2">{firstRow["Nom produit"]}</td>
+                            <td className="py-2">
                             <select
                               value={categoryMapping[parentId] || config.defaultCategory}
                               onChange={(e) => {
@@ -315,7 +340,8 @@ const ProductImportPage = () => {
                             </select>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 ) : (
