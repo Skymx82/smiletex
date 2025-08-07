@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Category } from '@/lib/products';
 import { fetchCategories } from '@/lib/supabase/services/productService';
-import { ImportProgress } from './services/importService';
+import { ImportProgress } from './components/sologroup/services/importService';
 import SoloGroupImport from './components/sologroup/SoloGroupImport';
+import TopTexGroupImport from './components/toptex/TopTexGroupImport';
+import ImbretexImport from './components/imbretex/ImbretexImport';
 
 const ProductImportPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedSupplier, setSelectedSupplier] = useState<'sologroup' | 'toptex'>('sologroup');
+  const [selectedSupplier, setSelectedSupplier] = useState<'sologroup' | 'toptex' | 'imbretex'>('sologroup');
   const [importProgress, setImportProgress] = useState<ImportProgress>({
     current: 0,
     total: 0,
@@ -37,7 +39,7 @@ const ProductImportPage = () => {
   }, []);
 
   // Changer de fournisseur
-  const changeSupplier = (supplier: 'sologroup' | 'toptex') => {
+  const changeSupplier = (supplier: 'sologroup' | 'toptex' | 'imbretex') => {
     setSelectedSupplier(supplier);
     setError(null);
   };
@@ -86,24 +88,37 @@ const ProductImportPage = () => {
           >
             TopTex
           </button>
+          <button
+            className={`py-2 px-4 font-medium text-sm focus:outline-none ${selectedSupplier === 'imbretex' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => changeSupplier('imbretex')}
+          >
+            Imbretex
+          </button>
         </div>
       </div>
 
       {selectedSupplier === 'sologroup' && (
         <SoloGroupImport 
+        categories={categories} 
+        defaultCategory={categories.length > 0 ? categories[0].id : ''}
+        onImportComplete={handleImportProgress}
+      />
+      )}
+
+      {selectedSupplier === 'toptex' && (
+       <TopTexGroupImport 
           categories={categories} 
           defaultCategory={categories.length > 0 ? categories[0].id : ''}
           onImportComplete={handleImportProgress}
         />
       )}
 
-      {selectedSupplier === 'toptex' && (
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Importation TopTex</h2>
-          <p className="text-gray-600">
-            Le module d'importation pour TopTex est en cours de développement et sera disponible prochainement.
-          </p>
-        </div>
+      {selectedSupplier === 'imbretex' && (
+       <ImbretexImport 
+          categories={categories} 
+          defaultCategory={categories.length > 0 ? categories[0].id : ''}
+          onImportComplete={handleImportProgress}
+        />
       )}
     </div>
   );

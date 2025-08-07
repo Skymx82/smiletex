@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { Category } from '@/lib/products';
-import { parseExcelFile, importProducts, ImportConfig, ImportProgress } from './services/importService';
+import { parseExcelFile, importProducts, ImportConfig, ImportProgress } from '../sologroup/services/importService';
 
 // Types
 interface PreviewData {
