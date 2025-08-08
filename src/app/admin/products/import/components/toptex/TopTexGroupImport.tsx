@@ -2,7 +2,64 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { Category } from '@/lib/products';
-import { parseExcelFile, importProducts, ImportConfig, ImportProgress } from '../sologroup/services/importService';
+import { parseExcelFile, importProducts, ImportConfig, ImportProgress } from './services/importService';
+
+// Fonction pour convertir CMYK en RGB puis en HEX
+function cmykToHex(cmykString: string): string {
+  try {
+    console.log(`Tentative de conversion CMYK: "${cmykString}"`);
+    
+    // Si la chaîne est vide ou non définie, retourner noir par défaut
+    if (!cmykString || cmykString.trim() === '') {
+      return '#000000';
+    }
+    
+    // Essayer plusieurs formats possibles
+    let cmykValues: RegExpMatchArray | null = null;
+    
+    // Format 1: "C=XX M=XX Y=XX K=XX"
+    cmykValues = cmykString.match(/C=(\d+)\s*M=(\d+)\s*Y=(\d+)\s*K=(\d+)/i);
+    
+    // Format 2: "C: XX% M: XX% Y: XX% K: XX%"
+    if (!cmykValues) {
+      cmykValues = cmykString.match(/C:\s*(\d+)%?\s*M:\s*(\d+)%?\s*Y:\s*(\d+)%?\s*K:\s*(\d+)%?/i);
+    }
+    
+    // Format 3: "XX,XX,XX,XX" (C,M,Y,K)
+    if (!cmykValues) {
+      cmykValues = cmykString.match(/^\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*$/);
+    }
+    
+    // Format 4: "XX XX XX XX" (C M Y K) - Format simple avec espaces
+    if (!cmykValues) {
+      cmykValues = cmykString.match(/^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*$/);
+    }
+    
+    if (!cmykValues || cmykValues.length !== 5) {
+      console.warn(`Format CMYK non reconnu: "${cmykString}"`);
+      return '#000000'; // Noir par défaut
+    }
+    
+    // Extraire les valeurs CMYK (0-100)
+    const c = parseInt(cmykValues[1]) / 100;
+    const m = parseInt(cmykValues[2]) / 100;
+    const y = parseInt(cmykValues[3]) / 100;
+    const k = parseInt(cmykValues[4]) / 100;
+    
+    // Convertir CMYK en RGB
+    const r = Math.round(255 * (1 - c) * (1 - k));
+    const g = Math.round(255 * (1 - m) * (1 - k));
+    const b = Math.round(255 * (1 - y) * (1 - k));
+    
+    // Convertir RGB en HEX
+    const hexColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+    console.log(`Conversion CMYK réussie: "${cmykString}" -> "${hexColor}"`);
+    return hexColor;
+  } catch (error) {
+    console.error(`Erreur lors de la conversion CMYK en HEX: ${error}`);
+    return '#000000'; // Noir par défaut en cas d'erreur
+  }
+}
 
 // Types
 interface PreviewData {
@@ -38,34 +95,45 @@ interface ColumnMapping {
   [key: string]: string;
 }
 
-interface SoloGroupImportProps {
+interface TopTexGroupImportProps {
   categories: Category[];
   defaultCategory: string;
   onImportComplete: (progress: ImportProgress) => void;
 }
 
-const SOLOGROUP_COLUMN_MAPPING: ColumnMapping = {
+// Fonction pour normaliser une URL d'image directement dans le composant
+const normalizeUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // Si l'URL ne commence pas par http:// ou https://, ajouter https://
+  if (!url.match(/^https?:\/\//)) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
+const TOPTEX_COLUMN_MAPPING: ColumnMapping = {
   sku: 'SKU',
-  productName: 'Nom produit',
-  colorCode: 'Code Couleur',
-  colorUrl: 'Color Url',
-  size: 'Tailles',
-  price: 'Prix',
-  parentProduct: 'Produit parent',
-  mainImage: 'Visuel packshot A',
-  modelImageA: 'Visuel principal porté A',
-  modelImageB: 'Visuel principal porté B',
-  modelImageC: 'Visuel principal porté C',
+  productName: 'Designation_fr',
+  colorCode: 'Colors_CMYK',
+  colorUrl: '',
+  size: 'Size_fr',
+  price: 'Prix_Vrac',
+  parentProduct: 'Catalog_Ref',
+  mainImage: 'URL_Packshots_Face',
+  modelImageA: 'URL Images',
+  modelImageB: 'URL_Packshots_Back',
+  modelImageC: 'URL_Packshots_Side',
   // Utiliser des valeurs par défaut pour les champs obligatoires mais non présents dans le fichier Excel
-  description: '', // Sera rempli avec le nom du produit
-  weightGsm: '', // Sera null
-  supplierReference: 'SKU', // Utiliser SKU comme référence fournisseur
-  material: '',
+  description: 'Description_fr', // Sera rempli avec le nom du produit
+  weightGsm: 'Coating_Weight', // Grammage du produit
+  supplierReference: 'Catalog_Ref', // Référence fournisseur
+  material: 'Composition_fr',
   isFeatured: '',
   isNew: ''
 };
 
-const SoloGroupImport: React.FC<SoloGroupImportProps> = ({ 
+const TopTexGroupImport: React.FC<TopTexGroupImportProps> = ({ 
   categories, 
   defaultCategory,
   onImportComplete
@@ -77,7 +145,7 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
     defaultCategory: defaultCategory,
   });
   const [categoryMapping, setCategoryMapping] = useState<CategoryMapping>({});
-  const [columnMapping] = useState<ColumnMapping>(SOLOGROUP_COLUMN_MAPPING);
+  const [columnMapping] = useState<ColumnMapping>(TOPTEX_COLUMN_MAPPING);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [importProgress, setImportProgress] = useState<ImportProgress>({
     current: 0,
@@ -90,11 +158,57 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
   // Gérer le changement de fichier
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      
+      // Vérifier la taille du fichier (limite de 5 Mo)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo en octets
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        setError(`Le fichier est trop volumineux. La taille maximale autorisée est de 5 Mo. Votre fichier fait ${(selectedFile.size / (1024 * 1024)).toFixed(2)} Mo.`);
+        return;
+      }
+      
+      setFile(selectedFile);
       setError(null);
-      setPreviewData(null);
     }
   };
+
+  // Prétraiter les données avant l'importation pour convertir les codes CMYK en HEX
+  const preprocessData = useCallback((data: PreviewData | null): PreviewData | null => {
+    if (!data) {
+      console.log('preprocessData: données nulles, rien à traiter');
+      return data;
+    }
+    
+    console.log('preprocessData: début du traitement avec', Object.keys(data.productGroups).length, 'groupes de produits');
+    const updatedGroups = { ...data.productGroups };
+    
+    // Parcourir tous les groupes de produits
+    Object.keys(updatedGroups).forEach(parentProductId => {
+      console.log(`Traitement du groupe ${parentProductId} avec ${updatedGroups[parentProductId].length} variantes`);
+      // Parcourir toutes les variantes de ce groupe
+      updatedGroups[parentProductId] = updatedGroups[parentProductId].map((variant: Record<string, string>) => {
+        // Si un code CMYK est présent, le convertir en HEX
+        if (variant[columnMapping.colorCode]) {
+          const cmykValue = variant[columnMapping.colorCode];
+          const hexColor = cmykToHex(cmykValue);
+          
+          // Stocker le code HEX dans le champ colorCode au lieu de colorUrl
+          variant[columnMapping.colorCode] = hexColor;
+          console.log(`Conversion CMYK -> HEX: ${cmykValue} -> ${hexColor} pour ${variant[columnMapping.sku] || 'variante sans SKU'}`);
+        } else {
+          console.log(`Pas de code CMYK pour ${variant[columnMapping.sku] || 'variante sans SKU'}`);
+        }
+        
+        return variant;
+      });
+    });
+    
+    // Retourner les données prétraitées sans modifier l'état
+    return {
+      ...data,
+      productGroups: updatedGroups
+    };
+  }, [columnMapping]);
 
   // Analyser le fichier Excel
   const handleParseExcelFile = useCallback(async () => {
@@ -105,18 +219,37 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
 
     setLoading(true);
     setError(null);
-
+    console.log('Début de l\'analyse du fichier Excel:', file.name);
+    
     try {
       // Analyser le fichier Excel
-      const result = await parseExcelFile(file);
-      setPreviewData(result);
+      console.log('Appel de parseExcelFile avec mapping de colonne parentProduct:', columnMapping.parentProduct);
+      const result = await parseExcelFile(file, { parentProduct: columnMapping.parentProduct });
+      console.log('Résultat de parseExcelFile:', {
+        headers: result.headers.length,
+        rows: result.rows.length,
+        productGroups: Object.keys(result.productGroups).length,
+        totalProducts: result.totalProducts,
+        totalVariants: result.totalVariants
+      });
+      
+      // Prétraiter les données pour convertir CMYK en HEX
+      console.log('Appel de preprocessData...');
+      const processedData = preprocessData(result);
+      console.log('Données traitées:', {
+        productGroups: Object.keys(processedData?.productGroups || {}).length,
+        totalProducts: processedData?.totalProducts || 0,
+        totalVariants: processedData?.totalVariants || 0
+      });
+      
+      setPreviewData(processedData);
     } catch (error) {
       console.error('Erreur lors de l\'analyse du fichier:', error);
       setError('Erreur lors de l\'analyse du fichier. Vérifiez le format.');
     } finally {
       setLoading(false);
     }
-  }, [file]);
+  }, [file, preprocessData]);
 
   // Lancer l'importation
   const startImport = async () => {
@@ -198,7 +331,7 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
   return (
     <div>
       <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">1. Sélectionner un fichier Excel (format SoloGroup)</h2>
+        <h2 className="text-xl font-semibold mb-4">1. Sélectionner un fichier Excel (format TopTex)</h2>
         <div className="mb-4">
           <input
             type="file"
@@ -226,10 +359,10 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
         
         <div className="mt-4 p-3 bg-blue-50 rounded-md">
           <p className="text-sm text-blue-700">
-            <span className="font-medium">Format sélectionné:</span> SoloGroup
+            <span className="font-medium">Format sélectionné:</span> TopTex
           </p>
           <p className="text-xs text-blue-600 mt-1">
-            Format standard SoloGroup avec colonnes SKU, Nom produit, Code couleur, etc.
+            Format standard TopTex avec colonnes SKU, Designation_fr, Colors_CMYK, etc.
           </p>
         </div>
       </div>
@@ -302,7 +435,26 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
                       const productName = firstVariant[columnMapping.productName] || parentProductId;
                       const supplierRef = firstVariant[columnMapping.supplierReference] || '';
                       const variantCount = variants.length;
-                      const imageUrl = firstVariant[columnMapping.modelImageA] || '';
+                      
+                      // Récupérer l'URL de l'image et la normaliser
+                      let imageUrl = firstVariant[columnMapping.mainImage] || '';
+                      let modelImageA = firstVariant[columnMapping.modelImageA] || '';
+                      
+                      // Si mainImage est vide, utiliser modelImageA comme fallback
+                      if (!imageUrl && modelImageA) {
+                        console.log('mainImage est vide, utilisation de modelImageA comme fallback pour l\'affichage');
+                        imageUrl = modelImageA;
+                      }
+                      
+                      // Si l'URL contient plusieurs images séparées par |, prendre la première
+                      if (imageUrl && (imageUrl.includes('|') || imageUrl.includes(';') || imageUrl.includes(','))) {
+                        imageUrl = imageUrl.split(/[|;,]/)[0].trim();
+                      }
+                      
+                      // Normaliser l'URL (ajouter https:// si nécessaire)
+                      if (imageUrl) {
+                        imageUrl = normalizeUrl(imageUrl);
+                      }
                       
                       return (
                         <tr key={parentProductId} className="hover:bg-gray-50">
@@ -427,4 +579,4 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
   );
 };
 
-export default SoloGroupImport;
+export default TopTexGroupImport;

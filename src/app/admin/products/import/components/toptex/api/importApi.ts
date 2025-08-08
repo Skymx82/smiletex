@@ -89,6 +89,14 @@ export async function createProduct(productData: ProductData) {
  */
 export async function createVariant(variantData: VariantData) {
   try {
+    // S'assurer que le champ color est prioritaire sur color_url pour Imbretex
+    // Si nous avons un code couleur hexadécimal, nous l'utilisons et ignorons color_url
+    if (variantData.color) {
+      console.log(`Utilisation du code hexadécimal: ${variantData.color} pour la variante`);
+      // Nous avons un code hexadécimal, donc nous n'avons pas besoin de color_url
+      variantData.color_url = undefined;
+    }
+    
     console.log('Tentative de création de la variante:', variantData);
     
     const newVariant = await addProductVariant(variantData);
@@ -128,16 +136,25 @@ export async function addImageFromUrl(
     console.log(`Tentative d'ajout d'image depuis URL externe: ${imageUrl}`);
     console.log(`Pour le produit: ${productId}, variante: ${variantId || 'aucune'}, isPrimary: ${isPrimary}`);
     
-    // Vérifier que l'URL est accessible (optionnel)
+    // Nous ne vérifions plus l'URL avec fetch pour éviter les erreurs CORS
+    // Vérifier simplement que l'URL semble valide
     try {
-      const response = await fetch(imageUrl, { method: 'HEAD' });
-      if (!response.ok) {
-        console.warn(`L'URL de l'image pourrait ne pas être accessible: ${response.status} ${response.statusText}`);
-        // On continue quand même, car l'URL pourrait être temporairement inaccessible
+      // S'assurer que l'URL commence par http:// ou https://
+      let normalizedUrl = imageUrl;
+      if (!normalizedUrl.match(/^https?:\/\//)) {
+        normalizedUrl = `https://${normalizedUrl}`;
+        console.log(`URL normalisée: ${imageUrl} -> ${normalizedUrl}`);
+        imageUrl = normalizedUrl; // Mettre à jour l'URL pour la suite du traitement
       }
-    } catch (fetchError) {
-      console.warn(`Impossible de vérifier l'URL de l'image: ${fetchError}`);
-      // On continue quand même, car l'erreur pourrait être temporaire
+      
+      const url = new URL(normalizedUrl);
+      if (!url.protocol.startsWith('http')) {
+        console.warn(`L'URL de l'image n'utilise pas le protocole HTTP/HTTPS: ${normalizedUrl}`);
+        // On continue quand même
+      }
+    } catch (urlError) {
+      console.warn(`URL d'image invalide: ${imageUrl} - ${urlError}`);
+      // On continue quand même, car l'URL pourrait être dans un format non standard
     }
     
     // Si l'image est marquée comme principale, vérifier si ce produit a déjà une image principale
@@ -152,10 +169,16 @@ export async function addImageFromUrl(
     }
     
     // Ajouter directement l'entrée dans la table product_images avec l'URL externe
+    // S'assurer une dernière fois que l'URL commence bien par https://
+    if (imageUrl && !imageUrl.match(/^https?:\/\//)) {
+      imageUrl = `https://${imageUrl}`;
+      console.log(`URL normalisée une dernière fois avant insertion en BDD: ${imageUrl}`);
+    }
+    
     const imageData = {
       product_id: productId,
       variant_id: variantId,
-      image_url: imageUrl, // Utiliser directement l'URL externe
+      image_url: imageUrl, // Utiliser l'URL externe avec https:// obligatoire
       is_primary: isPrimary
     };
     
