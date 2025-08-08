@@ -11,6 +11,7 @@ import ProductGallery from '@/components/ProductGallery';
 import { ProductCustomization } from '@/types/customization';
 import { Product, ProductImage } from '@/lib/products';
 import { isCustomizationComplete } from '@/lib/customization';
+import ProjectSteps from '@/components/ProjectSteps';
 
 // Fonction pour obtenir une description du grammage
 function getGrammageDescription(gsm: number): string {
@@ -997,142 +998,31 @@ export default function ProductDetail({ id }: { id: string }) {
         </div>
       </div>
       
-      {/* Section des 5 étapes du projet - visible sur desktop à gauche */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-8 border-t border-gray-200 relative overflow-hidden md:block hidden">  
+      {/* Section des 5 étapes du projet */}
+      <section className="py-16 md:py-24 bg-white text-gray-800 relative overflow-hidden">
         {/* Éléments graphiques abstraits */}
         <div className="absolute left-0 top-1/3 w-64 h-64 rounded-full bg-[#FCEB14] opacity-5 blur-3xl"></div>
         <div className="absolute right-0 bottom-1/4 w-72 h-72 rounded-full bg-indigo-200 opacity-10 blur-3xl"></div>
         
-        <h2 className="text-2xl font-bold text-gray-900 mb-8 relative inline-block">
-          Les 5 étapes de
-          <span className="ml-2 relative inline-block text-indigo-600">
-            votre projet
-            <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-              <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-            </svg>
-          </span>
-        </h2>
-        
-        <div className="relative">
-          {/* Ligne courbe évoquant un sourire */}
-          <div className="absolute -top-8 left-1/4 right-1/4 h-16 border-t-4 border-[#FCEB14] opacity-10 rounded-t-full"></div>
-          
-          {/* Parcours des étapes */}
-          <div className="flex flex-nowrap justify-between items-start relative">
-            {/* Ligne de connexion */}
-            <div className="absolute top-12 left-0 right-0 h-1 bg-indigo-100 z-0"></div>
-            
-            {/* Étape 1 */}
-            <div className="flex flex-col items-center z-10 w-1/5 px-2">
-              <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative group transition-all duration-300 hover:bg-indigo-100">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
-                  <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                  </svg>
-                </div>
-                <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-[#FCEB14] rounded-full flex items-center justify-center text-indigo-800 font-bold shadow-sm z-20 border-2 border-white">
-                  1
-                </div>
-              </div>
-              <h3 className="text-md font-bold text-indigo-700 text-center mb-1">Demande de devis</h3>
-              <p className="text-xs text-gray-600 text-center">Après avoir effectué votre sélection produit</p>
-              
-              {/* Flèche vers la droite */}
-              <div className="absolute right-0 top-12 transform translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
-                <svg className="w-6 h-6 text-indigo-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                </svg>
-              </div>
-            </div>
-            
-            {/* Étape 2 */}
-            <div className="flex flex-col items-center z-10 w-1/5 px-2">
-              <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative group transition-all duration-300 hover:bg-indigo-100">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
-                  <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                </div>
-                <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-[#FCEB14] rounded-full flex items-center justify-center text-indigo-800 font-bold shadow-sm z-20 border-2 border-white">
-                  2
-                </div>
-              </div>
-              <h3 className="text-md font-bold text-indigo-700 text-center mb-1">Confirmation</h3>
-              <p className="text-xs text-gray-600 text-center">Un expert vous proposera un devis personnalisé</p>
-              
-              {/* Flèche vers la droite */}
-              <div className="absolute right-0 top-12 transform translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
-                <svg className="w-6 h-6 text-indigo-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                </svg>
-              </div>
-            </div>
-            
-            {/* Étape 3 */}
-            <div className="flex flex-col items-center z-10 w-1/5 px-2">
-              <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative group transition-all duration-300 hover:bg-indigo-100">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
-                  <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                </div>
-                <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-[#FCEB14] rounded-full flex items-center justify-center text-indigo-800 font-bold shadow-sm z-20 border-2 border-white">
-                  3
-                </div>
-              </div>
-              <h3 className="text-md font-bold text-indigo-700 text-center mb-1">Validation du BAT</h3>
-              <p className="text-xs text-gray-600 text-center">Notre équipe de PAO vous enverra un bon à tirer</p>
-              
-              {/* Flèche vers la droite */}
-              <div className="absolute right-0 top-12 transform translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
-                <svg className="w-6 h-6 text-indigo-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                </svg>
-              </div>
-            </div>
-            
-            {/* Étape 4 */}
-            <div className="flex flex-col items-center z-10 w-1/5 px-2">
-              <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative group transition-all duration-300 hover:bg-indigo-100">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
-                  <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                  </svg>
-                </div>
-                <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-[#FCEB14] rounded-full flex items-center justify-center text-indigo-800 font-bold shadow-sm z-20 border-2 border-white">
-                  4
-                </div>
-              </div>
-              <h3 className="text-md font-bold text-indigo-700 text-center mb-1">Production</h3>
-              <p className="text-xs text-gray-600 text-center">1 à 3 semaines ouvrables selon vos besoins</p>
-              
-              {/* Flèche vers la droite */}
-              <div className="absolute right-0 top-12 transform translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
-                <svg className="w-6 h-6 text-indigo-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                </svg>
-              </div>
-            </div>
-            
-            {/* Étape 5 */}
-            <div className="flex flex-col items-center z-10 w-1/5 px-2">
-              <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative group transition-all duration-300 hover:bg-indigo-100">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
-                  <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                  </svg>
-                </div>
-                <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-[#FCEB14] rounded-full flex items-center justify-center text-indigo-800 font-bold shadow-sm z-20 border-2 border-white">
-                  5
-                </div>
-              </div>
-              <h3 className="text-md font-bold text-indigo-700 text-center mb-1">Livraison</h3>
-              <p className="text-xs text-gray-600 text-center">Retrait sur place ou livraison à votre adresse</p>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+              <span className="relative inline-block">
+                Les 5 étapes de
+                <span className="ml-2 relative inline-block text-indigo-600">
+                  votre projet
+                  <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
+                </span>
+              </span>
+            </h2>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+              De la commande à la livraison, nous vous accompagnons à chaque étape de votre projet de personnalisation textile.
+            </p>
           </div>
+          
+          <ProjectSteps />
         </div>
-      </div>
+      </section>
 
       {/* Section des produits similaires */}
       {similarProducts.length > 0 && (
@@ -1145,9 +1035,7 @@ export default function ProductDetail({ id }: { id: string }) {
             Produits
             <span className="ml-2 relative inline-block text-indigo-600">
               similaires
-              <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 100 6" preserveAspectRatio="none">
-                <path d="M0,6 C25,2 50,-1 75,2 C87,4 95,5 100,6 L0,6 Z" fill="#FCEB14" />
-              </svg>
+              <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
             </span>
           </h2>
           

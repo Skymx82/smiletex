@@ -47,51 +47,25 @@ async function uploadFileWithSignedUrl(file: File, bucketName: string): Promise<
   try {
     // Générer un nom de fichier unique
     const fileExt = file.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
+    const fileName = `inspirations/${uuidv4()}.${fileExt}`;
     
-    // Créer une URL signée pour le téléchargement
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+    // Essayer directement l'upload sans passer par l'URL signée
+    const { data, error } = await supabase.storage
       .from(bucketName)
-      .createSignedUploadUrl(fileName);
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
     
-    if (signedUrlError) {
-      console.error('Erreur lors de la création de l\'URL signée:', signedUrlError);
-      
-      // Essayer l'upload direct comme fallback
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-      
-      if (error) {
-        console.error('Erreur lors du téléchargement direct:', error);
-        return null;
-      }
-      
-      // Récupérer l'URL publique
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(data.path);
-      
-      return publicUrl;
-    }
-    
-    // Utiliser l'URL signée pour télécharger le fichier
-    const { data, error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .uploadToSignedUrl(fileName, signedUrlData.token, file);
-    
-    if (uploadError) {
-      console.error('Erreur lors du téléchargement avec URL signée:', uploadError);
+    if (error) {
+      console.error('Erreur lors du téléchargement direct:', error);
       return null;
     }
     
     // Récupérer l'URL publique
     const { data: { publicUrl } } = supabase.storage
       .from(bucketName)
-      .getPublicUrl(fileName);
+      .getPublicUrl(data.path);
     
     return publicUrl;
   } catch (error) {
@@ -104,7 +78,8 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const bucketName = formData.get('bucket') as string || 'uploads';
+    // Utiliser directement le bucket 'product-images' sans essayer de le créer
+    const bucketName = 'product-images';
     
     if (!file) {
       return NextResponse.json(
@@ -113,14 +88,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // S'assurer que le bucket existe
-    const bucketExists = await ensureBucketExists(bucketName);
-    if (!bucketExists) {
-      return NextResponse.json(
-        { error: `Impossible de créer ou d'accéder au bucket ${bucketName}` },
-        { status: 500 }
-      );
-    }
+    // Ne pas essayer de créer le bucket, supposer qu'il existe déjà
+    // et qu'il a les bonnes politiques RLS configurées
     
     // Télécharger le fichier avec une URL signée pour contourner les restrictions RLS
     const imageUrl = await uploadFileWithSignedUrl(file, bucketName);
