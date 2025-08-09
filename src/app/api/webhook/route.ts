@@ -41,11 +41,11 @@ export async function POST(request: Request) {
           throw new Error('Order ID not found in session metadata');
         }
 
-        // 1. Update order status and shipping details
+        // 1. Update shipping details but keep the status as 'unpaid'
+        // La mise à jour du statut sera gérée par la page de succès
         const { error: orderError } = await supabase
           .from('orders')
           .update({
-            status: 'processing',
             shipping_address: {
               name: shippingDetails?.name,
               address: {

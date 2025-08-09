@@ -103,10 +103,31 @@ export function useCart() {
   // Vider le panier
   const clearCart = async () => {
     try {
-      const emptyCart = await clearCartUtil();
-      setCart(emptyCart);
+      // Vider le localStorage directement
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('cart');
+        localStorage.setItem('cart', JSON.stringify([]));
+      }
+      
+      // Appeler la fonction utilitaire qui gère aussi Supabase
+      await clearCartUtil(user?.id);
+      
+      // Forcer la mise à jour de l'état local
+      setCart([]);
       setTotal(0);
-      return emptyCart;
+      
+      // Log pour débogage
+      console.log('Cart completely cleared from useCart hook');
+      
+      // Effectuer un rechargement complet de la page pour éliminer toute donnée en cache
+      if (typeof window !== 'undefined') {
+        // Attendre un court instant pour que les logs s'affichent
+        setTimeout(() => {
+          window.location.reload(); // Rechargement complet de la page
+        }, 100);
+      }
+      
+      return [];
     } catch (error) {
       console.error('Erreur lors de la suppression du panier:', error);
       throw error;
@@ -137,6 +158,32 @@ export function useCart() {
 
       if (!response.ok) {
         throw new Error(data.error || 'Une erreur est survenue lors de la création de la session de paiement');
+      }
+      
+      // S'assurer que la commande est bien marquée comme "unpaid"
+      if (data.orderId) {
+        try {
+          const unpaidResponse = await fetch('/api/orders/set-unpaid', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              orderId: data.orderId,
+              userId: userId
+            }),
+          });
+          
+          const unpaidData = await unpaidResponse.json();
+          if (!unpaidResponse.ok) {
+            console.error('Erreur lors de la mise à jour du statut à unpaid:', unpaidData.error);
+          } else {
+            console.log('Commande marquée comme non payée:', unpaidData);
+          }
+        } catch (unpaidError) {
+          console.error('Erreur lors de l\'appel à set-unpaid:', unpaidError);
+          // On continue malgré l'erreur car ce n'est pas bloquant pour le processus de paiement
+        }
       }
 
       return data as CartResponse;

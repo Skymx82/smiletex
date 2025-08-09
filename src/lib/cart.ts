@@ -235,8 +235,11 @@ export const calculateCartTotal = (cart: CartItem[]) => {
 
 // Fonction pour vider le panier
 export const clearCart = async (userId?: string) => {
-  // Vider le localStorage en définissant un tableau vide au lieu de supprimer la clé
+  // Vider complètement le localStorage
   if (typeof window !== 'undefined') {
+    // D'abord supprimer la clé pour s'assurer qu'aucune donnée ne persiste
+    localStorage.removeItem('cart');
+    // Puis définir un tableau vide
     localStorage.setItem('cart', JSON.stringify([]));
     
     // Déclencher explicitement l'événement pour notifier les composants
@@ -245,7 +248,7 @@ export const clearCart = async (userId?: string) => {
     window.dispatchEvent(event);
     
     // Log pour débogage
-    console.log('Cart cleared');
+    console.log('Cart completely cleared from cart.ts');
   }
 
   // Si l'utilisateur est connecté, vider le panier dans Supabase
@@ -257,6 +260,7 @@ export const clearCart = async (userId?: string) => {
           .from('cart_items')
           .delete()
           .eq('cart_id', cartId);
+        console.log('Supabase cart items deleted for cart ID:', cartId);
       }
     } catch (error) {
       console.error('Erreur lors de la suppression du panier:', error);

@@ -139,10 +139,10 @@ export async function POST(request: Request) {
       quantity: 1,
     });
 
-    // Créer une commande en attente dans Supabase
+    // Créer une commande non payée dans Supabase
     const orderData = {
       user_id: userId || null,
-      status: 'pending',
+      status: 'unpaid',
       total_amount: items.reduce((sum: number, item: CartItem) => sum + (item.price * item.quantity), 0) + shippingInfo.cost,
       shipping_cost: shippingInfo.cost,
       shipping_type: hasUrgentShipping ? 'urgent' : hasFastShipping ? 'fast' : 'normal'
@@ -150,20 +150,20 @@ export async function POST(request: Request) {
     
     console.log('Creating order with data:', orderData);
     
-    const { data: pendingOrder, error: orderError } = await supabase
+    const { data: unpaidOrder, error: orderError } = await supabase
       .from('orders')
       .insert(orderData)
       .select()
       .single();
       
-    console.log('Created pending order:', pendingOrder);
+    console.log('Created unpaid order:', unpaidOrder);
     console.log('Order error:', orderError);
 
     if (orderError) throw orderError;
 
     // Créer les items de la commande
     const orderItems = items.map((item: CartItem) => ({
-      order_id: pendingOrder.id,
+      order_id: unpaidOrder.id,
       product_id: item.productId,
       product_variant_id: item.variantId,
       quantity: item.quantity,
@@ -197,7 +197,7 @@ export async function POST(request: Request) {
         },
       },
       metadata: {
-        orderId: pendingOrder.id,
+        orderId: unpaidOrder.id,
         userId: userId || 'guest'
       },
       payment_intent_data: {
@@ -221,14 +221,14 @@ export async function POST(request: Request) {
         payment_intent_id: session.payment_intent,
         user_id: userId || null // S'assurer que l'ID utilisateur est bien enregistré
       })
-      .eq('id', pendingOrder.id)
+      .eq('id', unpaidOrder.id)
       .select();
       
     console.log('Updated order with payment intent:', updatedOrder);
     console.log('Update error:', updateError);
 
     return NextResponse.json({ 
-      orderId: pendingOrder.id,
+      orderId: unpaidOrder.id,
       url: session.url 
     });
   } catch (error) {
