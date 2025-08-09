@@ -13,6 +13,12 @@ export interface ImportConfig {
   defaultCategory: string;
 }
 
+// Interface pour les options de parseExcelFile
+export interface ExcelFileOptions {
+  parentProduct?: string;
+  priceMultiplier?: number;
+}
+
 export interface ImportProgress {
   current: number;
   total: number;
@@ -26,7 +32,7 @@ export interface ProductGroup {
 }
 
 // Fonction pour analyser le fichier Excel
-export const parseExcelFile = async (file: File): Promise<{
+export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Promise<{
   headers: string[];
   rows: any[];
   productGroups: { [key: string]: any[] };
@@ -40,6 +46,21 @@ export const parseExcelFile = async (file: File): Promise<{
 
   if (jsonData.length === 0) {
     throw new Error('Le fichier ne contient aucune donnée');
+  }
+  
+  // Appliquer le multiplicateur de prix si spécifié
+  if (options?.priceMultiplier && options.priceMultiplier > 0) {
+    jsonData.forEach((row: any) => {
+      // Vérifier si le prix existe et est un nombre
+      if (row['Prix'] && !isNaN(parseFloat(row['Prix']))) {
+        const originalPrice = parseFloat(row['Prix']);
+        if (originalPrice > 0) {
+          const newPrice = originalPrice * options.priceMultiplier!;
+          console.log(`Prix augmenté: ${originalPrice} € -> ${newPrice.toFixed(2)} € (x${options.priceMultiplier})`); 
+          row['Prix'] = newPrice;
+        }
+      }
+    });
   }
 
   // Regrouper par produit parent
@@ -156,7 +177,8 @@ export const importProducts = async (
   config: ImportConfig,
   categoryMapping: CategoryMapping,
   columnMapping: ColumnMapping,
-  onProgress: (progress: ImportProgress) => void
+  onProgress: (progress: ImportProgress) => void,
+  options?: ExcelFileOptions
 ): Promise<ImportProgress> => {
   console.log('==== DÉBUT DE L\'IMPORTATION AVEC API OPTIMISÉE ====');
   console.log('Nombre de groupes de produits:', Object.keys(productGroups).length);

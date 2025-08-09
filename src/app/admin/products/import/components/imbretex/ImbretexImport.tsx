@@ -213,7 +213,9 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
     try {
       // Analyser le fichier Excel
       console.log('Appel de parseExcelFile avec mapping de colonne parentProduct:', columnMapping.parentProduct);
-      const result = await parseExcelFile(file, { parentProduct: columnMapping.parentProduct });
+      // Appliquer un multiplicateur de prix de 1.30 lors de l'importation
+      const priceMultiplier = 1.30;
+      const result = await parseExcelFile(file, { parentProduct: columnMapping.parentProduct, priceMultiplier });
       console.log('Résultat de parseExcelFile:', {
         headers: result.headers.length,
         rows: result.rows.length,
@@ -258,6 +260,9 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
 
     try {
       // Lancer l'importation
+      // Appliquer un multiplicateur de prix de 1.30 lors de l'importation
+      const priceMultiplier = 1.30;
+      
       const result = await importProducts(
         previewData.productGroups,
         config,
@@ -267,7 +272,8 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
           setImportProgress(progress);
           // Mettre à jour le parent avec la progression
           onImportComplete(progress);
-        }
+        },
+        { parentProduct: columnMapping.parentProduct, priceMultiplier }
       );
 
       console.log('Importation terminée:', result);

@@ -13,6 +13,12 @@ export interface ImportConfig {
   defaultCategory: string;
 }
 
+// Interface pour les options de parseExcelFile
+export interface ExcelFileOptions {
+  parentProduct?: string;
+  priceMultiplier?: number;
+}
+
 export interface ImportProgress {
   current: number;
   total: number;
@@ -26,7 +32,7 @@ export interface ProductGroup {
 }
 
 // Fonction pour analyser le fichier Excel
-export const parseExcelFile = async (file: File, columnMapping?: { parentProduct: string }): Promise<{
+export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Promise<{
   headers: string[];
   rows: any[];
   productGroups: { [key: string]: any[] };
@@ -41,6 +47,21 @@ export const parseExcelFile = async (file: File, columnMapping?: { parentProduct
   if (jsonData.length === 0) {
     throw new Error('Le fichier ne contient aucune donnée');
   }
+  
+  // Appliquer le multiplicateur de prix si spécifié
+  if (options?.priceMultiplier && options.priceMultiplier > 0) {
+    jsonData.forEach((row: any) => {
+      // Vérifier si le prix existe et est un nombre
+      if (row['Prix_Vrac'] && !isNaN(parseFloat(row['Prix_Vrac']))) {
+        const originalPrice = parseFloat(row['Prix_Vrac']);
+        if (originalPrice > 0) {
+          const newPrice = originalPrice * options.priceMultiplier!;
+          console.log(`Prix augmenté: ${originalPrice} € -> ${newPrice.toFixed(2)} € (x${options.priceMultiplier})`); 
+          row['Prix_Vrac'] = newPrice;
+        }
+      }
+    });
+  }
 
   console.log('Données brutes du fichier Excel (2 premiers éléments):', JSON.stringify(jsonData.slice(0, 2), null, 2));
   console.log('Nombre total de lignes dans le fichier Excel:', jsonData.length);
@@ -50,7 +71,7 @@ export const parseExcelFile = async (file: File, columnMapping?: { parentProduct
   }
 
   // Déterminer la colonne à utiliser pour le regroupement des produits
-  const parentProductColumn = columnMapping?.parentProduct || 'Produit parent';
+  const parentProductColumn = options?.parentProduct || 'Produit parent';
   console.log(`Utilisation de la colonne "${parentProductColumn}" pour regrouper les produits`);
 
   // Regrouper par produit parent
@@ -220,7 +241,8 @@ export const importProducts = async (
   config: ImportConfig,
   categoryMapping: CategoryMapping,
   columnMapping: ColumnMapping,
-  onProgress: (progress: ImportProgress) => void
+  onProgress: (progress: ImportProgress) => void,
+  options?: ExcelFileOptions
 ): Promise<ImportProgress> => {
   console.log('==== DÉBUT DE L\'IMPORTATION AVEC API OPTIMISÉE ====');
   console.log('Nombre de groupes de produits:', Object.keys(productGroups).length);

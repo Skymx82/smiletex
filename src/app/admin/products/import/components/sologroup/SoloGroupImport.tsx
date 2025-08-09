@@ -117,6 +117,8 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
 
     try {
       // Analyser le fichier Excel
+      // Appliquer un multiplicateur de prix de 1.30 lors de l'importation
+      const priceMultiplier = 1.30;
       const result = await parseExcelFile(file);
       setPreviewData(result);
     } catch (error) {
@@ -145,6 +147,7 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
 
     try {
       // Lancer l'importation
+      const priceMultiplier = 1.30; // Multiplicateur de prix de 30%
       const result = await importProducts(
         previewData.productGroups,
         config,
@@ -154,7 +157,8 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
           setImportProgress(progress);
           // Mettre à jour le parent avec la progression
           onImportComplete(progress);
-        }
+        },
+        { priceMultiplier } // Passer le multiplicateur de prix
       );
 
       console.log('Importation terminée:', result);

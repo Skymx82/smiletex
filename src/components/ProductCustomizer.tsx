@@ -7,19 +7,19 @@ import { isSingleCustomizationComplete, isCustomizationComplete } from '@/lib/cu
 
 // Définition des prix pour chaque type de personnalisation et position
 const CUSTOMIZATION_PRICES = {
-  // Prix par type d'impression
+  // Prix par type d'impression (prix de base)
   types: {
     'broderie': 8.50,
     'impression': 5.00,
   },
-  // Multiplicateurs de prix par position (certaines positions nécessitent plus de matériel/travail)
+  // Prix fixes par position (en euros)
   positions: {
-    'devant-pec': 1.0,    // Prix de base
-    'devant-pecs': 1.5,   // 50% plus cher (plus grand)
-    'devant-centre': 1.8, // 80% plus cher (plus grand)
-    'devant-complet': 2.5, // 150% plus cher (beaucoup plus grand)
-    'dos-haut': 1.2,      // 20% plus cher
-    'dos-complet': 2.8,   // 180% plus cher (très grand)
+    'devant-pec': 7.84,     // Pec gauche = 7,84€
+    'devant-pecs': 12.00,    // Deux pecs = 12€
+    'devant-centre': 29.60,  // Très grand logo = 29,60€
+    'devant-complet': 17.88, // Devant complet = 17,88€
+    'dos-haut': 9.40,        // Dos haut (prix ajusté)
+    'dos-complet': 33.00,    // Dos complet (prix ajusté)
   },
 };
 
@@ -58,8 +58,8 @@ const PositionInfo = ({
       description: 'Grande zone couvrant l\'ensemble du devant du t-shirt'
     },
     'devant-centre': { 
-      name: 'Centre', 
-      description: 'Zone centrale sur le devant du t-shirt'
+      name: 'Très grand logo', 
+      description: 'Grand logo au centre du t-shirt'
     },
     'dos-haut': { 
       name: 'Haut du Dos', 
@@ -228,38 +228,33 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
     // Parcourir toutes les personnalisations
     customization.customizations.forEach(custom => {
       if (custom.type_impression) {
-        // Prix de base pour le type d'impression (appliqué une seule fois)
-        const baseTypePrice = CUSTOMIZATION_PRICES.types[custom.type_impression as keyof typeof CUSTOMIZATION_PRICES.types] || 0;
+        // Prix fixes pour les positions
+        let positionPrice = 0;
         
-        // Calculer le multiplicateur total pour toutes les positions
-        let totalMultiplier = 0;
-        
-        // Multiplicateur pour la position avant
+        // Prix pour la position avant
         if (custom.position_avant) {
-          const positionMultiplier = CUSTOMIZATION_PRICES.positions[custom.position_avant as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
-          totalMultiplier += positionMultiplier;
-          console.log(`Multiplicateur pour position avant ${custom.position_avant}: ${positionMultiplier}`);
+          const positionCost = CUSTOMIZATION_PRICES.positions[custom.position_avant as keyof typeof CUSTOMIZATION_PRICES.positions] || 0;
+          positionPrice += positionCost;
+          console.log(`Prix pour position avant ${custom.position_avant}: ${positionCost}€`);
         }
         
-        // Multiplicateur pour la position arrière
+        // Prix pour la position arrière
         if (custom.position_arriere) {
-          const positionMultiplier = CUSTOMIZATION_PRICES.positions[custom.position_arriere as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
-          totalMultiplier += positionMultiplier;
-          console.log(`Multiplicateur pour position arrière ${custom.position_arriere}: ${positionMultiplier}`);
+          const positionCost = CUSTOMIZATION_PRICES.positions[custom.position_arriere as keyof typeof CUSTOMIZATION_PRICES.positions] || 0;
+          positionPrice += positionCost;
+          console.log(`Prix pour position arrière ${custom.position_arriere}: ${positionCost}€`);
         }
         
-        // Appliquer une réduction de 30% sur le multiplicateur total si les deux faces sont personnalisées
+        // Appliquer une réduction de 15% si les deux faces sont personnalisées
         if (custom.position_avant && custom.position_arriere) {
-          totalMultiplier = totalMultiplier * 0.7; // Réduction de 30%
-          console.log(`Réduction appliquée pour personnalisation recto-verso: -30%`);
+          const reductionAmount = positionPrice * 0.15; // Réduction de 15%
+          positionPrice = positionPrice - reductionAmount;
+          console.log(`Réduction appliquée pour personnalisation recto-verso: -15% (${reductionAmount.toFixed(2)}€)`);
         }
-        
-        // Calculer le prix final pour cette personnalisation
-        const customPrice = baseTypePrice * totalMultiplier;
-        console.log(`Prix calculé: ${baseTypePrice}€ (base) x ${totalMultiplier} (multiplicateur) = ${customPrice}€`);
         
         // Ajouter au prix total
-        totalPrice += customPrice;
+        totalPrice += positionPrice;
+        console.log(`Prix total de la personnalisation: ${positionPrice.toFixed(2)}€`);
       }
     });
     
@@ -360,42 +355,36 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
       customizations: updatedCustomizations
     };
     
-    // Calculer le prix en fonction des positions sélectionnées
-    // Utiliser un prix de base unique pour le type d'impression, quel que soit le nombre de positions
+    // Calculer le prix en fonction des positions sélectionnées avec les prix fixes
     let totalPrice = 0;
     
-    // Déterminer le type d'impression commun (utiliser le premier disponible)
-    const type_impression = frontCustomization.type_impression || backCustomization.type_impression || 'impression';
+    // Prix fixes pour les positions
+    let positionPrice = 0;
     
-    // Prix de base pour le type d'impression (appliqué une seule fois)
-    const baseTypePrice = CUSTOMIZATION_PRICES.types[type_impression as keyof typeof CUSTOMIZATION_PRICES.types] || 0;
-    
-    // Calculer le multiplicateur total pour toutes les positions
-    let totalMultiplier = 0;
-    
-    // Multiplicateur pour la position avant
+    // Prix pour la position avant
     if (frontCustomization.position) {
-      const positionMultiplier = CUSTOMIZATION_PRICES.positions[frontCustomization.position as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
-      totalMultiplier += positionMultiplier;
-      console.log(`Multiplicateur pour position avant ${frontCustomization.position}: ${positionMultiplier}`);
+      const positionCost = CUSTOMIZATION_PRICES.positions[frontCustomization.position as keyof typeof CUSTOMIZATION_PRICES.positions] || 0;
+      positionPrice += positionCost;
+      console.log(`Prix pour position avant ${frontCustomization.position}: ${positionCost}€`);
     }
     
-    // Multiplicateur pour la position arrière
+    // Prix pour la position arrière
     if (backCustomization.position) {
-      const positionMultiplier = CUSTOMIZATION_PRICES.positions[backCustomization.position as keyof typeof CUSTOMIZATION_PRICES.positions] || 1;
-      totalMultiplier += positionMultiplier;
-      console.log(`Multiplicateur pour position arrière ${backCustomization.position}: ${positionMultiplier}`);
+      const positionCost = CUSTOMIZATION_PRICES.positions[backCustomization.position as keyof typeof CUSTOMIZATION_PRICES.positions] || 0;
+      positionPrice += positionCost;
+      console.log(`Prix pour position arrière ${backCustomization.position}: ${positionCost}€`);
     }
     
-    // Appliquer une réduction de 30% sur le multiplicateur total si les deux faces sont personnalisées
+    // Appliquer une réduction de 15% si les deux faces sont personnalisées
     if (frontCustomization.position && backCustomization.position) {
-      totalMultiplier = totalMultiplier * 0.7; // Réduction de 30%
-      console.log(`Réduction appliquée pour personnalisation recto-verso: -30%`);
+      const reductionAmount = positionPrice * 0.15; // Réduction de 15%
+      positionPrice = positionPrice - reductionAmount;
+      console.log(`Réduction appliquée pour personnalisation recto-verso: -15% (${reductionAmount.toFixed(2)}€)`);
     }
     
-    // Calculer le prix final
-    totalPrice = baseTypePrice * totalMultiplier;
-    console.log(`Prix final: ${baseTypePrice}€ (base) x ${totalMultiplier} (multiplicateur) = ${totalPrice}€`);
+    // Le prix total est simplement le prix des positions
+    totalPrice = positionPrice;
+    console.log(`Prix final de la personnalisation: ${totalPrice.toFixed(2)}€`);
     
     // Mettre à jour l'état global
     setProductCustomization(finalProductCustomization);
@@ -408,22 +397,29 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
   
   // Effet pour déclencher la sauvegarde lorsque les personnalisations changent
   // Désactivé temporairement pour éviter les boucles infinies
-  /*
+  // Effet pour déclencher la sauvegarde automatique lorsque les personnalisations changent
   useEffect(() => {
-    // Ne pas déclencher lors du premier rendu
-    if (frontCustomization !== initialCustomization?.customizations?.find(c => c.face === 'devant') ||
-        backCustomization !== initialCustomization?.customizations?.find(c => c.face === 'derriere')) {
+    // Vérifier si les personnalisations ont été initialisées
+    if (!frontCustomization && !backCustomization) return;
+    
+    // Vérifier si les personnalisations ont changé par rapport à l'état initial
+    const initialFront = initialCustomization?.customizations?.find(c => c.face === 'devant');
+    const initialBack = initialCustomization?.customizations?.find(c => c.face === 'derriere');
+    
+    const hasChanges = JSON.stringify(frontCustomization) !== JSON.stringify(initialFront) || 
+                      JSON.stringify(backCustomization) !== JSON.stringify(initialBack);
+    
+    if (hasChanges) {
       console.log('Personnalisations modifiées, déclenchement de la sauvegarde automatique');
       // Utiliser un délai pour éviter les sauvegardes trop fréquentes
       const saveTimer = setTimeout(() => {
         handleSaveOnly();
-      }, 500);
+      }, 800); // Délai légèrement plus long pour éviter les sauvegardes trop fréquentes
       
       // Nettoyer le timer si le composant est démonté ou si les personnalisations changent à nouveau
       return () => clearTimeout(saveTimer);
     }
   }, [frontCustomization, backCustomization, handleSaveOnly, initialCustomization]);
-  */
 
   // Fonction pour mettre à jour le texte sur les deux faces
   const updateTexte = (texte: string) => {
@@ -858,7 +854,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                             <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                             </svg>
-                            <span className="font-medium">Devant</span>
+                            <span className="font-medium">Grand Logo</span>
                           </div>
                         </div>
                       </button>
@@ -887,7 +883,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                             <svg className="w-4 h-4 mr-1 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                             </svg>
-                            <span className="font-medium">Centre</span>
+                            <span className="font-medium">Très grand logo</span>
                           </div>
                         </div>
                       </button>

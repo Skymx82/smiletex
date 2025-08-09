@@ -25,8 +25,13 @@ export interface ProductGroup {
   rows: any[];
 }
 
-// Fonction pour analyser le fichier Excel
-export const parseExcelFile = async (file: File, columnMapping?: { parentProduct: string }): Promise<{
+// Options pour l'analyse du fichier Excel
+interface ExcelFileOptions {
+  parentProduct: string;
+  priceMultiplier?: number;
+}
+
+export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Promise<{
   headers: string[];
   rows: any[];
   productGroups: { [key: string]: any[] };
@@ -50,7 +55,7 @@ export const parseExcelFile = async (file: File, columnMapping?: { parentProduct
   }
 
   // Déterminer la colonne à utiliser pour le regroupement des produits
-  const parentProductColumn = columnMapping?.parentProduct || 'Produit parent';
+  const parentProductColumn = options?.parentProduct || 'Produit parent';
   console.log(`Utilisation de la colonne "${parentProductColumn}" pour regrouper les produits`);
 
   // Regrouper par produit parent
@@ -204,7 +209,8 @@ export const importProducts = async (
   config: ImportConfig,
   categoryMapping: CategoryMapping,
   columnMapping: ColumnMapping,
-  onProgress: (progress: ImportProgress) => void
+  onProgress: (progress: ImportProgress) => void,
+  options?: ExcelFileOptions
 ): Promise<ImportProgress> => {
   console.log('==== DÉBUT DE L\'IMPORTATION AVEC API OPTIMISÉE ====');
   console.log('Nombre de groupes de produits:', Object.keys(productGroups).length);
@@ -257,7 +263,14 @@ export const importProducts = async (
         
         // Utiliser les colonnes mappées pour extraire les données
         const productName = firstRow[columnMapping.productName] || '';
-        const price = firstRow[columnMapping.price] ? parseFloat(firstRow[columnMapping.price]) : 0;
+        // Récupérer le prix de base et appliquer le multiplicateur si fourni
+        let price = firstRow[columnMapping.price] ? parseFloat(firstRow[columnMapping.price]) : 0;
+        if (options && options.priceMultiplier && price > 0) {
+          const multiplier = options.priceMultiplier;
+          const originalPrice = price;
+          price = price * multiplier;
+          console.log(`Prix augmenté: ${originalPrice.toFixed(2)}€ → ${price.toFixed(2)}€ (x${multiplier})`);
+        }
         const description = firstRow[columnMapping.description] || 'Produit importé automatiquement';
         
         // Traiter le grammage (convertir en nombre si nécessaire)
