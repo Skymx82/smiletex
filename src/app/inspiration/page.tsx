@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
 interface Inspiration {
@@ -28,9 +28,65 @@ const SmileCurve = ({ className, color = "text-white", rotate = false }: { class
   </svg>
 );
 
+// Composant Modal pour afficher les images en plein écran
+const FullScreenModal = ({ isOpen, onClose, inspiration }: { isOpen: boolean; onClose: () => void; inspiration: Inspiration | null }) => {
+  if (!isOpen || !inspiration) return null;
+  
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.div 
+            className="relative max-w-7xl max-h-[90vh] w-full h-full flex flex-col items-center justify-center"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative w-full h-full">
+              <Image
+                src={inspiration.image_url}
+                alt={inspiration.title}
+                fill
+                sizes="100vw"
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+              <h3 className="text-white text-2xl font-bold drop-shadow-lg">{inspiration.title}</h3>
+              {inspiration.description && (
+                <p className="text-white text-lg mt-2 drop-shadow-lg">{inspiration.description}</p>
+              )}
+            </div>
+            <button 
+              className="absolute top-4 right-4 text-white bg-black/50 hover:bg-black/70 rounded-full p-2 transition-colors"
+              onClick={onClose}
+              aria-label="Fermer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 export default function InspirationPage() {
   const [inspirations, setInspirations] = useState<Inspiration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInspiration, setSelectedInspiration] = useState<Inspiration | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchInspirations() {
@@ -100,10 +156,14 @@ export default function InspirationPage() {
             {inspirations.map((inspiration, index) => (
               <motion.div 
                 key={inspiration.id}
-                className="relative aspect-square overflow-hidden rounded-xl shadow-lg group transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-200/50"
+                className="relative aspect-square overflow-hidden rounded-xl shadow-lg group transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-200/50 cursor-pointer"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                onClick={() => {
+                  setSelectedInspiration(inspiration);
+                  setModalOpen(true);
+                }}
               >
                 <Image
                   src={inspiration.image_url}
@@ -112,12 +172,12 @@ export default function InspirationPage() {
                   sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                  <span className="text-white font-medium text-lg">
+                <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                  <span className="text-white font-bold text-lg drop-shadow-md">
                     {inspiration.title}
                   </span>
                   {inspiration.description && (
-                    <span className="text-white/80 text-sm mt-1">
+                    <span className="text-white text-sm mt-1 drop-shadow-md font-medium">
                       {inspiration.description}
                     </span>
                   )}
@@ -130,6 +190,13 @@ export default function InspirationPage() {
           </div>
         )}
       </div>
+      
+      {/* Modal pour afficher l'image en plein écran */}
+      <FullScreenModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        inspiration={selectedInspiration} 
+      />
     </section>
   );
 }
