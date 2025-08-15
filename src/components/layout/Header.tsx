@@ -261,6 +261,10 @@ export default function Header() {
                 À propos
                 {pathname !== '/about' && <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-indigo-500 opacity-0 group-hover:opacity-100 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>}
               </Link>
+              <Link href="/inspiration" className={`${pathname === '/inspiration' ? 'text-indigo-700 border-b-2 border-indigo-700' : 'text-black hover:text-indigo-700'} px-3 py-2 rounded-md text-base font-medium flex items-center h-16 transition-all duration-200 group relative`}>
+                Inspiration
+                {pathname !== '/inspiration' && <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-indigo-500 opacity-0 group-hover:opacity-100 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>}
+              </Link>
               <div 
                 ref={collectionMenuRef}
                 className="relative h-16 flex items-center"
@@ -527,6 +531,13 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               À propos
+            </Link>
+            <Link 
+              href="/inspiration" 
+              className="block px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Inspiration
             </Link>
             <div className="space-y-1">
               <div className="flex items-center justify-between px-4 py-2 text-base font-medium text-black hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors duration-150">
