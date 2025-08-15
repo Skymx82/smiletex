@@ -401,7 +401,18 @@ export const importProducts = async (
             const variantId = productColorMap.get(colorKey)!;
             
             // Récupérer les URLs des images depuis la première ligne de cette couleur
-            const mainImage = firstColorRow[columnMapping.mainImage];
+            console.log('Clés disponibles dans firstColorRow:', Object.keys(firstColorRow));
+            console.log('Valeur de columnMapping.mainImage:', columnMapping.mainImage);
+            
+            // Rechercher la colonne avec ou sans espace à la fin
+            let mainImage = firstColorRow[columnMapping.mainImage];
+            if (!mainImage) {
+              // Essayer avec un espace à la fin
+              mainImage = firstColorRow[columnMapping.mainImage + ' '];
+              console.log('Tentative avec espace à la fin:', mainImage);
+            }
+            console.log('Valeur récupérée pour mainImage:', mainImage);
+            
             const modelImageA = firstColorRow[columnMapping.modelImageA];
             const modelImageB = firstColorRow[columnMapping.modelImageB];
             const modelImageC = firstColorRow[columnMapping.modelImageC];

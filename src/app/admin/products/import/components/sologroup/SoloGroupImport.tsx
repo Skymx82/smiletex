@@ -52,10 +52,10 @@ const SOLOGROUP_COLUMN_MAPPING: ColumnMapping = {
   size: 'Tailles',
   price: 'Prix',
   parentProduct: 'Produit parent',
-  mainImage: 'Visuel packshot A',
-  modelImageA: 'Visuel principal porté A',
-  modelImageB: 'Visuel principal porté B',
-  modelImageC: 'Visuel principal porté C',
+  mainImage: 'Visuel mannequin A',
+  modelImageA: 'Visuel mannequin B',
+  modelImageB: 'Visuel mannequin C',
+  modelImageC: 'Visuel principal porté A',
   // Utiliser des valeurs par défaut pour les champs obligatoires mais non présents dans le fichier Excel
   description: '', // Sera rempli avec le nom du produit
   weightGsm: '', // Sera null
@@ -119,7 +119,7 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
       // Analyser le fichier Excel
       // Appliquer un multiplicateur de prix de 1.30 lors de l'importation
       const priceMultiplier = 1.30;
-      const result = await parseExcelFile(file);
+      const result = await parseExcelFile(file, { priceMultiplier });
       setPreviewData(result);
     } catch (error) {
       console.error('Erreur lors de l\'analyse du fichier:', error);
