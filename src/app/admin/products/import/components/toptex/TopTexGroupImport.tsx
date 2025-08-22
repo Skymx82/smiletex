@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { Category } from '@/lib/products';
-import { parseExcelFile, importProducts, ImportConfig, ImportProgress } from './services/importService';
+import { parseExcelFile, importProducts, extractManufacturers, ImportConfig, ImportProgress } from './services/importService';
 
 // Fonction pour convertir CMYK en RGB puis en HEX
 function cmykToHex(cmykString: string): string {
@@ -154,9 +154,14 @@ const TopTexGroupImport: React.FC<TopTexGroupImportProps> = ({
     errors: [],
   });
   const [error, setError] = useState<string | null>(null);
+  
+  // États pour la gestion des manufacturiers
+  const [availableManufacturers, setAvailableManufacturers] = useState<string[]>([]);
+  const [selectedManufacturers, setSelectedManufacturers] = useState<string[]>([]);
+  const [manufacturersLoading, setManufacturersLoading] = useState<boolean>(false);
 
   // Gérer le changement de fichier
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       
@@ -169,6 +174,39 @@ const TopTexGroupImport: React.FC<TopTexGroupImportProps> = ({
       
       setFile(selectedFile);
       setError(null);
+      setPreviewData(null); // Réinitialiser les données d'aperçu
+      
+      // Extraire les manufacturiers dès la sélection du fichier
+      try {
+        setManufacturersLoading(true);
+        console.log('Début de l\'extraction des manufacturiers...');
+        const manufacturers = await extractManufacturers(selectedFile);
+        console.log('Manufacturiers extraits:', manufacturers);
+        
+        if (manufacturers && manufacturers.length > 0) {
+          console.log(`${manufacturers.length} manufacturiers trouvés, mise à jour des états...`);
+          // Définir d'abord les manufacturiers disponibles
+          setAvailableManufacturers(manufacturers);
+          // Puis sélectionner tous les manufacturiers par défaut
+          const allManufacturers = [...manufacturers];
+          console.log('Sélection de tous les manufacturiers par défaut:', allManufacturers);
+          setSelectedManufacturers(allManufacturers);
+        } else {
+          console.error('Aucun manufacturier trouvé dans le fichier');
+          setError('Aucun manufacturier trouvé dans le fichier. Vérifiez que la colonne "Manufacturer" existe.');
+          // Réinitialiser les états
+          setAvailableManufacturers([]);
+          setSelectedManufacturers([]);
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'extraction des manufacturiers:', error);
+        setError(`Erreur lors de l'extraction des manufacturiers: ${error instanceof Error ? error.message : String(error)}`);
+        // Réinitialiser les états en cas d'erreur
+        setAvailableManufacturers([]);
+        setSelectedManufacturers([]);
+      } finally {
+        setManufacturersLoading(false);
+      }
     }
   };
 
@@ -210,23 +248,73 @@ const TopTexGroupImport: React.FC<TopTexGroupImportProps> = ({
     };
   }, [columnMapping]);
 
+  // Gérer la sélection/désélection de tous les manufacturiers
+  const handleSelectAllManufacturers = (select: boolean) => {
+    console.log(`Sélection de tous les manufacturiers: ${select ? 'tous' : 'aucun'}`);
+    console.log('Manufacturiers disponibles:', availableManufacturers);
+    
+    if (select) {
+      const allManufacturers = [...availableManufacturers];
+      console.log('Tous les manufacturiers sélectionnés:', allManufacturers);
+      setSelectedManufacturers(allManufacturers);
+    } else {
+      console.log('Aucun manufacturier sélectionné');
+      setSelectedManufacturers([]);
+    }
+  };
+
+  // Gérer la sélection/désélection d'un manufacturier
+  const handleManufacturerSelection = (manufacturer: string, selected: boolean) => {
+    console.log(`Changement de sélection pour ${manufacturer}: ${selected ? 'ajout' : 'retrait'}`);
+    if (selected) {
+      setSelectedManufacturers(prev => {
+        const updated = [...prev, manufacturer];
+        console.log('Manufacturiers après ajout:', updated);
+        return updated;
+      });
+    } else {
+      setSelectedManufacturers(prev => {
+        const updated = prev.filter(m => m !== manufacturer);
+        console.log('Manufacturiers après retrait:', updated);
+        return updated;
+      });
+    }
+  };
+
   // Analyser le fichier Excel
   const handleParseExcelFile = useCallback(async () => {
+    // Déboguer les dépendances du useCallback
+    console.log('handleParseExcelFile appelé avec les dépendances actuelles:');
+    console.log('- file:', file);
+    console.log('- selectedManufacturers:', selectedManufacturers);
     if (!file) {
       setError('Veuillez sélectionner un fichier');
+      return;
+    }
+
+    // Vérifier si des manufacturiers sont sélectionnés
+    console.log('Vérification des manufacturiers sélectionnés:', selectedManufacturers);
+    if (!selectedManufacturers || selectedManufacturers.length === 0) {
+      console.error('Aucun manufacturier sélectionné');
+      setError('Veuillez sélectionner au moins un manufacturier');
       return;
     }
 
     setLoading(true);
     setError(null);
     console.log('Début de l\'analyse du fichier Excel:', file.name);
+    console.log('Manufacturiers sélectionnés:', selectedManufacturers);
     
     try {
-      // Analyser le fichier Excel
+      // Analyser le fichier Excel avec les manufacturiers sélectionnés
       console.log('Appel de parseExcelFile avec mapping de colonne parentProduct:', columnMapping.parentProduct);
       // Appliquer un multiplicateur de prix de 1.30 lors de l'importation
       const priceMultiplier = 1.30;
-      const result = await parseExcelFile(file, { parentProduct: columnMapping.parentProduct, priceMultiplier });
+      const result = await parseExcelFile(file, { 
+        parentProduct: columnMapping.parentProduct, 
+        priceMultiplier,
+        selectedManufacturers: selectedManufacturers
+      });
       console.log('Résultat de parseExcelFile:', {
         headers: result.headers.length,
         rows: result.rows.length,
@@ -251,7 +339,7 @@ const TopTexGroupImport: React.FC<TopTexGroupImportProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [file, preprocessData]);
+  }, [file, preprocessData, selectedManufacturers, columnMapping]);
 
   // Lancer l'importation
   const startImport = async () => {
@@ -354,9 +442,63 @@ const TopTexGroupImport: React.FC<TopTexGroupImportProps> = ({
           </p>
         </div>
         
+        {file && availableManufacturers.length > 0 && (
+          <div className="my-4 p-4 border border-gray-200 rounded-md">
+            <h3 className="text-lg font-medium mb-3">Sélection des manufacturiers</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              {availableManufacturers.length} manufacturiers détectés. Sélectionnez ceux que vous souhaitez importer.
+            </p>
+            
+            <div className="mb-3 flex items-center">
+              <button 
+                onClick={() => handleSelectAllManufacturers(true)}
+                className="mr-2 px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded hover:bg-blue-200"
+              >
+                Tout sélectionner
+              </button>
+              <button 
+                onClick={() => handleSelectAllManufacturers(false)}
+                className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200"
+              >
+                Tout désélectionner
+              </button>
+              <span className="ml-auto text-sm text-blue-600">
+                {selectedManufacturers.length} sélectionné(s)
+              </span>
+            </div>
+            
+            <div className="max-h-60 overflow-y-auto border border-gray-200 rounded p-2">
+              {availableManufacturers.map((manufacturer) => (
+                <div key={manufacturer} className="flex items-center py-1 border-b border-gray-100 last:border-b-0">
+                  <input
+                    type="checkbox"
+                    id={`manufacturer-${manufacturer}`}
+                    checked={selectedManufacturers.includes(manufacturer)}
+                    onChange={(e) => handleManufacturerSelection(manufacturer, e.target.checked)}
+                    className="mr-2"
+                  />
+                  <label htmlFor={`manufacturer-${manufacturer}`} className="text-sm">
+                    {manufacturer}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {manufacturersLoading && (
+          <div className="my-4 p-4 bg-blue-50 rounded-md flex items-center">
+            <svg className="animate-spin h-5 w-5 mr-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-sm text-blue-700">Extraction des manufacturiers en cours...</span>
+          </div>
+        )}
+
         <button
           onClick={handleParseExcelFile}
-          disabled={!file || loading}
+          disabled={!file || loading || selectedManufacturers.length === 0}
           className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded disabled:opacity-50"
         >
           {loading ? 'Analyse en cours...' : 'Analyser le fichier'}

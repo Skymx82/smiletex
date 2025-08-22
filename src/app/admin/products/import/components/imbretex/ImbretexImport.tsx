@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { Category } from '@/lib/products';
-import { parseExcelFile, importProducts, ImportConfig, ImportProgress } from './services/importService';
+import { parseExcelFile, importProducts, ImportConfig, ImportProgress, extractManufacturers } from './services/importService';
 
 // Fonction pour convertir CMYK en RGB puis en HEX
 function cmykToHex(cmykString: string): string {
@@ -143,21 +143,51 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
     errors: [],
   });
   const [error, setError] = useState<string | null>(null);
+  // États pour la gestion des manufacturiers
+  const [availableManufacturers, setAvailableManufacturers] = useState<string[]>([]);
+  const [selectedManufacturers, setSelectedManufacturers] = useState<string[]>([]);
+  const [manufacturersLoading, setManufacturersLoading] = useState<boolean>(false);
 
   // Gérer le changement de fichier
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       
-      // Vérifier la taille du fichier (limite de 5 Mo)
-      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo en octets
-      if (selectedFile.size > MAX_FILE_SIZE) {
-        setError(`Le fichier est trop volumineux. La taille maximale autorisée est de 5 Mo. Votre fichier fait ${(selectedFile.size / (1024 * 1024)).toFixed(2)} Mo.`);
-        return;
-      }
-      
       setFile(selectedFile);
       setError(null);
+      setPreviewData(null); // Réinitialiser les données d'aperçu
+      
+      // Extraire les manufacturiers dès la sélection du fichier
+      try {
+        setManufacturersLoading(true);
+        console.log('Début de l\'extraction des manufacturiers...');
+        const manufacturers = await extractManufacturers(selectedFile);
+        console.log('Manufacturiers extraits:', manufacturers);
+        
+        if (manufacturers && manufacturers.length > 0) {
+          console.log(`${manufacturers.length} manufacturiers trouvés, mise à jour des états...`);
+          // Définir d'abord les manufacturiers disponibles
+          setAvailableManufacturers(manufacturers);
+          // Puis sélectionner tous les manufacturiers par défaut
+          const allManufacturers = [...manufacturers];
+          console.log('Sélection de tous les manufacturiers par défaut:', allManufacturers);
+          setSelectedManufacturers(allManufacturers);
+        } else {
+          console.error('Aucun manufacturier trouvé dans le fichier');
+          setError('Aucun manufacturier trouvé dans le fichier. Vérifiez que la colonne "Marque" existe.');
+          // Réinitialiser les états
+          setAvailableManufacturers([]);
+          setSelectedManufacturers([]);
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'extraction des manufacturiers:', error);
+        setError(`Erreur lors de l'extraction des manufacturiers: ${error instanceof Error ? error.message : String(error)}`);
+        // Réinitialiser les états en cas d'erreur
+        setAvailableManufacturers([]);
+        setSelectedManufacturers([]);
+      } finally {
+        setManufacturersLoading(false);
+      }
     }
   };
 
@@ -206,41 +236,46 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
       return;
     }
 
+    if (selectedManufacturers.length === 0) {
+      setError('Veuillez sélectionner au moins un manufacturier');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     console.log('Début de l\'analyse du fichier Excel:', file.name);
     
     try {
-      // Analyser le fichier Excel
+      // Analyser le fichier Excel avec les manufacturiers sélectionnés
       console.log('Appel de parseExcelFile avec mapping de colonne parentProduct:', columnMapping.parentProduct);
+      console.log('Manufacturiers sélectionnés:', selectedManufacturers);
+      
       // Appliquer un multiplicateur de prix de 1.30 lors de l'importation
       const priceMultiplier = 1.30;
-      const result = await parseExcelFile(file, { parentProduct: columnMapping.parentProduct, priceMultiplier });
+      const result = await parseExcelFile(file, {
+        parentProduct: columnMapping.parentProduct,
+        priceMultiplier,
+        selectedManufacturers // Passer les manufacturiers sélectionnés
+      });
+      
       console.log('Résultat de parseExcelFile:', {
         headers: result.headers.length,
         rows: result.rows.length,
-        productGroups: Object.keys(result.productGroups).length,
         totalProducts: result.totalProducts,
         totalVariants: result.totalVariants
       });
       
-      // Prétraiter les données pour convertir CMYK en HEX
-      console.log('Appel de preprocessData...');
+      // Prétraiter les données pour convertir les codes CMYK en HEX
       const processedData = preprocessData(result);
-      console.log('Données traitées:', {
-        productGroups: Object.keys(processedData?.productGroups || {}).length,
-        totalProducts: processedData?.totalProducts || 0,
-        totalVariants: processedData?.totalVariants || 0
-      });
       
       setPreviewData(processedData);
     } catch (error) {
-      console.error('Erreur lors de l\'analyse du fichier:', error);
-      setError('Erreur lors de l\'analyse du fichier. Vérifiez le format.');
+      console.error('Erreur lors de l\'analyse du fichier Excel:', error);
+      setError(`Erreur lors de l'analyse du fichier Excel: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
-  }, [file, preprocessData]);
+  }, [file, columnMapping, preprocessData, selectedManufacturers]);
 
   // Lancer l'importation
   const startImport = async () => {
@@ -344,14 +379,6 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
           </p>
         </div>
         
-        <button
-          onClick={handleParseExcelFile}
-          disabled={!file || loading}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded disabled:opacity-50"
-        >
-          {loading ? 'Analyse en cours...' : 'Analyser le fichier'}
-        </button>
-        
         <div className="mt-4 p-3 bg-blue-50 rounded-md">
           <p className="text-sm text-blue-700">
             <span className="font-medium">Format sélectionné:</span> SoloGroup
@@ -361,11 +388,92 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
           </p>
         </div>
       </div>
+      
+      {file && (
+        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">2. Sélection des manufacturiers</h2>
+          <p className="mb-4 text-sm text-gray-600">
+            {availableManufacturers.length} manufacturiers ont été détectés dans le fichier.
+            Sélectionnez les manufacturiers à importer.
+          </p>
+          
+          <div className="mb-4">
+            <div className="flex justify-between mb-2">
+              <button 
+                onClick={() => setSelectedManufacturers([...availableManufacturers])}
+                className="text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 py-1 px-2 rounded"
+                disabled={manufacturersLoading}
+              >
+                Tout sélectionner
+              </button>
+              <button 
+                onClick={() => setSelectedManufacturers([])}
+                className="text-sm bg-gray-50 hover:bg-gray-100 text-gray-700 py-1 px-2 rounded"
+                disabled={manufacturersLoading}
+              >
+                Tout désélectionner
+              </button>
+            </div>
+            
+            {manufacturersLoading ? (
+              <div className="flex justify-center items-center py-4">
+                <svg className="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="ml-2 text-sm text-gray-600">Chargement des manufacturiers...</span>
+              </div>
+            ) : (
+              <div className="max-h-60 overflow-y-auto border rounded-md p-2">
+                {availableManufacturers.length === 0 ? (
+                  <p className="text-sm text-gray-500 p-2">Aucun manufacturier trouvé dans le fichier.</p>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {availableManufacturers.map((manufacturer, index) => (
+                      <div key={index} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`manufacturer-${index}`}
+                          checked={selectedManufacturers.includes(manufacturer)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              console.log(`Ajout du manufacturier: ${manufacturer}`);
+                              setSelectedManufacturers(prev => [...prev, manufacturer]);
+                            } else {
+                              console.log(`Retrait du manufacturier: ${manufacturer}`);
+                              setSelectedManufacturers(prev => prev.filter(m => m !== manufacturer));
+                            }
+                          }}
+                          className="mr-2"
+                        />
+                        <label htmlFor={`manufacturer-${index}`} className="text-sm text-gray-700 truncate">
+                          {manufacturer}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="text-sm text-gray-500 mt-2">
+              {selectedManufacturers.length} manufacturier(s) sélectionné(s) sur {availableManufacturers.length}
+            </p>
+          </div>
+          
+          <button
+            onClick={handleParseExcelFile}
+            disabled={!file || loading || selectedManufacturers.length === 0}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded disabled:opacity-50"
+          >
+            {loading ? 'Analyse en cours...' : 'Analyser le fichier'}
+          </button>
+        </div>
+      )}
 
       {previewData && (
         <>
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">2. Configuration de l'importation</h2>
+            <h2 className="text-xl font-semibold mb-4">3. Configuration de l'importation</h2>
             
             <div className="mb-4">
               <label className="block text-gray-700 mb-2">Catégorie par défaut</label>
@@ -401,8 +509,9 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
             </div>
           </div>
 
+
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">3. Aperçu et configuration des produits</h2>
+            <h2 className="text-xl font-semibold mb-4">4. Aperçu et configuration des produits</h2>
             <p className="mb-4 text-sm text-gray-600">
               {previewData.totalProducts} produits avec {previewData.totalVariants} variantes ont été détectés.
             </p>

@@ -31,8 +31,45 @@ export interface ProductGroup {
   rows: any[];
 }
 
+// Fonction pour extraire uniquement les manufacturiers du fichier Excel
+export const extractManufacturers = async (file: File): Promise<string[]> => {
+  const data = await file.arrayBuffer();
+  const workbook = XLSX.read(data);
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+  if (jsonData.length === 0) {
+    throw new Error('Le fichier ne contient aucune donnée');
+  }
+
+  // Extraire les manufacturiers uniques
+  const manufacturers: string[] = [];
+  if (jsonData.length > 0) {
+    // Vérifier si la colonne Manufacturer existe
+    if ('Manufacturer' in (jsonData[0] as Record<string, any>)) {
+      // Créer un Set pour stocker les manufacturiers uniques
+      const manufacturersSet = new Set<string>();
+      
+      // Parcourir toutes les lignes pour collecter les manufacturiers
+      jsonData.forEach((row: any) => {
+        if (row['Manufacturer'] && typeof row['Manufacturer'] === 'string') {
+          manufacturersSet.add(row['Manufacturer'].trim());
+        }
+      });
+      
+      // Convertir le Set en tableau et trier par ordre alphabétique
+      manufacturers.push(...Array.from(manufacturersSet).sort());
+      console.log(`Manufacturiers détectés (${manufacturers.length}):`, manufacturers);
+    } else {
+      console.warn('La colonne "Manufacturer" n\'est pas présente dans le fichier Excel');
+    }
+  }
+
+  return manufacturers;
+};
+
 // Fonction pour analyser le fichier Excel
-export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Promise<{
+export const parseExcelFile = async (file: File, options?: ExcelFileOptions & { selectedManufacturers?: string[] }): Promise<{
   headers: string[];
   rows: any[];
   productGroups: { [key: string]: any[] };
@@ -48,9 +85,22 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
     throw new Error('Le fichier ne contient aucune donnée');
   }
   
+  // Filtrer les données par manufacturiers si spécifié
+  let filteredData = [...jsonData];
+  if (options?.selectedManufacturers && options.selectedManufacturers.length > 0) {
+    console.log(`Filtrage des données par manufacturiers: ${options.selectedManufacturers.join(', ')}`);
+    filteredData = jsonData.filter((row: any) => 
+      row['Manufacturer'] && 
+      options.selectedManufacturers!.includes(row['Manufacturer'].toString().trim())
+    );
+    console.log(`Données filtrées: ${filteredData.length} sur ${jsonData.length} lignes`);
+  } else {
+    console.log('Aucun filtrage par manufacturier appliqué');
+  }
+  
   // Appliquer le multiplicateur de prix si spécifié
   if (options?.priceMultiplier && options.priceMultiplier > 0) {
-    jsonData.forEach((row: any) => {
+    filteredData.forEach((row: any) => {
       // Vérifier si le prix existe et est un nombre
       if (row['Prix_Vrac'] && !isNaN(parseFloat(row['Prix_Vrac']))) {
         const originalPrice = parseFloat(row['Prix_Vrac']);
@@ -63,11 +113,11 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
     });
   }
 
-  console.log('Données brutes du fichier Excel (2 premiers éléments):', JSON.stringify(jsonData.slice(0, 2), null, 2));
-  console.log('Nombre total de lignes dans le fichier Excel:', jsonData.length);
+  console.log('Données filtrées (2 premiers éléments):', JSON.stringify(filteredData.slice(0, 2), null, 2));
+  console.log('Nombre total de lignes après filtrage:', filteredData.length);
   
-  if (jsonData.length > 0) {
-    console.log('Colonnes disponibles dans le fichier:', Object.keys(jsonData[0] as object));
+  if (filteredData.length > 0) {
+    console.log('Colonnes disponibles dans le fichier:', Object.keys(filteredData[0] as object));
   }
 
   // Déterminer la colonne à utiliser pour le regroupement des produits
@@ -78,7 +128,7 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
   const productGroups: { [key: string]: any[] } = {};
   let rowsWithoutParent: any[] = [];
   
-  jsonData.forEach((row: any) => {
+  filteredData.forEach((row: any) => {
     const parentProductId = row[parentProductColumn];
     console.log(`Ligne: ${row['Code article'] || 'sans code'}, Valeur de ${parentProductColumn}:`, parentProductId);
     
@@ -121,7 +171,7 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
 
   // Calculer les statistiques
   const totalProducts = Object.keys(productGroups).length;
-  const totalVariants = jsonData.length;
+  const totalVariants = filteredData.length;
   
   console.log(`Produits détectés: ${totalProducts}, Variantes: ${totalVariants}`);
   console.log('Groupes de produits:', Object.keys(productGroups));
@@ -130,8 +180,8 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
   }
 
   return {
-    headers: jsonData.length > 0 ? Object.keys(jsonData[0] as object) : [],
-    rows: jsonData.slice(0, 5), // Afficher les 5 premières lignes pour l'aperçu
+    headers: filteredData.length > 0 ? Object.keys(filteredData[0] as object) : [],
+    rows: filteredData.slice(0, 5), // Afficher les 5 premières lignes pour l'aperçu
     productGroups,
     totalProducts,
     totalVariants,

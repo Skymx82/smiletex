@@ -240,13 +240,8 @@ const ProjectSteps = () => {
           </div>
         </div>
         
-        {/* Indicateurs de défilement et pagination */}
-        <div className="mt-3 flex flex-col items-center">
-          <div className="flex justify-center space-x-1 mb-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-indigo-500' : 'bg-gray-300'}`}></div>
-            ))}
-          </div>
+        {/* Indicateurs de défilement */}
+        <div className="mt-3 flex justify-center">
           <div className="text-[10px] sm:text-xs text-indigo-600 flex items-center">
             <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>

@@ -7,6 +7,39 @@ import {
   VariantData
 } from '../api/importApi';
 
+// Fonction pour extraire rapidement les manufacturiers (marques) du fichier Excel
+export const extractManufacturers = async (file: File): Promise<string[]> => {
+  console.log('Extraction rapide des manufacturiers du fichier Excel...');
+  const data = await file.arrayBuffer();
+  const workbook = XLSX.read(data);
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+  if (jsonData.length === 0) {
+    console.warn('Le fichier ne contient aucune donnée');
+    return [];
+  }
+
+  // Vérifier si la colonne "Marque" existe
+  const firstRow = jsonData[0] as any;
+  if (!firstRow.hasOwnProperty('Marque')) {
+    console.warn('La colonne "Marque" n\'existe pas dans le fichier');
+    return [];
+  }
+
+  // Extraire toutes les marques uniques
+  const manufacturers = new Set<string>();
+  jsonData.forEach((row: any) => {
+    if (row['Marque'] && typeof row['Marque'] === 'string' && row['Marque'].trim() !== '') {
+      manufacturers.add(row['Marque'].toString().trim());
+    }
+  });
+
+  const uniqueManufacturers = Array.from(manufacturers).sort();
+  console.log(`${uniqueManufacturers.length} manufacturiers uniques trouvés:`, uniqueManufacturers);
+  return uniqueManufacturers;
+};
+
 // Types
 export interface ImportConfig {
   replaceExisting: boolean;
@@ -29,6 +62,7 @@ export interface ProductGroup {
 interface ExcelFileOptions {
   parentProduct: string;
   priceMultiplier?: number;
+  selectedManufacturers?: string[]; // Ajout du paramètre pour filtrer par manufacturiers
 }
 
 export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Promise<{
@@ -46,6 +80,19 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
   if (jsonData.length === 0) {
     throw new Error('Le fichier ne contient aucune donnée');
   }
+  
+  // Filtrer les données par manufacturiers sélectionnés si spécifié
+  let filteredData = [...jsonData];
+  if (options?.selectedManufacturers && options.selectedManufacturers.length > 0) {
+    console.log('Filtrage des données par manufacturiers sélectionnés:', options.selectedManufacturers);
+    filteredData = jsonData.filter((row: any) => 
+      row['Marque'] && 
+      options.selectedManufacturers!.includes(row['Marque'].toString().trim())
+    );
+    console.log(`Après filtrage: ${filteredData.length}/${jsonData.length} lignes conservées`);
+  } else {
+    console.log('Aucun filtrage par manufacturier appliqué');
+  }
 
   console.log('Données brutes du fichier Excel (2 premiers éléments):', JSON.stringify(jsonData.slice(0, 2), null, 2));
   console.log('Nombre total de lignes dans le fichier Excel:', jsonData.length);
@@ -62,7 +109,8 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
   const productGroups: { [key: string]: any[] } = {};
   let rowsWithoutParent: any[] = [];
   
-  jsonData.forEach((row: any) => {
+  // Utiliser les données filtrées au lieu des données brutes
+  filteredData.forEach((row: any) => {
     const parentProductId = row[parentProductColumn];
     console.log(`Ligne: ${row['Code article'] || 'sans code'}, Valeur de ${parentProductColumn}:`, parentProductId);
     
@@ -82,7 +130,7 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
   if (Object.keys(productGroups).length === 0 && rowsWithoutParent.length > 0) {
     console.log('Aucun produit parent détecté, création de groupes par SKU ou code article');
     
-    // Essayer de grouper par SKU ou Code article
+    // Essayer de grouper par SKU ou Code article (utiliser les données filtrées)
     rowsWithoutParent.forEach((row: any) => {
       // Utiliser le SKU ou Code article comme identifiant de produit parent
       const skuColumn = row['SKU'] ? 'SKU' : (row['Code article'] ? 'Code article' : null);
@@ -105,7 +153,7 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
 
   // Calculer les statistiques
   const totalProducts = Object.keys(productGroups).length;
-  const totalVariants = jsonData.length;
+  const totalVariants = filteredData.length;
   
   console.log(`Produits détectés: ${totalProducts}, Variantes: ${totalVariants}`);
   console.log('Groupes de produits:', Object.keys(productGroups));
@@ -114,8 +162,8 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
   }
 
   return {
-    headers: jsonData.length > 0 ? Object.keys(jsonData[0] as object) : [],
-    rows: jsonData.slice(0, 5), // Afficher les 5 premières lignes pour l'aperçu
+    headers: filteredData.length > 0 ? Object.keys(filteredData[0] as object) : [],
+    rows: filteredData.slice(0, 5), // Afficher les 5 premières lignes pour l'aperçu
     productGroups,
     totalProducts,
     totalVariants,
