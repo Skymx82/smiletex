@@ -165,13 +165,6 @@ const TopTexGroupImport: React.FC<TopTexGroupImportProps> = ({
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       
-      // Vérifier la taille du fichier (limite de 5 Mo)
-      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo en octets
-      if (selectedFile.size > MAX_FILE_SIZE) {
-        setError(`Le fichier est trop volumineux. La taille maximale autorisée est de 5 Mo. Votre fichier fait ${(selectedFile.size / (1024 * 1024)).toFixed(2)} Mo.`);
-        return;
-      }
-      
       setFile(selectedFile);
       setError(null);
       setPreviewData(null); // Réinitialiser les données d'aperçu
