@@ -63,7 +63,7 @@ function CheckoutSuccess() {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('cart');
           // Déclencher un événement storage pour mettre à jour les autres onglets
-          window.dispatchEvent(new Event('storage'));
+          if (typeof window !== "undefined") window.dispatchEvent(new Event('storage'));
         }
 
         // 1. Mettre à jour le statut de la commande

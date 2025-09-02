@@ -19,7 +19,7 @@ export default function ForgotPassword() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${typeof window !== 'undefined' ? typeof window !== "undefined" ? window.location.origin : "https://www.smiletex.fr" : 'https://www.smiletex.fr'}/reset-password`,
       });
 
       if (error) throw error;

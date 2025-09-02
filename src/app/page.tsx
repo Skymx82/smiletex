@@ -448,7 +448,7 @@ export default function Home() {
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Bienvenue chez <span className="relative inline-block">
-                <span className="text-white text-5xl md:text-7xl tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] font-semibold" style={{fontFamily: 'var(--font-fredoka)'}}>Smiletex</span>
+                <span className="text-white text-5xl md:text-7xl tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] font-semibold">Smiletex</span>
                 <span className="absolute -bottom-2 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
               </span>
             </h1>

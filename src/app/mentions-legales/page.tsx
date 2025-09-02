@@ -122,7 +122,7 @@ export default function MentionsLegales() {
                   Conditions Générales de Vente
                 </h2>
                 <p className="text-gray-600 mb-4 italic">
-                  En vigueur au {new Date().toLocaleDateString('fr-FR')} - Dernière mise à jour le 01/04/2025
+                  En vigueur au 01/04/2025 - Dernière mise à jour le 01/04/2025
                 </p>
               </div>
               

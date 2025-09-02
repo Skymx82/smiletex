@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
  */
 export default function CartCounter() {
   const [count, setCount] = useState(0);
+  const [isClient, setIsClient] = useState(false);
 
   // Fonction pour obtenir le nombre d'articles dans le panier
   const getCartCount = () => {
@@ -26,6 +27,8 @@ export default function CartCounter() {
   };
 
   useEffect(() => {
+    // Marquer comme côté client
+    setIsClient(true);
     // Mettre à jour le compteur au chargement
     setCount(getCartCount());
     
@@ -73,8 +76,8 @@ export default function CartCounter() {
     };
   }, [count]);
 
-  // Ne rien afficher s'il n'y a pas d'articles dans le panier
-  if (count === 0) return null;
+  // Ne rien afficher côté serveur ou s'il n'y a pas d'articles dans le panier
+  if (!isClient || count === 0) return null;
 
   return (
     <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-indigo-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium">

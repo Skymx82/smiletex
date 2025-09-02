@@ -97,7 +97,7 @@ export default function CartPage() {
       
       // Rediriger vers la page de paiement Stripe
       if (response.url) {
-        window.location.href = response.url;
+        if (typeof window !== "undefined") window.location.href = response.url;
       } else {
         throw new Error('URL de paiement non reçue');
       }
@@ -132,7 +132,7 @@ export default function CartPage() {
       
       // Rediriger vers la page de paiement Stripe
       if (response.url) {
-        window.location.href = response.url;
+        if (typeof window !== "undefined") window.location.href = response.url;
       } else {
         throw new Error('URL de paiement non reçue');
       }
@@ -161,7 +161,7 @@ export default function CartPage() {
       
       // Rediriger vers la page de paiement Stripe
       if (response.url) {
-        window.location.href = response.url;
+        if (typeof window !== "undefined") window.location.href = response.url;
       } else {
         throw new Error('URL de paiement non reçue');
       }
@@ -428,7 +428,7 @@ export default function CartPage() {
                                 updatedCart[itemIndex].quantity = Math.max(1, item.quantity - 1);
                               }
                               const event = new CustomEvent('cartUpdated', { detail: updatedCart });
-                              window.dispatchEvent(event);
+                              if (typeof window !== "undefined") window.dispatchEvent(event);
                             }}
                             className="px-4 py-2 text-indigo-700 hover:bg-indigo-100 transition-colors relative overflow-hidden group"
                             aria-label="Diminuer la quantité"
@@ -446,7 +446,7 @@ export default function CartPage() {
                                 updatedCart[itemIndex].quantity = item.quantity + 1;
                               }
                               const event = new CustomEvent('cartUpdated', { detail: updatedCart });
-                              window.dispatchEvent(event);
+                              if (typeof window !== "undefined") window.dispatchEvent(event);
                             }}
                             className="px-4 py-2 text-indigo-700 hover:bg-indigo-100 transition-colors relative overflow-hidden group"
                             aria-label="Augmenter la quantité"
@@ -462,7 +462,7 @@ export default function CartPage() {
                               // Forcer une actualisation du compteur du panier en déclenchant un événement personnalisé
                               const updatedCart = cart.filter(cartItem => cartItem.id !== item.id);
                               const event = new CustomEvent('cartUpdated', { detail: updatedCart });
-                              window.dispatchEvent(event);
+                              if (typeof window !== "undefined") window.dispatchEvent(event);
                             }}
                             className="text-base font-bold text-indigo-700 hover:text-indigo-900 transition-colors flex items-center"
                           >

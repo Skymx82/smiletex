@@ -57,13 +57,18 @@ const nextConfig = {
       },
     });
 
-    // Configuration CSS nécessaire pour Tailwind
+    // Configuration pour supporter @import "tailwindcss"
     config.module.rules.push({
       test: /\.css$/,
       use: [
         'style-loader',
-        'css-loader',
-        'postcss-loader'
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+          },
+        },
+        'postcss-loader',
       ],
     });
     

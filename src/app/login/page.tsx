@@ -17,9 +17,11 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get('registered') === 'true') {
-      setSuccess('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+      if (searchParams.get('registered') === 'true') {
+        setSuccess('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+      }
     }
   }, []);
 

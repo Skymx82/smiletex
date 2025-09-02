@@ -5,14 +5,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import JsonLd from "@/components/SEO/JsonLd";
-import { Fredoka } from 'next/font/google';
-
-// Configuration de la police Fredoka avec display swap pour éviter le FOUC
-const fredoka = Fredoka({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-fredoka'
-});
 
 export const metadata: Metadata = {
   title: "Smiletex - Personnalisation de vêtements à Lyon | Impression textile",
@@ -109,7 +101,7 @@ export default function RootLayout({
           `
         }} />
       </head>
-      <body className={`${fredoka?.variable || ''} bg-gray-50 min-h-screen flex flex-col`}>
+      <body className="bg-gray-50 min-h-screen flex flex-col">
         <AuthProvider>
           <CartProvider>
             <Header />
