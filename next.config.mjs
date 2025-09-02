@@ -63,17 +63,7 @@ const nextConfig = {
       use: [
         'style-loader',
         'css-loader',
-        {
-          loader: 'postcss-loader',
-          options: {
-            postcssOptions: {
-              plugins: [
-                ['tailwindcss', {}],
-                ['autoprefixer', {}],
-              ],
-            },
-          },
-        },
+        'postcss-loader'
       ],
     });
     

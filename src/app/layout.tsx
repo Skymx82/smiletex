@@ -7,6 +7,13 @@ import Header from "@/components/layout/Header";
 import JsonLd from "@/components/SEO/JsonLd";
 import { Fredoka } from 'next/font/google';
 
+// Configuration de la police Fredoka avec display swap pour éviter le FOUC
+const fredoka = Fredoka({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-fredoka'
+});
+
 export const metadata: Metadata = {
   title: "Smiletex - Personnalisation de vêtements à Lyon | Impression textile",
   description: "Spécialiste de la personnalisation de vêtements à Lyon. Impression textile, flocage, broderie pour particuliers et professionnels. Devis rapide et livraison sur toute la France.",
@@ -94,8 +101,15 @@ export default function RootLayout({
         <meta name="geo.position" content="45.7578137;4.8320114" />
         <meta name="ICBM" content="45.7578137, 4.8320114" />
         <JsonLd />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            document.addEventListener('DOMContentLoaded', function() {
+              document.body.classList.add('loaded');
+            });
+          `
+        }} />
       </head>
-      <body className="bg-gray-50 min-h-screen flex flex-col">
+      <body className={`${fredoka?.variable || ''} bg-gray-50 min-h-screen flex flex-col`}>
         <AuthProvider>
           <CartProvider>
             <Header />
