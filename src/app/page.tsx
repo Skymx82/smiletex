@@ -436,6 +436,8 @@ export default function Home() {
             fill 
             className="object-cover"
             priority
+            quality={75}
+            sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 via-indigo-700 to-indigo-600 opacity-50"></div>
           {/* Éléments graphiques abstraits */}
@@ -513,7 +515,9 @@ export default function Home() {
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    priority={category.id === 't-shirt' || category.id === 'polo'}
+                    priority={category.id === 't-shirt'}
+                    loading={category.id === 't-shirt' ? 'eager' : 'lazy'}
+                    quality={category.id === 't-shirt' ? 80 : 70}
                   />
                   
                   {/* Dégradé pour assurer la lisibilité du texte */}
@@ -685,8 +689,8 @@ export default function Home() {
                   alt="Inspiration 1"
                   fill
                   sizes="(max-width: 640px) 288px, (max-width: 1024px) 50vw, 25vw"
-                  quality={90}
-                  priority
+                  quality={75}
+                  loading="lazy"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -703,7 +707,8 @@ export default function Home() {
                   alt="Inspiration 2"
                   fill
                   sizes="(max-width: 640px) 288px, (max-width: 1024px) 50vw, 25vw"
-                  quality={90}
+                  quality={75}
+                  loading="lazy"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -720,7 +725,8 @@ export default function Home() {
                   alt="Inspiration 3"
                   fill
                   sizes="(max-width: 640px) 288px, (max-width: 1024px) 50vw, 25vw"
-                  quality={90}
+                  quality={75}
+                  loading="lazy"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -737,7 +743,8 @@ export default function Home() {
                   alt="Inspiration 4"
                   fill
                   sizes="(max-width: 640px) 288px, (max-width: 1024px) 50vw, 25vw"
-                  quality={90}
+                  quality={75}
+                  loading="lazy"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">

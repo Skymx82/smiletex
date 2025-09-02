@@ -10,6 +10,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Configuration SWC pour éviter la transpilation inutile
+  compiler: {
+    // Désactiver les polyfills pour les navigateurs modernes
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   images: {
     remotePatterns: [
       {
@@ -28,9 +33,21 @@ const nextConfig = {
   },
   // Configuration pour résoudre les problèmes de build
   reactStrictMode: false,
-  swcMinify: true,
   webpack: (config) => {
     config.externals = [...(config.externals || []), { canvas: 'canvas' }];
+    
+    // Optimisation pour les navigateurs modernes - désactiver les polyfills
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // Éviter les polyfills pour les fonctionnalités ES6+ natives
+      'core-js/modules/es.array.at': false,
+      'core-js/modules/es.array.flat': false,
+      'core-js/modules/es.array.flat-map': false,
+      'core-js/modules/es.object.from-entries': false,
+      'core-js/modules/es.object.has-own': false,
+      'core-js/modules/es.string.trim-end': false,
+      'core-js/modules/es.string.trim-start': false,
+    };
     
     // Ajouter une règle pour gérer les importations de fabric.js
     config.module.rules.push({
@@ -40,10 +57,24 @@ const nextConfig = {
       },
     });
 
-    // Ajouter le support pour les fichiers CSS
+    // Configuration CSS nécessaire pour Tailwind
     config.module.rules.push({
       test: /\.css$/,
-      use: ['style-loader', 'css-loader', 'postcss-loader'],
+      use: [
+        'style-loader',
+        'css-loader',
+        {
+          loader: 'postcss-loader',
+          options: {
+            postcssOptions: {
+              plugins: [
+                ['tailwindcss', {}],
+                ['autoprefixer', {}],
+              ],
+            },
+          },
+        },
+      ],
     });
     
     // Ajouter une condition pour vérifier si nous sommes dans un environnement navigateur

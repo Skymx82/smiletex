@@ -1,0 +1,10 @@
+# Navigateurs modernes uniquement pour éviter les polyfills inutiles
+> 1%
+last 2 versions
+not dead
+not ie 11
+not op_mini all
+# Support ES6+ natif
+supports es6-module
+supports es6-module-dynamic-import
+supports async-functions
