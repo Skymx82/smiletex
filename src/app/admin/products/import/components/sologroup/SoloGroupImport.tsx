@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { Category } from '@/lib/products';
-import { parseExcelFile, importProducts, ImportConfig, ImportProgress } from './services/importService';
+import { parseExcelFile, importProducts, ImportConfig, ImportProgress, extractManufacturers } from './services/importService';
 
 // Types
 interface PreviewData {
@@ -86,14 +86,46 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
     errors: [],
   });
   const [error, setError] = useState<string | null>(null);
+  // États pour la gestion des marques
+  const [availableManufacturers, setAvailableManufacturers] = useState<string[]>([]);
+  const [selectedManufacturers, setSelectedManufacturers] = useState<string[]>([]);
+  const [manufacturersLoading, setManufacturersLoading] = useState<boolean>(false);
 
   // Gérer le changement de fichier
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      
       setFile(selectedFile);
       setError(null);
       setPreviewData(null);
+      
+      // Extraire les marques dès la sélection du fichier
+      try {
+        setManufacturersLoading(true);
+        console.log('Début de l\'extraction des marques...');
+        const manufacturers = await extractManufacturers(selectedFile);
+        console.log('Marques extraites:', manufacturers);
+        
+        if (manufacturers && manufacturers.length > 0) {
+          console.log(`${manufacturers.length} marques trouvées, mise à jour des états...`);
+          setAvailableManufacturers(manufacturers);
+          // Sélectionner toutes les marques par défaut
+          setSelectedManufacturers([...manufacturers]);
+        } else {
+          console.error('Aucune marque trouvée dans le fichier');
+          setError('Aucune marque trouvée dans le fichier. Vérifiez que la colonne "Marque" existe.');
+          setAvailableManufacturers([]);
+          setSelectedManufacturers([]);
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'extraction des marques:', error);
+        setError(`Erreur lors de l'extraction des marques: ${error instanceof Error ? error.message : String(error)}`);
+        setAvailableManufacturers([]);
+        setSelectedManufacturers([]);
+      } finally {
+        setManufacturersLoading(false);
+      }
     }
   };
 
@@ -104,6 +136,11 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
       return;
     }
 
+    if (selectedManufacturers.length === 0) {
+      setError('Veuillez sélectionner au moins une marque');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -111,7 +148,10 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
       // Analyser le fichier Excel
       // Appliquer un multiplicateur de prix de 1.30 lors de l'importation
       const priceMultiplier = 1.30;
-      const result = await parseExcelFile(file, { priceMultiplier });
+      const result = await parseExcelFile(file, { 
+        priceMultiplier,
+        selectedManufacturers 
+      });
       setPreviewData(result);
     } catch (error) {
       console.error('Erreur lors de l\'analyse du fichier:', error);
@@ -119,7 +159,7 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [file]);
+  }, [file, selectedManufacturers]);
 
   // Lancer l'importation
   const startImport = async () => {
@@ -221,14 +261,6 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
           </p>
         </div>
         
-        <button
-          onClick={handleParseExcelFile}
-          disabled={!file || loading}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded disabled:opacity-50"
-        >
-          {loading ? 'Analyse en cours...' : 'Analyser le fichier'}
-        </button>
-        
         <div className="mt-4 p-3 bg-blue-50 rounded-md">
           <p className="text-sm text-blue-700">
             <span className="font-medium">Format sélectionné:</span> SoloGroup
@@ -239,10 +271,92 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
         </div>
       </div>
 
+      {/* Section de sélection des marques */}
+      {file && (
+        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">2. Sélection des marques</h2>
+          
+          {manufacturersLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <span className="ml-3 text-gray-600">Extraction des marques en cours...</span>
+            </div>
+          ) : availableManufacturers.length > 0 ? (
+            <>
+              <p className="text-sm text-gray-600 mb-4">
+                {availableManufacturers.length} marques trouvées dans le fichier. Sélectionnez celles que vous souhaitez importer :
+              </p>
+              
+              <div className="mb-4 flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedManufacturers([...availableManufacturers])}
+                  className="px-3 py-1 text-xs bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 transition-colors"
+                >
+                  Tout sélectionner
+                </button>
+                <button
+                  onClick={() => setSelectedManufacturers([])}
+                  className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                >
+                  Tout désélectionner
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
+                {availableManufacturers.map((manufacturer) => (
+                  <label key={manufacturer} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                    <input
+                      type="checkbox"
+                      checked={selectedManufacturers.includes(manufacturer)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedManufacturers(prev => [...prev, manufacturer]);
+                        } else {
+                          setSelectedManufacturers(prev => prev.filter(m => m !== manufacturer));
+                        }
+                      }}
+                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-sm text-gray-700 truncate" title={manufacturer}>
+                      {manufacturer}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              
+              <div className="mt-4 p-3 bg-green-50 rounded-md">
+                <p className="text-sm text-green-700">
+                  <span className="font-medium">{selectedManufacturers.length}</span> marque(s) sélectionnée(s) sur {availableManufacturers.length}
+                </p>
+              </div>
+
+              {/* Bouton d'analyse déplacé ici */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <button
+                  onClick={handleParseExcelFile}
+                  disabled={!file || loading || selectedManufacturers.length === 0}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded disabled:opacity-50"
+                >
+                  {loading ? 'Analyse en cours...' : 'Analyser les marques sélectionnées'}
+                </button>
+                <p className="text-sm text-gray-500 mt-2">
+                  Analyser uniquement les produits des marques sélectionnées
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Aucune marque détectée dans le fichier</p>
+              <p className="text-xs text-gray-400 mt-1">Vérifiez que la colonne "Marque" existe et contient des données</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {previewData && (
         <>
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">2. Configuration de l'importation</h2>
+            <h2 className="text-xl font-semibold mb-4">3. Configuration de l'importation</h2>
             
             <div className="mb-4">
               <label className="block text-gray-700 mb-2">Catégorie par défaut</label>
@@ -279,14 +393,9 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">3. Aperçu et configuration des produits</h2>
-            <p className="mb-4 text-sm text-gray-600">
-              {previewData.totalProducts} produits avec {previewData.totalVariants} variantes ont été détectés.
-            </p>
-
-            <div className="mb-6">
-              <h3 className="text-lg font-medium mb-3">Sélection des catégories par produit</h3>
-              <p className="text-sm text-gray-600 mb-3">
+            <h2 className="text-xl font-semibold mb-4">4. Aperçu des données</h2>
+            
+            <p className="text-sm text-gray-600 mb-3">
                 {Object.keys(previewData.productGroups).length} produits à catégoriser
               </p>
               
@@ -367,9 +476,6 @@ const SoloGroupImport: React.FC<SoloGroupImportProps> = ({
                 </table>
               </div>
             </div>
-
-
-          </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">4. Lancer l'importation</h2>

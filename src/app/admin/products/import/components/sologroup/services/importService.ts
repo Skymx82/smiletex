@@ -31,8 +31,32 @@ export interface ProductGroup {
   rows: any[];
 }
 
+// Fonction pour extraire les marques du fichier Excel
+export const extractManufacturers = async (file: File): Promise<string[]> => {
+  const data = await file.arrayBuffer();
+  const workbook = XLSX.read(data);
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+  if (jsonData.length === 0) {
+    throw new Error('Le fichier ne contient aucune donnée');
+  }
+
+  // Extraire les marques uniques de la colonne "Marque"
+  const manufacturers = new Set<string>();
+  
+  jsonData.forEach((row: any) => {
+    const manufacturer = row['Marque'];
+    if (manufacturer && typeof manufacturer === 'string' && manufacturer.trim() !== '') {
+      manufacturers.add(manufacturer.trim());
+    }
+  });
+
+  return Array.from(manufacturers).sort();
+};
+
 // Fonction pour analyser le fichier Excel
-export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Promise<{
+export const parseExcelFile = async (file: File, options?: ExcelFileOptions & { selectedManufacturers?: string[] }): Promise<{
   headers: string[];
   rows: any[];
   productGroups: { [key: string]: any[] };
@@ -63,9 +87,18 @@ export const parseExcelFile = async (file: File, options?: ExcelFileOptions): Pr
     });
   }
 
+  // Filtrer par marques sélectionnées si spécifié
+  let filteredData = jsonData;
+  if (options?.selectedManufacturers && options.selectedManufacturers.length > 0) {
+    filteredData = jsonData.filter((row: any) => {
+      const manufacturer = row['Marque'];
+      return manufacturer && options.selectedManufacturers!.includes(manufacturer.trim());
+    });
+  }
+
   // Regrouper par produit parent
   const productGroups: { [key: string]: any[] } = {};
-  jsonData.forEach((row: any) => {
+  filteredData.forEach((row: any) => {
     const parentProductId = row['Produit parent'];
     if (!parentProductId) {
       return;

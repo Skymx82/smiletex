@@ -7,6 +7,7 @@ import BrandsMarquee from "@/components/BrandsMarquee";
 import TrustBadge from "@/components/TrustBadge";
 import TechniquesMarquage from "@/components/TechniquesMarquage";
 import ProjectSteps from "@/components/ProjectSteps";
+import LoadingScreen from "@/components/LoadingScreen";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 // Désactiver la génération statique pour cette page
@@ -319,6 +320,7 @@ export default function Home() {
   const [categoryProducts, setCategoryProducts] = useState<{[key: string]: Product[]}>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
   
   const categories = [
     { id: 't-shirt', name: 'T-shirts' },
@@ -425,8 +427,14 @@ export default function Home() {
     fetchData();
   }, []); // Ajout d'une dépendance vide pour éviter les rechargements infinis
 
+  const handleLoadingComplete = () => {
+    setShowLoadingScreen(false);
+  };
+
   return (
-    <div className="bg-gray-50">
+    <>
+      {showLoadingScreen && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
+      <div className="bg-gray-50">
       {/* Hero Section */}
       <section className="relative bg-indigo-800 text-white">
         <div className="absolute inset-0 overflow-hidden">
@@ -952,6 +960,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
