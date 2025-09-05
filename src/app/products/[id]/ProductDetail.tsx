@@ -496,6 +496,17 @@ export default function ProductDetail({ id }: { id: string }) {
 
                   <div className="space-y-4">
                     <div>
+                      <h3 className="text-md font-semibold mb-1">Matière</h3>
+                      <p className="text-sm text-gray-600">
+                        {product.material ? (
+                          product.material
+                        ) : (
+                          <span className="italic text-gray-500">Non spécifiée</span>
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
                       <h3 className="text-md font-semibold mb-1">Grammage</h3>
                       <p className="text-sm text-gray-600">
                         {product.weight_gsm ? (
@@ -510,17 +521,6 @@ export default function ProductDetail({ id }: { id: string }) {
                       <h3 className="text-md font-semibold mb-1">Entretien</h3>
                       <p className="text-sm text-gray-600">
                         Lavage en machine à 30°C, ne pas utiliser d'eau de javel, séchage à basse température.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-md font-semibold mb-1">Matière</h3>
-                      <p className="text-sm text-gray-600">
-                        {product.material ? (
-                          product.material
-                        ) : (
-                          <span className="italic text-gray-500">Non spécifiée</span>
-                        )}
                       </p>
                     </div>
                   </div>
@@ -745,7 +745,7 @@ export default function ProductDetail({ id }: { id: string }) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span className="relative">
-                        Délai de livraison
+                        Délai de production
                         <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FCEB14] rounded-full"></span>
                       </span>
                     </h3>

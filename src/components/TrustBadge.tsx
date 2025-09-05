@@ -22,7 +22,7 @@ export default function TrustBadge() {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-sm text-gray-800">Imprimé en France</span>
+              <span className="font-semibold text-sm text-gray-800">Imprimé à Lyon</span>
               <span className="text-xs text-gray-500">Production locale et responsable</span>
             </div>
           </div>

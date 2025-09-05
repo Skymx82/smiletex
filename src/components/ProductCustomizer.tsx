@@ -102,14 +102,16 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
     type: 'text',
     type_impression: 'impression', // Impression par défaut au lieu de broderie
     face: 'devant', // Pour rétro-compatibilité
-    image_url: undefined // Initialiser explicitement image_url
+    image_url: undefined, // Initialiser explicitement image_url
+    position: undefined // Initialiser explicitement position
   });
   
   const [backCustomization, setBackCustomization] = useState<SingleCustomization>({
     type: 'text',
     type_impression: 'impression', // Impression par défaut au lieu de broderie
     face: 'derriere', // Pour rétro-compatibilité
-    image_url: undefined // Initialiser explicitement image_url
+    image_url: undefined, // Initialiser explicitement image_url
+    position: undefined // Initialiser explicitement position
   });
   
   // Helper pour obtenir la personnalisation actuelle en fonction de la face
@@ -155,6 +157,13 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
   const [frontContentType, setFrontContentType] = useState<'texte' | 'image'>('image');
   const [backContentType, setBackContentType] = useState<'texte' | 'image'>('image');
   
+  // Debug: Afficher les états à chaque render
+  console.log('=== RENDER DEBUG ===');
+  console.log('frontCustomization.position:', frontCustomization.position);
+  console.log('backCustomization.position:', backCustomization.position);
+  console.log('currentFace:', currentFace);
+  console.log('=== FIN RENDER DEBUG ===');
+  
   // Helper pour obtenir le type de contenu en fonction de la face actuelle
   const getContentType = (): 'texte' | 'image' => {
     return currentFace === 'devant' ? frontContentType : backContentType;
@@ -177,9 +186,12 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
   // État pour stocker le prix total des personnalisations
   const [customizationPrice, setCustomizationPrice] = useState<number>(0);
   
-  // Initialiser avec les données existantes si disponibles
+  // État pour suivre si l'initialisation a déjà été faite
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    if (initialCustomization && initialCustomization.customizations) {
+    // Ne s'exécuter qu'une seule fois au montage du composant
+    if (!isInitialized && initialCustomization && initialCustomization.customizations) {
       console.log('Initialisation avec les données existantes:', initialCustomization);
       setProductCustomization(initialCustomization);
       
@@ -218,8 +230,12 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
       // Calculer le prix initial
       const initialPrice = calculateCustomizationPrice(initialCustomization);
       setCustomizationPrice(initialPrice);
+      console.log('Prix total de la personnalisation:', initialPrice.toFixed(2) + '€');
+      
+      // Marquer comme initialisé
+      setIsInitialized(true);
     }
-  }, [initialCustomization]);
+  }, [initialCustomization, isInitialized]);
 
   // Fonction pour calculer le prix des personnalisations
   const calculateCustomizationPrice = (customization: ProductCustomization): number => {
@@ -595,7 +611,15 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
 
   // Fonction pour mettre à jour la position arrière
   const updateBackPosition = (position: string) => {
-    console.log('Mise à jour de la position arrière:', position);
+    console.log('=== DEBUG updateBackPosition ===');
+    console.log('Position demandée:', position);
+    console.log('Position actuelle backCustomization.position:', backCustomization.position);
+    console.log('Comparaison (backCustomization.position === position):', backCustomization.position === position);
+    console.log('Type de backCustomization.position:', typeof backCustomization.position);
+    console.log('Type de position:', typeof position);
+    console.log('backCustomization complet:', backCustomization);
+    console.log('=== FIN DEBUG ===');
+    
     // Vérifier si on clique sur la position déjà sélectionnée (pour décocher)
     if (backCustomization.position === position) {
       // Désélectionner la position (mettre à undefined)
@@ -609,6 +633,7 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
         return newState;
       });
     } else {
+      console.log('ELSE: Mise à jour de la position arrière vers:', position);
       // Mettre à jour la position arrière et synchroniser le type d'impression et le type avec la face avant
       setBackCustomization(prev => {
         // Utiliser le type d'impression et le type de la face avant si disponible
@@ -1061,7 +1086,10 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
 
                       <button
                         className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.position === 'dos-haut' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
-                        onClick={() => updateBackPosition('dos-haut')}
+                        onClick={() => {
+                          console.log('BOUTON HAUT DU DOS CLIQUÉ !');
+                          updateBackPosition('dos-haut');
+                        }}
                       >
                         <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
                           <Image
@@ -1090,7 +1118,10 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
                       
                       <button
                         className={`relative overflow-hidden rounded-lg transition-all duration-200 w-32 ${backCustomization.position === 'dos-complet' ? 'ring-2 ring-indigo-600 shadow-md' : 'border border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
-                        onClick={() => updateBackPosition('dos-complet')}
+                        onClick={() => {
+                          console.log('BOUTON DOS COMPLET CLIQUÉ !');
+                          updateBackPosition('dos-complet');
+                        }}
                       >
                         <div className="bg-gray-50 overflow-hidden relative" style={{ height: '100px' }}>
                           <Image
@@ -1326,4 +1357,4 @@ export default function ProductCustomizer({ onSave, initialCustomization = null,
             </div>
           </div>
   );
-}
+};

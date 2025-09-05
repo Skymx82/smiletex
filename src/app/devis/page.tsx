@@ -339,7 +339,7 @@ export default function DevisRapide() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Délai de livraison
+                    Délai de production
                   </label>
                   <select
                     name="deadline"

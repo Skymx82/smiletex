@@ -252,7 +252,7 @@ function UrgentQuoteForm() {
             </span>
             Livraison express (1 semaine)
           </label>
-          <p className="text-xs text-gray-500 mt-0.5">Priorité maximale pour votre projet avec un délai de livraison d'une semaine.</p>
+          <p className="text-xs text-gray-500 mt-0.5">Priorité maximale pour votre projet avec un délai de production d'une semaine.</p>
         </div>
       </div>
 
