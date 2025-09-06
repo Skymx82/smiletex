@@ -12,6 +12,7 @@ interface EditCategoryPageProps {
   params: {
     id: string;
   };
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default function EditCategoryPage({ params }: EditCategoryPageProps) {
@@ -147,7 +148,7 @@ export default function EditCategoryPage({ params }: EditCategoryPageProps) {
       const updateData = {
         name: categoryData.name,
         description: categoryData.description,
-        parent_id: categoryData.parent_id || null,
+        parent_id: categoryData.parent_id || undefined, // Utiliser undefined au lieu de null
         image_url: imageUrl,
       };
       
