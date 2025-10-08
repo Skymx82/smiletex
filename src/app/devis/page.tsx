@@ -317,41 +317,60 @@ export default function DevisRapide() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quantité souhaitée <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="quantity"
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                    required
-                  >
-                    <option value="">Sélectionnez une quantité</option>
-                    <option value="1-10">1 à 10</option>
-                    <option value="11-50">11 à 50</option>
-                    <option value="51-100">51 à 100</option>
-                    <option value="100+">Plus de 100</option>
-                  </select>
+              {/* Quantité souhaitée */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quantité souhaitée <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { id: '1-10', label: '1 à 10' },
+                    { id: '11-50', label: '11 à 50' },
+                    { id: '51-100', label: '51 à 100' },
+                    { id: '100+', label: 'Plus de 100' }
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setFormData(prevState => ({ ...prevState, quantity: option.id }))}
+                      className={`py-3 px-4 border-2 rounded-lg text-base font-medium transition-all ${
+                        formData.quantity === option.id 
+                          ? 'bg-indigo-100 border-indigo-500 text-indigo-700 shadow-sm transform scale-[1.02]' 
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Délai de production
-                  </label>
-                  <select
-                    name="deadline"
-                    value={formData.deadline}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value="">Sélectionnez un délai</option>
-                    <option value="classique">Livraison classique : 3 semaines</option>
-                    <option value="prioritaire">Livraison prioritaire : 2 semaines</option>
-                    <option value="express">Livraison express : 1 semaine (ou moins)</option>
-                  </select>
+              </div>
+              
+              {/* Délai de production */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Délai de production
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: 'classique', label: 'Classique', description: '3 semaines', icon: <FiClock className="h-5 w-5 text-indigo-500 mb-1" /> },
+                    { id: 'prioritaire', label: 'Prioritaire', description: '2 semaines', icon: <FiTruck className="h-5 w-5 text-indigo-500 mb-1" /> },
+                    { id: 'express', label: 'Express', description: '1 semaine ou moins', icon: <FiShield className="h-5 w-5 text-indigo-500 mb-1" /> }
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setFormData(prevState => ({ ...prevState, deadline: option.id }))}
+                      className={`py-4 px-4 border-2 rounded-lg transition-all flex flex-col items-center ${
+                        formData.deadline === option.id 
+                          ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-sm transform scale-[1.02]' 
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                      }`}
+                    >
+                      {option.icon}
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-xs text-gray-500 mt-1">{option.description}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
               
