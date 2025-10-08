@@ -100,7 +100,10 @@ function ProductsContent() {
               <span className="relative block sm:inline-block">
                 Nos Produits
               </span>
-              <span className="block sm:inline-block sm:ml-3 text-indigo-600 mt-1 sm:mt-0">Smiletex</span>
+              <span className="relative block sm:inline-block sm:ml-3 text-indigo-600 mt-1 sm:mt-0">
+                Smiletex
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
+              </span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mt-3 sm:mt-4 md:mt-6 relative z-10 px-2">
               Découvrez notre gamme de produits personnalisables de haute qualité.

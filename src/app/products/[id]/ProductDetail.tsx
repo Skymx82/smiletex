@@ -135,7 +135,7 @@ export default function ProductDetail({ id }: { id: string }) {
   // Fonction pour augmenter la quantité d'une taille
   const increaseQuantity = (size: string) => {
     // Vérifier le stock disponible
-    const variant = product.variants.find(
+    const variant = product?.variants?.find(
       v => v.size === size && matchesSelectedColor(v, selectedColor)
     );
     
@@ -143,16 +143,12 @@ export default function ProductDetail({ id }: { id: string }) {
     
     const currentQuantity = sizeQuantities[size] || 0;
     
-    // Vérifier si on peut augmenter la quantité
-    if (currentQuantity < variant.stock_quantity) {
-      setSizeQuantities(prev => ({
-        ...prev,
-        [size]: currentQuantity + 1
-      }));
-      setStockError('');
-    } else {
-      setStockError(`Stock insuffisant pour la taille ${size}. Maximum: ${variant.stock_quantity}`);
-    }
+    // Augmenter la quantité sans vérifier le stock
+    setSizeQuantities(prev => ({
+      ...prev,
+      [size]: currentQuantity + 1
+    }));
+    setStockError('');
   };
 
   // Fonction pour diminuer la quantité d'une taille
@@ -174,21 +170,7 @@ export default function ProductDetail({ id }: { id: string }) {
       setIsAddingToCart(true);
       setStockError('');
 
-      // Vérifier les stocks avant d'ajouter au panier
-      for (const [size, quantity] of Object.entries(sizeQuantities)) {
-        if (quantity > 0) {
-          const variant = product?.variants?.find(
-            v => v.size === size && matchesSelectedColor(v, selectedColor)
-          );
-
-          if (variant) {
-            if (variant.stock_quantity < quantity) {
-              setStockError(`Stock insuffisant pour la taille ${size}. Disponible: ${variant.stock_quantity}`);
-              return;
-            }
-          }
-        }
-      }
+      // Ne plus vérifier les stocks avant d'ajouter au panier
 
       // Ajouter chaque taille sélectionnée au panier
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
@@ -264,21 +246,7 @@ export default function ProductDetail({ id }: { id: string }) {
       setIsAddingToCart(true);
       setStockError('');
 
-      // Vérifier les stocks avant d'ajouter au panier
-      for (const [size, quantity] of Object.entries(sizeQuantities)) {
-        if (quantity > 0) {
-          const variant = product?.variants?.find(
-            v => v.size === size && matchesSelectedColor(v, selectedColor)
-          );
-
-          if (variant) {
-            if (variant.stock_quantity < quantity) {
-              setStockError(`Stock insuffisant pour la taille ${size}. Disponible: ${variant.stock_quantity}`);
-              return;
-            }
-          }
-        }
-      }
+      // Ne plus vérifier les stocks avant d'ajouter au panier
 
       // Ajouter chaque taille sélectionnée au panier avec personnalisation
       for (const [size, quantity] of Object.entries(sizeQuantities)) {
@@ -438,90 +406,72 @@ export default function ProductDetail({ id }: { id: string }) {
                   }
                 />
                 
-                {/* Prix et description - Au-dessus des informations supplémentaires */}
+                {/* Informations produit - Sous l'image */}
                 <div className="mt-4 pt-2">
                   <h1 className="text-2xl font-bold mb-2 relative inline-block">
                     {product.name}
                     <span className="absolute -bottom-1 left-0 w-full h-1 bg-[#FCEB14] rounded-full"></span>
                   </h1>
-                  {/* Affichage du prix avec personnalisation */}
-                  <div className="text-lg font-semibold text-indigo-700 mb-3 mt-4">
-                    <div className="text-xl font-bold text-gray-900">
-                      {(() => {
-                        // Vérifier si la personnalisation est complète
-                        const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
-                        
-                        // N'ajouter le prix que si la personnalisation est complète
-                        return (product.base_price + (isPersonnalisationComplete ? customizationPrice : 0)).toFixed(2);
-                      })()} €
-                    </div>
-                    {customizationPrice > 0 && (
-                      <div className="flex flex-col mt-1">
-                        <p className="text-sm text-gray-700">
-                          Prix de base: {product.base_price.toFixed(2)} €
-                        </p>
-                        <p className="text-sm text-indigo-600 font-medium">
-                          + Personnalisation: {customizationPrice.toFixed(2)} €
+                  
+                  <div className="mt-4 border-t border-gray-200 pt-4">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 relative inline-block">
+                      Informations produit
+                      <span className="ml-1 relative inline-block text-indigo-600">
+                        smiletex
+                        <svg className="absolute -bottom-1 left-0 w-full" height="3" viewBox="0 0 100 3" preserveAspectRatio="none">
+                          <path d="M0,0 L100,0 L100,3 L0,3 Z" fill="#FCEB14" />
+                        </svg>
+                      </span>
+                    </h2>
+
+                    <div className="space-y-4">
+                      {/* Marque */}
+                      <div>
+                        <h3 className="text-md font-semibold mb-1">Marque</h3>
+                        <p className="text-sm text-gray-600">Smiletex</p>
+                      </div>
+
+                      {/* Catégorie */}
+                      <div>
+                        <h3 className="text-md font-semibold mb-1">Catégorie</h3>
+                        <p className="text-sm text-gray-600">
                           {(() => {
-                            // Vérifier si la personnalisation est complète
-                            const isPersonnalisationComplete = customizationData ? isCustomizationComplete(customizationData) : false;
-                            
-                            // Afficher un message si la personnalisation n'est pas complète
-                            return !isPersonnalisationComplete ? 
-                              <span className="ml-2 text-xs text-gray-500">(appliqué seulement si complet)</span> : null;
-                          })()} 
+                            // Obtenir le nom de la catégorie à partir de l'ID
+                            const category = categories.find(cat => cat.id === product.category_id);
+                            return category ? category.name : 'Autre';
+                          })()}
                         </p>
                       </div>
-                    )}
-                    <p className="text-sm text-gray-500 mt-1">Prix TTC</p>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <h2 className="text-md font-bold text-gray-800 mb-1">Description</h2>
-                    <p className="text-sm text-gray-700">{product.description}</p>
-                  </div>
-                </div>
-                
-                {/* Informations supplémentaires - Maintenant sous l'image */}
-                <div className="mt-4 border-t border-gray-200 pt-4">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4 relative inline-block">
-                    Informations produit
-                    <span className="ml-1 relative inline-block text-indigo-600">
-                      smiletex
-                      <svg className="absolute -bottom-1 left-0 w-full" height="3" viewBox="0 0 100 3" preserveAspectRatio="none">
-                        <path d="M0,0 L100,0 L100,3 L0,3 Z" fill="#FCEB14" />
-                      </svg>
-                    </span>
-                  </h2>
 
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-md font-semibold mb-1">Matière</h3>
-                      <p className="text-sm text-gray-600">
-                        {product.material ? (
-                          product.material
-                        ) : (
-                          <span className="italic text-gray-500">Non spécifiée</span>
-                        )}
-                      </p>
-                    </div>
+                      {/* Matière */}
+                      <div>
+                        <h3 className="text-md font-semibold mb-1">Matière</h3>
+                        <p className="text-sm text-gray-600">
+                          {product.material ? (
+                            product.material
+                          ) : (
+                            <span className="italic text-gray-500">Non spécifiée</span>
+                          )}
+                        </p>
+                      </div>
 
-                    <div>
-                      <h3 className="text-md font-semibold mb-1">Grammage</h3>
-                      <p className="text-sm text-gray-600">
-                        {product.weight_gsm ? (
-                          <>
-                            <span className="font-bold">{product.weight_gsm} g/m²</span> - {getGrammageDescription(product.weight_gsm)}
-                          </>
-                        ) : '100% coton bio certifié, tissage de haute qualité pour une durabilité optimale.'}
-                      </p>
-                    </div>
+                      {/* Grammage */}
+                      <div>
+                        <h3 className="text-md font-semibold mb-1">Grammage</h3>
+                        <p className="text-sm text-gray-600">
+                          {product.weight_gsm ? (
+                            <>
+                              <span className="font-bold">{product.weight_gsm} g/m²</span> - {getGrammageDescription(product.weight_gsm)}
+                            </>
+                          ) : '100% coton bio certifié, tissage de haute qualité pour une durabilité optimale.'}
+                        </p>
+                      </div>
 
-                    <div>
-                      <h3 className="text-md font-semibold mb-1">Entretien</h3>
-                      <p className="text-sm text-gray-600">
-                        Lavage en machine à 30°C, ne pas utiliser d'eau de javel, séchage à basse température.
-                      </p>
+                      {/* Description */}
+                      <div>
+                        <h3 className="text-md font-semibold mb-1">Description</h3>
+                        <p className="text-sm text-gray-600">{product.description}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -675,8 +625,8 @@ export default function ProductDetail({ id }: { id: string }) {
                             v => v.size === size && matchesSelectedColor(v, selectedColor)
                           );
                           
-                          // Si la variante n'existe pas ou est en rupture de stock, ne pas l'afficher
-                          if (!variant || variant.stock_quantity <= 0) return null;
+                          // Afficher toutes les variantes, même celles en rupture de stock
+                          if (!variant) return null;
                           
                           return (
                             <div key={size} className="border border-gray-200 rounded-lg p-2 hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm">
@@ -702,17 +652,14 @@ export default function ProductDetail({ id }: { id: string }) {
                                     className="w-12 h-8 text-center font-bold text-sm text-gray-800 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500" 
                                     value={sizeQuantities[size] || 0}
                                     min="0"
-                                    max={variant.stock_quantity}
                                     onChange={(e) => {
                                       const newValue = parseInt(e.target.value) || 0;
-                                      if (newValue >= 0 && newValue <= variant.stock_quantity) {
+                                      if (newValue >= 0) {
                                         setSizeQuantities(prev => ({
                                           ...prev,
                                           [size]: newValue
                                         }));
                                         setStockError('');
-                                      } else if (newValue > variant.stock_quantity) {
-                                        setStockError(`Stock insuffisant pour la taille ${size}. Maximum: ${variant.stock_quantity}`);
                                       }
                                     }}
                                   />
@@ -720,13 +667,8 @@ export default function ProductDetail({ id }: { id: string }) {
                                 
                                 <button
                                   type="button"
-                                  className={`w-8 h-8 flex items-center justify-center rounded-full ${
-                                    variant.stock_quantity <= (sizeQuantities[size] || 0) 
-                                      ? 'bg-gray-100 text-gray-400' 
-                                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                                  } transition-colors`}
+                                  className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
                                   onClick={() => increaseQuantity(size)}
-                                  disabled={variant.stock_quantity <= (sizeQuantities[size] || 0)}
                                 >
                                   <span className="text-sm font-bold">+</span>
                                 </button>

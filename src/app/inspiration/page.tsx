@@ -14,20 +14,6 @@ interface Inspiration {
   created_at: string;
 }
 
-// Composant pour les courbes souriantes (repris de la page d'accueil)
-const SmileCurve = ({ className, color = "text-white", rotate = false }: { className: string; color?: string; rotate?: boolean }) => (
-  <svg 
-    viewBox="0 0 1200 120" 
-    preserveAspectRatio="none" 
-    className={`${className} ${color} ${rotate ? 'transform rotate-180' : ''}`}
-  >
-    <path 
-      d="M0,120 L1200,120 L1200,60 C1000,100 800,120 600,80 C400,40 200,60 0,80 L0,120 Z" 
-      fill="currentColor" 
-    />
-  </svg>
-);
-
 // Composant Modal pour afficher les images en plein écran
 const FullScreenModal = ({ isOpen, onClose, inspiration }: { isOpen: boolean; onClose: () => void; inspiration: Inspiration | null }) => {
   if (!isOpen || !inspiration) return null;

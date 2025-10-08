@@ -25,7 +25,8 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Non autorisé' }, { status: 401 });
     }
     
-    const id = params.id;
+    // Utiliser params.id de manière sécurisée
+    const { id } = params;
     console.log(`API: Récupération du produit avec l'ID: ${id}`);
     
     if (!id) {
@@ -60,10 +61,25 @@ export async function GET(
       // Continuer même en cas d'erreur pour les variantes
     }
     
+    // Récupérer les images du produit
+    const { data: images, error: imagesError } = await supabaseAdmin
+      .from('product_images')
+      .select('*')
+      .eq('product_id', id)
+      .order('position', { ascending: true });
+    
+    if (imagesError) {
+      console.error(`API: Erreur lors de la récupération des images du produit ${id}:`, imagesError);
+      // Continuer même en cas d'erreur pour les images
+    }
+    
     return NextResponse.json({
       success: true,
-      product,
-      variants: variants || []
+      product: {
+        ...product,
+        variants: variants || [],
+        images: images || []
+      }
     });
     
   } catch (err) {

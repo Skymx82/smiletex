@@ -120,6 +120,57 @@ export async function updateProductVariant(id: string, updates: Partial<ProductV
 }
 
 /**
+ * Supprime une variante de produit
+ */
+export async function deleteProductVariant(id: string): Promise<boolean> {
+  try {
+    // Vérifier d'abord si la variante existe
+    const { data: variant, error: fetchError } = await supabase
+      .from('product_variants')
+      .select('id')
+      .eq('id', id)
+      .single();
+    
+    if (fetchError) {
+      console.error(`Erreur lors de la vérification de la variante ${id}:`, fetchError);
+      return false;
+    }
+    
+    if (!variant) {
+      console.error(`Variante ${id} non trouvée`);
+      return false;
+    }
+    
+    // Supprimer les entrées dans cart_items qui référencent cette variante
+    const { error: cartItemsError } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('product_variant_id', id);
+    
+    if (cartItemsError) {
+      console.error(`Erreur lors de la suppression des cart_items liés à la variante ${id}:`, cartItemsError);
+      // Continuer même en cas d'erreur
+    }
+    
+    // Supprimer la variante
+    const { error } = await supabase
+      .from('product_variants')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error(`Erreur lors de la suppression de la variante ${id}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error(`Exception non gérée lors de la suppression de la variante ${id}:`, err);
+    return false;
+  }
+}
+
+/**
  * Supprime un produit et toutes ses variantes
  */
 export async function deleteProduct(id: string): Promise<boolean> {
@@ -534,4 +585,50 @@ export async function updateProductImagesOrder(images: { id: string, position: n
   }
 }
 
-
+/**
+ * Remplace une image de produit existante
+ * 
+ * Cette fonction télécharge une nouvelle image et met à jour l'entrée existante dans la base de données
+ */
+export async function replaceProductImage(imageId: string, file: File): Promise<boolean> {
+  try {
+    // Récupérer d'abord les informations sur l'image existante
+    const { data: existingImage, error: fetchError } = await supabase
+      .from('product_images')
+      .select('*')
+      .eq('id', imageId)
+      .single();
+    
+    if (fetchError || !existingImage) {
+      console.error(`Error fetching image ${imageId} for replacement:`, fetchError);
+      return false;
+    }
+    
+    // Générer un nouveau nom de fichier
+    const fileName = `product_${existingImage.product_id}_${Date.now()}_replacement_${file.name.replace(/\s+/g, '_')}`;
+    
+    // Télécharger la nouvelle image
+    const imageUrl = await uploadProductImage(file, fileName);
+    
+    if (!imageUrl) {
+      console.error(`Error uploading replacement image for ${imageId}`);
+      return false;
+    }
+    
+    // Mettre à jour l'entrée dans la base de données avec la nouvelle URL
+    const { error: updateError } = await supabase
+      .from('product_images')
+      .update({ image_url: imageUrl })
+      .eq('id', imageId);
+    
+    if (updateError) {
+      console.error(`Error updating image ${imageId} with new URL:`, updateError);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Unexpected error in replaceProductImage:', err);
+    return false;
+  }
+}

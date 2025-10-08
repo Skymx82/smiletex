@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Product, Category } from '@/lib/products';
+import { Product, Category, ProductImage, ProductVariant } from '@/lib/products';
 import { uploadProductImage } from '@/lib/supabase/services/adminService';
+import ProductAllImagesManager from './ProductAllImagesManager';
+import ProductVariantsManager from './ProductVariantsManager';
 
 interface ProductFormProps {
   initialProduct?: Partial<Product>;
@@ -159,51 +161,119 @@ export default function ProductForm({ initialProduct, categories, onSubmit, isSu
         </div>
       </div>
       
-      {/* Image du produit */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-lg font-medium mb-4">Image du produit</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
-              Image
-            </label>
-            <input
-              type="file"
-              id="image"
-              name="image"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full p-2 border rounded-md"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Formats acceptés : JPG, PNG. Taille maximale : 5 MB
+      {/* Images et variantes du produit */}
+      {initialProduct?.id ? (
+        <div className="space-y-6">
+          {/* Toutes les images du produit */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-medium mb-4">Images du produit</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Gérez toutes les images du produit, regroupées par variante.
             </p>
+            
+            <ProductAllImagesManager
+              productId={initialProduct.id}
+              initialImages={initialProduct.images || []}
+              variants={initialProduct.variants || []}
+              onImagesChange={(updatedImages: ProductImage[]) => {
+                // Mettre à jour l'image principale du produit si nécessaire
+                const primaryImage = updatedImages.find((img: ProductImage) => img.is_primary && img.variant_id === null);
+                if (primaryImage) {
+                  setProduct(prev => ({
+                    ...prev,
+                    image_url: primaryImage.image_url
+                  }));
+                }
+                
+                // Mettre à jour le produit avec toutes les images
+                setProduct(prev => ({
+                  ...prev,
+                  images: updatedImages
+                }));
+              }}
+            />
           </div>
           
-          <div className="flex items-center justify-center">
-            {imagePreview ? (
-              <div className="relative h-40 w-40 border rounded-md overflow-hidden">
-                <Image
-                  src={imagePreview}
-                  alt="Prévisualisation du produit"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div className="h-40 w-40 border rounded-md flex items-center justify-center bg-gray-100">
-                <span className="text-gray-400">Aucune image</span>
-              </div>
-            )}
+          {/* Gestion des variantes */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-medium mb-4">Variantes du produit</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Gérez les différentes variantes (tailles, couleurs) de votre produit.
+            </p>
+            
+            <ProductVariantsManager
+              productId={initialProduct.id}
+              initialVariants={initialProduct.variants || []}
+              initialImages={initialProduct.images || []}
+              onVariantsChange={(updatedVariants: ProductVariant[]) => {
+                // Mettre à jour le produit avec les variantes
+                setProduct(prev => ({
+                  ...prev,
+                  variants: updatedVariants
+                }));
+              }}
+              onImagesChange={(updatedVariantImages: ProductImage[]) => {
+                // Conserver les images générales du produit
+                const generalImages = (initialProduct.images || []).filter(img => img.variant_id === null);
+                const allImages = [...generalImages, ...updatedVariantImages];
+                
+                // Mettre à jour le produit avec toutes les images
+                setProduct(prev => ({
+                  ...prev,
+                  images: allImages
+                }));
+              }}
+            />
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-lg font-medium mb-4">Image principale</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Ajoutez une image principale pour votre produit. Vous pourrez ajouter d'autres images et gérer les variantes après avoir créé le produit.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+                Image principale
+              </label>
+              <input
+                type="file"
+                id="image"
+                name="image"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full p-2 border rounded-md"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Formats acceptés : JPG, PNG. Taille maximale : 5 MB
+              </p>
+            </div>
+            
+            <div className="flex items-center justify-center">
+              {imagePreview ? (
+                <div className="relative h-40 w-40 border rounded-md overflow-hidden">
+                  <Image
+                    src={imagePreview}
+                    alt="Prévisualisation du produit"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-40 w-40 border rounded-md flex items-center justify-center bg-gray-100">
+                  <span className="text-gray-400">Aucune image</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Caractéristiques techniques */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-lg font-medium mb-4">Caractéristiques techniques</h2>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="weight_gsm" className="block text-sm font-medium text-gray-700 mb-1">
